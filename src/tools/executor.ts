@@ -27,7 +27,7 @@ export async function executeTool(
     const result = await tool.execute(input);
     return {
       tool_use_id: toolUseId,
-      content: result,
+      content: typeof result === "string" ? result : JSON.stringify(result),
       is_error: false,
     };
   } catch (err: any) {

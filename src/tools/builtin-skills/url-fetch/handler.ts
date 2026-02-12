@@ -8,6 +8,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       Accept: "text/html, application/json, text/plain, */*",
     },
     redirect: "follow",
+    signal: AbortSignal.timeout(30000),
   });
 
   if (!res.ok) {

@@ -8,6 +8,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
     headers: {
       "User-Agent": "Orba/1.0",
     },
+    signal: AbortSignal.timeout(15000),
   });
 
   if (!res.ok) {

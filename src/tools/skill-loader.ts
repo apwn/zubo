@@ -98,7 +98,9 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
       const mdContent = readFileSync(skillMdPath, "utf-8");
       const skill = parseSkillMd(mdContent, dirPath);
       if (!skill) {
-        logger.warn(`Skipping skill in ${entry}: invalid SKILL.md`);
+        logger.warn(
+          `Skipping skill in ${entry}: invalid SKILL.md (name must match [a-z0-9_], description required)`
+        );
         continue;
       }
 
