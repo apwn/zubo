@@ -1,6 +1,7 @@
 import { paths, ensureDirectories } from "./config/paths";
 import { saveConfig } from "./config/loader";
 import { configSchema } from "./config/schema";
+import type { ProviderConfig } from "./config/schema";
 import { getDb } from "./db/connection";
 import { runMigrations } from "./db/migrations";
 import { logger } from "./util/logger";
@@ -14,19 +15,205 @@ async function prompt(question: string): Promise<string> {
   return "";
 }
 
+interface ProviderOption {
+  key: string;
+  label: string;
+  setup: () => Promise<{ name: string; config: ProviderConfig }>;
+}
+
+const PROVIDER_OPTIONS: ProviderOption[] = [
+  {
+    key: "1",
+    label: "Anthropic (Claude)",
+    setup: async () => {
+      const apiKey = await prompt("Anthropic API key (sk-ant-...): ");
+      if (!apiKey.startsWith("sk-ant-")) {
+        console.log("Warning: Key doesn't start with 'sk-ant-'. Proceeding anyway.");
+      }
+      const model = await prompt("Model [claude-sonnet-4-5-20250929]: ");
+      return {
+        name: "anthropic",
+        config: { apiKey, model: model || "claude-sonnet-4-5-20250929" },
+      };
+    },
+  },
+  {
+    key: "2",
+    label: "OpenAI (GPT)",
+    setup: async () => {
+      const apiKey = await prompt("OpenAI API key (sk-...): ");
+      const model = await prompt("Model [gpt-4o]: ");
+      return {
+        name: "openai",
+        config: { apiKey, model: model || "gpt-4o" },
+      };
+    },
+  },
+  {
+    key: "3",
+    label: "Ollama (local)",
+    setup: async () => {
+      const baseUrl = await prompt("Ollama URL [http://localhost:11434/v1]: ");
+      const model = await prompt("Model [llama3.3]: ");
+      return {
+        name: "ollama",
+        config: {
+          baseUrl: baseUrl || "http://localhost:11434/v1",
+          apiKey: "ollama",
+          model: model || "llama3.3",
+          streaming: false,
+        },
+      };
+    },
+  },
+  {
+    key: "4",
+    label: "Groq",
+    setup: async () => {
+      const apiKey = await prompt("Groq API key (gsk_...): ");
+      const model = await prompt("Model [llama-3.3-70b-versatile]: ");
+      return {
+        name: "groq",
+        config: { apiKey, model: model || "llama-3.3-70b-versatile" },
+      };
+    },
+  },
+  {
+    key: "5",
+    label: "Together AI",
+    setup: async () => {
+      const apiKey = await prompt("Together API key: ");
+      const model = await prompt("Model [meta-llama/Llama-3.3-70B-Instruct-Turbo]: ");
+      return {
+        name: "together",
+        config: {
+          apiKey,
+          baseUrl: "https://api.together.xyz/v1",
+          model: model || "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        },
+      };
+    },
+  },
+  {
+    key: "6",
+    label: "OpenRouter",
+    setup: async () => {
+      const apiKey = await prompt("OpenRouter API key: ");
+      const model = await prompt("Model [anthropic/claude-sonnet-4-5]: ");
+      return {
+        name: "openrouter",
+        config: {
+          apiKey,
+          baseUrl: "https://openrouter.ai/api/v1",
+          model: model || "anthropic/claude-sonnet-4-5",
+        },
+      };
+    },
+  },
+  {
+    key: "7",
+    label: "LM Studio (local)",
+    setup: async () => {
+      const baseUrl = await prompt("LM Studio URL [http://localhost:1234/v1]: ");
+      const model = await prompt("Model name: ");
+      return {
+        name: "lmstudio",
+        config: {
+          baseUrl: baseUrl || "http://localhost:1234/v1",
+          apiKey: "lm-studio",
+          model: model || "default",
+        },
+      };
+    },
+  },
+  {
+    key: "8",
+    label: "Other (OpenAI-compatible)",
+    setup: async () => {
+      const name = await prompt("Provider name: ");
+      const baseUrl = await prompt("Base URL (e.g. https://api.example.com/v1): ");
+      const apiKey = await prompt("API key (or 'none'): ");
+      const model = await prompt("Model name: ");
+      return {
+        name: name || "custom",
+        config: {
+          baseUrl,
+          apiKey: apiKey === "none" ? undefined : apiKey,
+          model: model || "default",
+        },
+      };
+    },
+  },
+];
+
+function printProviderMenu() {
+  for (const opt of PROVIDER_OPTIONS) {
+    console.log(`  ${opt.key}. ${opt.label}`);
+  }
+  console.log("");
+}
+
+async function pickProvider(): Promise<{ name: string; config: ProviderConfig } | null> {
+  const maxKey = PROVIDER_OPTIONS.length;
+  const choice = await prompt(`Provider [1-${maxKey}]: `);
+  const option = PROVIDER_OPTIONS.find((o) => o.key === choice);
+  if (!option) return null;
+  console.log("");
+  return option.setup();
+}
+
+async function setupProvider(): Promise<{
+  providers: Record<string, ProviderConfig>;
+  activeProvider: string;
+  anthropicApiKey?: string;
+}> {
+  console.log("Choose your LLM provider:\n");
+  printProviderMenu();
+
+  const result = await pickProvider();
+  if (!result) {
+    console.log("Invalid choice. Defaulting to Anthropic.\n");
+    const apiKey = await prompt("Anthropic API key (sk-ant-...): ");
+    const model = "claude-sonnet-4-5-20250929";
+    return {
+      providers: { anthropic: { apiKey, model } },
+      activeProvider: "anthropic",
+      anthropicApiKey: apiKey,
+    };
+  }
+
+  const providers: Record<string, ProviderConfig> = {
+    [result.name]: result.config,
+  };
+  const anthropicApiKey =
+    result.name === "anthropic" ? result.config.apiKey : undefined;
+
+  console.log(`\n✓ ${result.name} configured (${result.config.model})`);
+
+  // Offer to add a fallback
+  const addFallback = await prompt("\nAdd a fallback provider? (y/N): ");
+  if (addFallback.toLowerCase() === "y") {
+    console.log("\nFallback provider:\n");
+    printProviderMenu();
+    const fb = await pickProvider();
+    if (fb) {
+      providers[fb.name] = fb.config;
+      console.log(`✓ ${fb.name} added as fallback (${fb.config.model})`);
+    }
+  }
+
+  return { providers, activeProvider: result.name, anthropicApiKey };
+}
+
 export async function runSetup() {
   console.log("\n  Orba Setup Wizard\n");
   console.log("This will configure your Orba agent.\n");
 
-  // 1. Anthropic API key
-  const anthropicApiKey = await prompt(
-    "Anthropic API key (sk-ant-...): "
-  );
-  if (!anthropicApiKey.startsWith("sk-ant-")) {
-    console.log(
-      "Warning: Key doesn't start with 'sk-ant-'. Proceeding anyway.\n"
-    );
-  }
+  // 1. LLM provider
+  const { providers, activeProvider, anthropicApiKey } = await setupProvider();
+
+  // Build failover list from extra providers
+  const failover = Object.keys(providers).filter((k) => k !== activeProvider);
 
   // 2. Telegram bot token
   console.log("\nTo create a Telegram bot:");
@@ -42,7 +229,16 @@ export async function runSetup() {
 
   // 4. Write config
   const config = configSchema.parse({
+    // Legacy compat
     anthropicApiKey,
+    model: providers[activeProvider].model,
+
+    // New provider system
+    providers,
+    activeProvider,
+    failover: failover.length ? failover : undefined,
+
+    // Telegram
     telegramBotToken,
     telegramAllowedUsers: [],
   });

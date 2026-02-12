@@ -30,6 +30,11 @@ switch (command) {
     await showLogs(follow);
     break;
   }
+  case "model": {
+    const { runModelCommand } = await import("./model");
+    runModelCommand(process.argv.slice(3));
+    break;
+  }
   default:
     console.log("Usage: bun run src/index.ts <command>\n");
     console.log("Commands:");
@@ -40,5 +45,8 @@ switch (command) {
     console.log("  status             Show config and runtime status");
     console.log("  logs               Show last 50 log lines");
     console.log("  logs --follow      Stream logs live");
+    console.log("  model              Show active LLM provider/model");
+    console.log("  model <p/m>        Switch provider/model (e.g. ollama/llama3.3)");
+    console.log("  model --list       List all configured providers");
     process.exit(1);
 }

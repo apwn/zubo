@@ -10,6 +10,7 @@
     "status": "bun run src/index.ts status",
     "logs": "bun run src/index.ts logs",
     "logs:follow": "bun run src/index.ts logs --follow",
+    "model": "bun run src/index.ts model",
     "dev": "bun run --watch src/index.ts start"
   },
   "dependencies": {

@@ -34,5 +34,7 @@ export interface LlmResponse {
 }
 
 export interface LlmProvider {
+  providerName: string;
+  model: string;
   chat(request: LlmRequest): Promise<LlmResponse>;
 }

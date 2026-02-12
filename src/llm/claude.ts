@@ -8,8 +8,9 @@ import type {
 import { logger } from "../util/logger";
 
 export class ClaudeProvider implements LlmProvider {
+  providerName = "anthropic";
+  model: string;
   private client: Anthropic;
-  private model: string;
 
   constructor(apiKey: string, model: string) {
     this.client = new Anthropic({ apiKey });

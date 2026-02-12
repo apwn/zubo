@@ -3,7 +3,7 @@ import { loadConfig } from "./config/loader";
 import { ensureDirectories, paths } from "./config/paths";
 import { getDb, closeDb } from "./db/connection";
 import { runMigrations } from "./db/migrations";
-import { ClaudeProvider } from "./llm/claude";
+import { createProvider } from "./llm/factory";
 import { registerDatetimeTool } from "./tools/builtin/datetime";
 import { registerMemoryWriteTool } from "./tools/builtin/memory-write";
 import { registerMemorySearchTool } from "./tools/builtin/memory-search";
@@ -35,7 +35,7 @@ export async function startOrba(isDaemon = false) {
   await initMemory(db);
 
   // Init LLM
-  const llm = new ClaudeProvider(config.anthropicApiKey, config.model);
+  const llm = createProvider(config);
 
   // Register tools
   registerDatetimeTool();

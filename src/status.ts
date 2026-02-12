@@ -52,6 +52,22 @@ export function showStatus() {
     console.log("  Database:  not found");
   }
 
+  // LLM Provider
+  if (configExists()) {
+    try {
+      const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+      if (config.providers && config.activeProvider) {
+        const active = config.providers[config.activeProvider];
+        const failover = config.failover?.length
+          ? ` → ${config.failover.join(", ")}`
+          : "";
+        console.log(`  Provider:  ${config.activeProvider}/${active?.model ?? "?"}${failover}`);
+      } else if (config.anthropicApiKey) {
+        console.log(`  Provider:  anthropic/${config.model ?? "claude-sonnet-4-5-20250929"} (legacy)`);
+      }
+    } catch {}
+  }
+
   // SYSTEM.md
   if (existsSync(paths.systemPrompt)) {
     console.log("  Prompt:    ~/.orba/workspace/SYSTEM.md ✓");
