@@ -19,6 +19,10 @@ export function getAllToolDefs(): LlmToolDef[] {
   return Array.from(tools.values()).map((t) => t.definition);
 }
 
+export function unregisterTool(name: string): boolean {
+  return tools.delete(name);
+}
+
 export function getAllTools(): Map<string, ToolHandler> {
   return tools;
 }

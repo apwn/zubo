@@ -8,6 +8,7 @@ import { createProvider } from "./llm/factory";
 import { registerDatetimeTool } from "./tools/builtin/datetime";
 import { registerMemoryWriteTool } from "./tools/builtin/memory-write";
 import { registerMemorySearchTool } from "./tools/builtin/memory-search";
+import { registerManageSkillsTool } from "./tools/builtin/manage-skills";
 import { loadSkills } from "./tools/skill-loader";
 import { createRouter, type MessageRouter } from "./channels/router";
 import { startHeartbeat } from "./scheduler/heartbeat";
@@ -128,6 +129,7 @@ export async function startOrba(isDaemon = false) {
   registerDatetimeTool();
   registerMemoryWriteTool();
   registerMemorySearchTool(db);
+  registerManageSkillsTool();
 
   // Load skills
   try {

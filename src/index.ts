@@ -37,7 +37,7 @@ switch (command) {
   }
   case "skills": {
     const { runSkillsCommand } = await import("./skills");
-    runSkillsCommand();
+    await runSkillsCommand(process.argv.slice(3));
     break;
   }
   default:
@@ -53,6 +53,10 @@ switch (command) {
     console.log("  model              Show active LLM provider/model");
     console.log("  model <p/m>        Switch provider/model (e.g. ollama/llama3.3)");
     console.log("  model --list       List all configured providers");
-    console.log("  skills             List installed skills");
+    console.log("  skills             Manage skills (interactive menu)");
+    console.log("  skills list        List installed skills");
+    console.log("  skills new         Create a new skill");
+    console.log("  skills reinstall   Reinstall built-in skills");
+    console.log("  skills remove      Remove a skill");
     process.exit(1);
 }
