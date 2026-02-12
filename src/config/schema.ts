@@ -9,19 +9,45 @@ const providerConfigSchema = z.object({
 
 export type ProviderConfig = z.infer<typeof providerConfigSchema>;
 
+const channelsConfigSchema = z.object({
+  telegram: z
+    .object({
+      enabled: z.boolean().default(true),
+      botToken: z.string().min(1),
+      allowedUsers: z.array(z.number()).default([]),
+    })
+    .optional(),
+  discord: z
+    .object({
+      enabled: z.boolean().default(true),
+      botToken: z.string().min(1),
+      allowedUsers: z.array(z.string()).default([]),
+    })
+    .optional(),
+  webchat: z
+    .object({
+      enabled: z.boolean().default(true),
+      port: z.number().default(3000),
+    })
+    .optional(),
+});
+
+export type ChannelsConfig = z.infer<typeof channelsConfigSchema>;
+
 export const configSchema = z.object({
   // Legacy fields (still work for backward compat)
   anthropicApiKey: z.string().optional(),
   model: z.string().optional(),
+  telegramBotToken: z.string().optional(),
+  telegramAllowedUsers: z.array(z.number()).default([]),
 
   // Multi-provider system
   providers: z.record(z.string(), providerConfigSchema).optional(),
   activeProvider: z.string().optional(),
   failover: z.array(z.string()).optional(),
 
-  // Telegram
-  telegramBotToken: z.string().min(1),
-  telegramAllowedUsers: z.array(z.number()).default([]),
+  // Multi-channel system
+  channels: channelsConfigSchema.optional(),
 
   // Agent
   maxTurns: z.number().default(50),

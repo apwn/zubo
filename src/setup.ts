@@ -205,6 +205,62 @@ async function setupProvider(): Promise<{
   return { providers, activeProvider: result.name, anthropicApiKey };
 }
 
+async function setupChannels(): Promise<{
+  channels: Record<string, any>;
+  telegramBotToken?: string;
+}> {
+  console.log("Which channels do you want to enable?\n");
+  console.log("  1. Telegram");
+  console.log("  2. Discord");
+  console.log("  3. WebChat (local browser UI)");
+  console.log("");
+  console.log("Enter numbers separated by commas, e.g. 1,3\n");
+
+  const choices = await prompt("Channels [1]: ");
+  const selected = choices
+    ? choices.split(",").map((s) => s.trim())
+    : ["1"];
+
+  const channels: Record<string, any> = {};
+  let telegramBotToken: string | undefined;
+
+  if (selected.includes("1")) {
+    console.log("\nTo create a Telegram bot:");
+    console.log("  1. Open Telegram and message @BotFather");
+    console.log("  2. Send /newbot and follow the prompts");
+    console.log("  3. Copy the bot token\n");
+    const token = await prompt("Telegram bot token: ");
+    channels.telegram = { enabled: true, botToken: token, allowedUsers: [] };
+    telegramBotToken = token;
+    console.log("✓ Telegram configured");
+  }
+
+  if (selected.includes("2")) {
+    console.log("\nTo create a Discord bot:");
+    console.log("  1. Go to https://discord.com/developers/applications");
+    console.log("  2. Create an application → Bot → copy token");
+    console.log("  3. Enable MESSAGE CONTENT intent");
+    console.log("  4. Invite bot with messages scope\n");
+    const token = await prompt("Discord bot token: ");
+    channels.discord = { enabled: true, botToken: token, allowedUsers: [] };
+    console.log("✓ Discord configured");
+  }
+
+  if (selected.includes("3")) {
+    const portStr = await prompt("\nWebChat port [3000]: ");
+    const port = parseInt(portStr, 10) || 3000;
+    channels.webchat = { enabled: true, port };
+    console.log(`✓ WebChat configured on port ${port}`);
+  }
+
+  if (Object.keys(channels).length === 0) {
+    console.log("\nNo channels selected. Defaulting to WebChat on port 3000.");
+    channels.webchat = { enabled: true, port: 3000 };
+  }
+
+  return { channels, telegramBotToken };
+}
+
 export async function runSetup() {
   console.log("\n  Orba Setup Wizard\n");
   console.log("This will configure your Orba agent.\n");
@@ -215,13 +271,8 @@ export async function runSetup() {
   // Build failover list from extra providers
   const failover = Object.keys(providers).filter((k) => k !== activeProvider);
 
-  // 2. Telegram bot token
-  console.log("\nTo create a Telegram bot:");
-  console.log("  1. Open Telegram and message @BotFather");
-  console.log("  2. Send /newbot and follow the prompts");
-  console.log("  3. Copy the bot token\n");
-
-  const telegramBotToken = await prompt("Telegram bot token: ");
+  // 2. Channels
+  const { channels, telegramBotToken } = await setupChannels();
 
   // 3. Create directory tree
   console.log("\nCreating ~/.orba/ directory tree...");
@@ -232,15 +283,16 @@ export async function runSetup() {
     // Legacy compat
     anthropicApiKey,
     model: providers[activeProvider].model,
+    telegramBotToken,
+    telegramAllowedUsers: [],
 
     // New provider system
     providers,
     activeProvider,
     failover: failover.length ? failover : undefined,
 
-    // Telegram
-    telegramBotToken,
-    telegramAllowedUsers: [],
+    // Channels
+    channels,
   });
   await saveConfig(config);
   console.log(`Config saved to ${paths.config}`);

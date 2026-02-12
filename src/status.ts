@@ -68,6 +68,24 @@ export function showStatus() {
     } catch {}
   }
 
+  // Channels
+  if (configExists()) {
+    try {
+      const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+      const active: string[] = [];
+      if (config.channels?.telegram?.enabled !== false && (config.channels?.telegram?.botToken || config.telegramBotToken)) {
+        active.push("telegram");
+      }
+      if (config.channels?.discord?.enabled !== false && config.channels?.discord?.botToken) {
+        active.push("discord");
+      }
+      if (config.channels?.webchat?.enabled !== false && config.channels?.webchat) {
+        active.push(`webchat(:${config.channels.webchat.port ?? 3000})`);
+      }
+      console.log(`  Channels:  ${active.length ? active.join(", ") : "none"}`);
+    } catch {}
+  }
+
   // SYSTEM.md
   if (existsSync(paths.systemPrompt)) {
     console.log("  Prompt:    ~/.orba/workspace/SYSTEM.md ✓");

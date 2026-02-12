@@ -1,18 +1,87 @@
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import { loadConfig } from "./config/loader";
 import { ensureDirectories, paths } from "./config/paths";
+import type { OrbaConfig } from "./config/schema";
 import { getDb, closeDb } from "./db/connection";
 import { runMigrations } from "./db/migrations";
 import { createProvider } from "./llm/factory";
 import { registerDatetimeTool } from "./tools/builtin/datetime";
 import { registerMemoryWriteTool } from "./tools/builtin/memory-write";
 import { registerMemorySearchTool } from "./tools/builtin/memory-search";
-import { createTelegramAdapter } from "./channels/telegram";
-import { createRouter } from "./channels/router";
+import { createRouter, type MessageRouter } from "./channels/router";
 import { startHeartbeat } from "./scheduler/heartbeat";
 import { initCronScheduler } from "./scheduler/cron";
 import { initMemory } from "./memory/engine";
 import { logger, enableFileLogging } from "./util/logger";
+
+function getTelegramToken(config: OrbaConfig): string | null {
+  if (config.channels?.telegram?.enabled !== false && config.channels?.telegram?.botToken) {
+    return config.channels.telegram.botToken;
+  }
+  // Legacy fallback
+  if (config.telegramBotToken) {
+    return config.telegramBotToken;
+  }
+  return null;
+}
+
+function getTelegramAllowedUsers(config: OrbaConfig): number[] {
+  if (config.channels?.telegram?.allowedUsers?.length) {
+    return config.channels.telegram.allowedUsers;
+  }
+  return config.telegramAllowedUsers ?? [];
+}
+
+async function startChannels(config: OrbaConfig, router: MessageRouter) {
+  const stoppers: (() => void)[] = [];
+
+  // Telegram
+  const tgToken = getTelegramToken(config);
+  if (tgToken) {
+    const { createTelegramAdapter } = await import("./channels/telegram");
+    // Build a compat config object for the telegram adapter
+    const tgConfig = {
+      ...config,
+      telegramBotToken: tgToken,
+      telegramAllowedUsers: getTelegramAllowedUsers(config),
+    };
+    const telegram = createTelegramAdapter(tgToken, tgConfig, router);
+    router.addAdapter(telegram);
+    telegram.start();
+    stoppers.push(() => telegram.stop());
+    logger.info("Telegram channel started");
+  }
+
+  // Discord
+  if (config.channels?.discord?.enabled !== false && config.channels?.discord?.botToken) {
+    const { createDiscordAdapter } = await import("./channels/discord");
+    const discord = createDiscordAdapter(
+      config.channels.discord.botToken,
+      config.channels.discord.allowedUsers ?? [],
+      router
+    );
+    router.addAdapter(discord);
+    discord.start();
+    stoppers.push(() => discord.stop());
+    logger.info("Discord channel started");
+  }
+
+  // WebChat
+  if (config.channels?.webchat?.enabled !== false && config.channels?.webchat) {
+    const { createWebChatAdapter } = await import("./channels/webchat");
+    const webchat = createWebChatAdapter(
+      config.channels.webchat.port ?? 3000,
+      router
+    );
+    router.addAdapter(webchat);
+    webchat.start();
+    stoppers.push(() => webchat.stop());
+  }
+
+  return () => {
+    for (const stop of stoppers) stop();
+  };
+}
 
 export async function startOrba(isDaemon = false) {
   if (isDaemon) {
@@ -45,11 +114,8 @@ export async function startOrba(isDaemon = false) {
   // Create message router
   const router = createRouter(llm, db);
 
-  // Start Telegram and wire adapter into router for proactive messaging
-  const telegram = createTelegramAdapter(config.telegramBotToken, config, router);
-  router.setAdapter(telegram);
-  telegram.start();
-  logger.info("Telegram bot started");
+  // Start all configured channels
+  const stopChannels = await startChannels(config, router);
 
   // Start scheduler
   startHeartbeat();
@@ -61,7 +127,7 @@ export async function startOrba(isDaemon = false) {
   // Graceful shutdown
   const shutdown = () => {
     logger.info("Shutting down...");
-    telegram.stop();
+    stopChannels();
     closeDb();
     cleanupPidFile();
     process.exit(0);

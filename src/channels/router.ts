@@ -11,18 +11,37 @@ export interface MessageRouter {
     reply: (text: string) => Promise<void>
   ): Promise<void>;
   sendProactive(sessionKey: string, task: string): Promise<string>;
+  addAdapter(adapter: ChannelAdapter): void;
+  /** @deprecated Use addAdapter instead */
   setAdapter(adapter: ChannelAdapter): void;
+  stopAll(): void;
 }
 
 export function createRouter(
   llm: LlmProvider,
   db: Database
 ): MessageRouter {
-  let adapter: ChannelAdapter | null = null;
+  const adapters = new Map<string, ChannelAdapter>();
+
+  function getAdapterForSession(sessionKey: string): ChannelAdapter | null {
+    const channel = sessionKey.split(":")[0];
+    return adapters.get(channel) ?? null;
+  }
 
   return {
-    setAdapter(a: ChannelAdapter) {
-      adapter = a;
+    addAdapter(adapter: ChannelAdapter) {
+      adapters.set(adapter.channelName, adapter);
+    },
+
+    // Backward compat
+    setAdapter(adapter: ChannelAdapter) {
+      adapters.set(adapter.channelName, adapter);
+    },
+
+    stopAll() {
+      for (const adapter of adapters.values()) {
+        adapter.stop();
+      }
     },
 
     async handleMessage(message, reply) {
@@ -59,6 +78,7 @@ export function createRouter(
     async sendProactive(sessionKey, task) {
       try {
         const result = await agentLoop(llm, sessionKey, task);
+        const adapter = getAdapterForSession(sessionKey);
         if (adapter && result.reply) {
           await adapter.sendMessage(sessionKey, result.reply);
         }

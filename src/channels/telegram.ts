@@ -72,6 +72,7 @@ export function createTelegramAdapter(
   });
 
   return {
+    channelName: "telegram",
     start() {
       bot.start({
         onStart: (info) => {

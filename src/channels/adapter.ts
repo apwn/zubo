@@ -6,6 +6,7 @@ export interface InboundMessage {
 }
 
 export interface ChannelAdapter {
+  channelName: string;
   start(): void;
   stop(): void;
   sendMessage(sessionKey: string, text: string): Promise<void>;
