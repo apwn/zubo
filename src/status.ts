@@ -80,7 +80,8 @@ export function showStatus() {
         active.push("discord");
       }
       if (config.channels?.webchat?.enabled !== false && config.channels?.webchat) {
-        active.push(`webchat(:${config.channels.webchat.port ?? 3000})`);
+        const p = config.channels.webchat.port;
+        active.push(p ? `webchat(:${p})` : "webchat(auto)");
       }
       console.log(`  Channels:  ${active.length ? active.join(", ") : "none"}`);
     } catch {}

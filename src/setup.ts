@@ -247,15 +247,15 @@ async function setupChannels(): Promise<{
   }
 
   if (selected.includes("3")) {
-    const portStr = await prompt("\nWebChat port [3000]: ");
-    const port = parseInt(portStr, 10) || 3000;
+    const portStr = await prompt("\nWebChat port [auto]: ");
+    const port = parseInt(portStr, 10) || 0;
     channels.webchat = { enabled: true, port };
-    console.log(`✓ WebChat configured on port ${port}`);
+    console.log(`✓ WebChat configured${port ? ` on port ${port}` : " (auto port)"}`);
   }
 
   if (Object.keys(channels).length === 0) {
-    console.log("\nNo channels selected. Defaulting to WebChat on port 3000.");
-    channels.webchat = { enabled: true, port: 3000 };
+    console.log("\nNo channels selected. Defaulting to WebChat (auto port).");
+    channels.webchat = { enabled: true, port: 0 };
   }
 
   return { channels, telegramBotToken };

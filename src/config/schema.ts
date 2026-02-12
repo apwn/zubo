@@ -27,7 +27,7 @@ const channelsConfigSchema = z.object({
   webchat: z
     .object({
       enabled: z.boolean().default(true),
-      port: z.number().default(3000),
+      port: z.number().default(0),
     })
     .optional(),
 });

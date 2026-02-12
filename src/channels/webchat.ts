@@ -231,15 +231,23 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
   return null;
 }
 
+export interface WebChatAdapter extends ChannelAdapter {
+  getPort(): number;
+}
+
 export function createWebChatAdapter(
   port: number,
   router: MessageRouter
-): ChannelAdapter {
+): WebChatAdapter {
   let server: ReturnType<typeof Bun.serve> | null = null;
   const sessionKey = "webchat:local";
 
   return {
     channelName: "webchat",
+
+    getPort() {
+      return server?.port ?? port;
+    },
 
     start() {
       server = Bun.serve({
@@ -301,7 +309,7 @@ export function createWebChatAdapter(
         },
       });
 
-      logger.info(`WebChat + Dashboard at http://localhost:${port}`);
+      logger.info(`WebChat + Dashboard at http://localhost:${server.port}`);
     },
 
     stop() {

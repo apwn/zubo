@@ -80,15 +80,16 @@ async function startChannels(config: OrbaConfig, router: MessageRouter) {
 
   // WebChat + Dashboard
   if (config.channels?.webchat?.enabled !== false && config.channels?.webchat) {
-    const port = config.channels.webchat.port ?? 3000;
+    const requestedPort = config.channels.webchat.port ?? 0;
     const { createWebChatAdapter } = await import("./channels/webchat");
-    const webchat = createWebChatAdapter(port, router);
+    const webchat = createWebChatAdapter(requestedPort, router);
     router.addAdapter(webchat);
     webchat.start();
     stoppers.push(() => webchat.stop());
 
-    // Print URLs and auto-open browser
-    const url = `http://localhost:${port}`;
+    // Print URLs with the actual resolved port and auto-open browser
+    const actualPort = webchat.getPort();
+    const url = `http://localhost:${actualPort}`;
     console.log(`\n  Chat:      ${url}`);
     console.log(`  Dashboard: ${url}/dashboard\n`);
     openBrowser(url);
