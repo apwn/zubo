@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 export {};
 
 const command = process.argv[2];
@@ -41,7 +42,7 @@ switch (command) {
     break;
   }
   default:
-    console.log("Usage: bun run src/index.ts <command>\n");
+    console.log("Usage: orba <command>\n");
     console.log("Commands:");
     console.log("  setup              Configure Orba (API keys, Telegram token)");
     console.log("  start              Start the Orba agent");

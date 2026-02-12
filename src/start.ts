@@ -80,9 +80,9 @@ async function startChannels(config: OrbaConfig, router: MessageRouter) {
     logger.info("Discord channel started");
   }
 
-  // WebChat + Dashboard
-  if (config.channels?.webchat?.enabled !== false && config.channels?.webchat) {
-    const requestedPort = config.channels.webchat.port ?? 0;
+  // WebChat + Dashboard (always enabled)
+  if (config.channels?.webchat?.enabled !== false) {
+    const requestedPort = config.channels?.webchat?.port ?? 0;
     const { createWebChatAdapter } = await import("./channels/webchat");
     const webchat = createWebChatAdapter(requestedPort, router);
     router.addAdapter(webchat);
