@@ -16,6 +16,7 @@ export const paths = {
   logs: join(ZUBO_HOME, "logs"),
   logFile: join(ZUBO_HOME, "logs", "zubo.log"),
   skills: join(ZUBO_HOME, "workspace", "skills"),
+  agents: join(ZUBO_HOME, "workspace", "agents"),
   pidFile: join(ZUBO_HOME, "zubo.pid"),
 };
 
@@ -28,6 +29,7 @@ export function ensureDirectories() {
     paths.models,
     paths.logs,
     paths.skills,
+    paths.agents,
   ];
   for (const dir of dirs) {
     Bun.spawnSync(["mkdir", "-p", dir]);

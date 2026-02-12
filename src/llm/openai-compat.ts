@@ -14,7 +14,17 @@ export interface OpenAICompatOptions {
   model: string;
   maxTokens?: number;
   streaming?: boolean;
+  contextWindow?: number;
 }
+
+const DEFAULT_CONTEXT_WINDOWS: Record<string, number> = {
+  openai: 128_000,
+  groq: 128_000,
+  together: 32_000,
+  openrouter: 128_000,
+  ollama: 8_000,
+  lmstudio: 8_000,
+};
 
 interface OpenAIMessage {
   role: "system" | "user" | "assistant" | "tool";
@@ -41,6 +51,7 @@ interface OpenAITool {
 export class OpenAICompatProvider implements LlmProvider {
   providerName: string;
   model: string;
+  contextWindow: number;
   private baseUrl: string;
   private apiKey: string;
   private maxTokens: number;
@@ -53,6 +64,8 @@ export class OpenAICompatProvider implements LlmProvider {
     this.model = opts.model;
     this.maxTokens = opts.maxTokens ?? 4096;
     this.streaming = opts.streaming ?? true;
+    this.contextWindow =
+      opts.contextWindow ?? DEFAULT_CONTEXT_WINDOWS[opts.name] ?? 32_000;
   }
 
   async chat(request: LlmRequest): Promise<LlmResponse> {

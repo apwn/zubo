@@ -2,14 +2,19 @@ import type { LlmMessage } from "../llm/provider";
 import { estimateMessagesTokens } from "../util/tokens";
 import { logger } from "../util/logger";
 
-const MAX_CONTEXT_TOKENS = 150_000;
-const COMPACTION_TARGET = 100_000;
+const DEFAULT_CONTEXT_WINDOW = 150_000;
 
 /**
  * Trim messages if they exceed the context window.
  * Keeps the most recent messages, drops oldest.
  */
-export function compactMessages(messages: LlmMessage[]): LlmMessage[] {
+export function compactMessages(
+  messages: LlmMessage[],
+  contextWindow?: number
+): LlmMessage[] {
+  const maxTokens = contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+  const target = Math.floor(maxTokens * 0.66);
+
   let tokens = estimateMessagesTokens(
     messages.map((m) => ({
       role: m.role,
@@ -17,11 +22,12 @@ export function compactMessages(messages: LlmMessage[]): LlmMessage[] {
     }))
   );
 
-  if (tokens <= MAX_CONTEXT_TOKENS) return messages;
+  if (tokens <= maxTokens) return messages;
 
   logger.info("Compacting context", {
     currentTokens: tokens,
-    target: COMPACTION_TARGET,
+    target,
+    contextWindow: maxTokens,
   });
 
   // Drop messages from the front until under target
@@ -33,7 +39,7 @@ export function compactMessages(messages: LlmMessage[]): LlmMessage[] {
         role: m.role,
         content: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
       }))
-    ) > COMPACTION_TARGET
+    ) > target
   ) {
     compacted.shift();
   }

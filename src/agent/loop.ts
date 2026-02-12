@@ -4,6 +4,7 @@ import { executeTool } from "../tools/executor";
 import { appendMessage } from "./session";
 import { assembleContext } from "./context";
 import { compactMessages } from "./compaction";
+import { getDb } from "../db/connection";
 import { logger } from "../util/logger";
 
 const MAX_TOOL_ROUNDS = 10;
@@ -13,12 +14,28 @@ export interface LoopResult {
   toolCalls: number;
 }
 
+export interface AgentLoopOptions {
+  systemPromptOverride?: string;
+  allowedTools?: string[];
+  maxRounds?: number;
+  memories?: string;
+}
+
 export async function agentLoop(
   llm: LlmProvider,
   sessionId: string,
   userMessage: string,
-  memories: string = ""
+  memoriesOrOptions: string | AgentLoopOptions = ""
 ): Promise<LoopResult> {
+  // Backward-compatible: accept string (memories) or AgentLoopOptions
+  const options: AgentLoopOptions =
+    typeof memoriesOrOptions === "string"
+      ? { memories: memoriesOrOptions }
+      : memoriesOrOptions;
+
+  const memories = options.memories ?? "";
+  const maxRounds = options.maxRounds ?? MAX_TOOL_ROUNDS;
+
   // Persist user message
   appendMessage(sessionId, {
     role: "user",
@@ -27,13 +44,30 @@ export async function agentLoop(
   });
 
   // Assemble context
-  const ctx = assembleContext(sessionId, 50, memories);
-  let messages = compactMessages(ctx.messages);
-  const tools = getAllToolDefs();
+  const ctx = options.systemPromptOverride
+    ? { system: options.systemPromptOverride, messages: [] as LlmMessage[] }
+    : assembleContext(sessionId, 50, memories);
+
+  // If using a system prompt override but still need session history
+  if (options.systemPromptOverride) {
+    const { loadSession } = await import("./session");
+    ctx.messages = loadSession(sessionId, 50);
+    // Remove the user message we just appended (it's already in the messages from loadSession)
+    // Actually loadSession will include it since we already appended it
+  }
+
+  let messages = compactMessages(ctx.messages, llm.contextWindow);
+
+  // Filter tools if allowedTools is set
+  let tools = getAllToolDefs();
+  if (options.allowedTools) {
+    const allowed = new Set(options.allowedTools);
+    tools = tools.filter((t) => allowed.has(t.name));
+  }
 
   let totalToolCalls = 0;
 
-  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+  for (let round = 0; round < maxRounds; round++) {
     const response = await llm.chat({
       system: ctx.system,
       messages,
@@ -41,9 +75,28 @@ export async function agentLoop(
       maxTokens: 4096,
     });
 
-    logger.debug("Claude response", {
+    // Track usage
+    try {
+      const db = getDb();
+      db.prepare(
+        "INSERT INTO usage (session_id, provider, model, input_tokens, output_tokens) VALUES (?, ?, ?, ?, ?)"
+      ).run(
+        sessionId,
+        llm.providerName,
+        llm.model,
+        response.usage.inputTokens,
+        response.usage.outputTokens
+      );
+    } catch {
+      // Usage table may not exist yet; don't break the loop
+    }
+
+    logger.debug("LLM response", {
+      provider: llm.providerName,
       stopReason: response.stopReason,
       blocks: response.content.length,
+      inputTokens: response.usage.inputTokens,
+      outputTokens: response.usage.outputTokens,
     });
 
     // Extract text and tool_use blocks

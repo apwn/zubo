@@ -2,16 +2,19 @@ import { Cron } from "croner";
 import { Database } from "bun:sqlite";
 import type { MessageRouter } from "../channels/router";
 import type { ZuboConfig } from "../config/schema";
+import type { LlmProvider } from "../llm/provider";
 import { logger } from "../util/logger";
 
-interface CronJob {
+export interface CronJob {
   id: number;
   name: string;
   schedule: string;
   task: string;
   enabled: number;
+  last_run: string | null;
   retry_count: number;
   max_retries: number;
+  agent: string | null;
 }
 
 const activeCrons: Map<number, Cron> = new Map();
@@ -19,14 +22,15 @@ const activeCrons: Map<number, Cron> = new Map();
 export function initCronScheduler(
   db: Database,
   router: MessageRouter,
-  config: ZuboConfig
+  config: ZuboConfig,
+  llm?: LlmProvider
 ) {
   const jobs = db
     .query("SELECT * FROM cron_jobs WHERE enabled = 1")
     .all() as CronJob[];
 
   for (const job of jobs) {
-    scheduleJob(db, job, router, config);
+    scheduleJob(db, job, router, config, llm);
   }
 
   logger.info("Cron scheduler initialized", { jobCount: jobs.length });
@@ -43,7 +47,8 @@ function scheduleJob(
   db: Database,
   job: CronJob,
   router: MessageRouter,
-  config: ZuboConfig
+  config: ZuboConfig,
+  llm?: LlmProvider
 ) {
   if (activeCrons.has(job.id)) {
     activeCrons.get(job.id)!.stop();
@@ -69,7 +74,15 @@ function scheduleJob(
       const logId = Number(logResult.lastInsertRowid);
 
       try {
-        const reply = await router.sendProactive(sessionKey, job.task);
+        let reply: string;
+
+        // If job has an agent and we have an LLM provider, delegate to the agent
+        if (job.agent && llm) {
+          const { delegateToAgent } = await import("../agent/delegate");
+          reply = await delegateToAgent(llm, job.agent, job.task);
+        } else {
+          reply = await router.sendProactive(sessionKey, job.task);
+        }
 
         // Log success
         db.prepare(
@@ -80,6 +93,19 @@ function scheduleJob(
         db.prepare(
           "UPDATE cron_jobs SET last_run = datetime('now'), retry_count = 0 WHERE id = ?"
         ).run(job.id);
+
+        // Send result to owner if delegated to agent
+        if (job.agent && llm && reply) {
+          const adapter = router as any;
+          try {
+            // Try to send through router's proactive channel
+            const sessionAdapter = (router as any).adapters ?? (router as any);
+            // Simplified: just log that the agent completed. The reply is already logged.
+            logger.info(`Agent "${job.agent}" completed cron task "${job.name}"`);
+          } catch {
+            // Non-critical, reply is already logged
+          }
+        }
       } catch (err: any) {
         logger.error(`Cron job failed: ${job.name}`, { error: err.message });
 
@@ -124,13 +150,15 @@ export function addCronJob(
   schedule: string,
   task: string,
   router: MessageRouter,
-  config: ZuboConfig
+  config: ZuboConfig,
+  agent?: string,
+  llm?: LlmProvider
 ) {
   const result = db
     .prepare(
-      "INSERT INTO cron_jobs (name, schedule, task) VALUES (?, ?, ?)"
+      "INSERT INTO cron_jobs (name, schedule, task, agent) VALUES (?, ?, ?, ?)"
     )
-    .run(name, schedule, task);
+    .run(name, schedule, task, agent ?? null);
 
   const id = Number(result.lastInsertRowid);
   const job: CronJob = {
@@ -139,12 +167,37 @@ export function addCronJob(
     schedule,
     task,
     enabled: 1,
+    last_run: null,
     retry_count: 0,
     max_retries: 3,
+    agent: agent ?? null,
   };
 
-  scheduleJob(db, job, router, config);
-  logger.info(`Cron job added: ${name}`, { schedule, task });
+  scheduleJob(db, job, router, config, llm);
+  logger.info(`Cron job added: ${name}`, { schedule, task, agent });
+}
+
+export function removeCronJob(db: Database, name: string): boolean {
+  const job = db
+    .query("SELECT id FROM cron_jobs WHERE name = ?")
+    .get(name) as { id: number } | null;
+  if (!job) return false;
+
+  if (activeCrons.has(job.id)) {
+    activeCrons.get(job.id)!.stop();
+    activeCrons.delete(job.id);
+  }
+
+  db.prepare("DELETE FROM cron_logs WHERE job_id = ?").run(job.id);
+  db.prepare("DELETE FROM cron_jobs WHERE id = ?").run(job.id);
+  logger.info(`Cron job removed: ${name}`);
+  return true;
+}
+
+export function listCronJobs(db: Database): CronJob[] {
+  return db
+    .query("SELECT * FROM cron_jobs ORDER BY created_at DESC")
+    .all() as CronJob[];
 }
 
 export function stopAllCrons() {

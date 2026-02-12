@@ -10,6 +10,7 @@ import { logger } from "../util/logger";
 export class ClaudeProvider implements LlmProvider {
   providerName = "anthropic";
   model: string;
+  contextWindow = 200_000;
   private client: Anthropic;
 
   constructor(apiKey: string, model: string) {

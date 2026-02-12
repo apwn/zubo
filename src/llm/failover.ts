@@ -4,6 +4,7 @@ import { logger } from "../util/logger";
 export class FailoverProvider implements LlmProvider {
   providerName: string;
   model: string;
+  contextWindow: number;
 
   constructor(
     private primary: LlmProvider,
@@ -11,6 +12,7 @@ export class FailoverProvider implements LlmProvider {
   ) {
     this.providerName = primary.providerName;
     this.model = primary.model;
+    this.contextWindow = primary.contextWindow;
   }
 
   async chat(request: LlmRequest): Promise<LlmResponse> {

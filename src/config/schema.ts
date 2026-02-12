@@ -5,6 +5,7 @@ const providerConfigSchema = z.object({
   baseUrl: z.string().optional(),
   model: z.string(),
   streaming: z.boolean().optional(),
+  contextWindow: z.number().optional(),
 });
 
 export type ProviderConfig = z.infer<typeof providerConfigSchema>;

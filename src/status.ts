@@ -15,7 +15,19 @@ function isDaemonRunning(): { running: boolean; pid?: number } {
   }
 }
 
-function getDbStats(): { messages: number; memories: number } | null {
+interface UsageStat {
+  provider: string;
+  model: string;
+  total_input: number;
+  total_output: number;
+  calls: number;
+}
+
+function getDbStats(): {
+  messages: number;
+  memories: number;
+  usage: UsageStat[];
+} | null {
   if (!existsSync(paths.db)) return null;
   try {
     const { Database } = require("bun:sqlite");
@@ -26,8 +38,24 @@ function getDbStats(): { messages: number; memories: number } | null {
     const memories =
       (db.query("SELECT COUNT(*) as count FROM memory_chunks").get() as any)
         ?.count ?? 0;
+
+    let usage: UsageStat[] = [];
+    try {
+      usage = db
+        .query(
+          `SELECT provider, model,
+             SUM(input_tokens) as total_input,
+             SUM(output_tokens) as total_output,
+             COUNT(*) as calls
+           FROM usage GROUP BY provider, model`
+        )
+        .all() as UsageStat[];
+    } catch {
+      // usage table may not exist yet
+    }
+
     db.close();
-    return { messages, memories };
+    return { messages, memories, usage };
   } catch {
     return null;
   }
@@ -51,6 +79,17 @@ export function showStatus() {
     console.log(`  Memories:  ${stats.memories}`);
   } else {
     console.log("  Database:  not found");
+  }
+
+  // Usage
+  if (stats?.usage?.length) {
+    console.log("  Usage:");
+    for (const u of stats.usage) {
+      const total = u.total_input + u.total_output;
+      console.log(
+        `    ${u.provider}/${u.model}: ${u.calls} calls, ${total.toLocaleString()} tokens (${u.total_input.toLocaleString()} in / ${u.total_output.toLocaleString()} out)`
+      );
+    }
   }
 
   // LLM Provider

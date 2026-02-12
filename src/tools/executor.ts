@@ -1,4 +1,5 @@
 import { getTool } from "./registry";
+import { getToolPermission } from "./permissions";
 import { logger } from "../util/logger";
 
 export interface ToolResult {
@@ -22,9 +23,31 @@ export async function executeTool(
     };
   }
 
+  const permission = getToolPermission(name);
+
+  if (permission === "deny") {
+    logger.warn(`Tool denied: ${name}`);
+    return {
+      tool_use_id: toolUseId,
+      content: `Error: Tool '${name}' is not permitted.`,
+      is_error: true,
+    };
+  }
+
+  if (permission === "confirm" && !input._confirmed) {
+    const desc = JSON.stringify(input, null, 2);
+    logger.info(`Tool requires confirmation: ${name}`, { input });
+    return {
+      tool_use_id: toolUseId,
+      content: `CONFIRMATION REQUIRED — tool was NOT executed.\n\nTool: ${name}\nInput: ${desc}\n\nThis tool requires user approval before it can run. Describe this action to the user and ask for their permission. Once they approve, call this tool again with _confirmed set to true in the input.`,
+      is_error: false,
+    };
+  }
+
   try {
-    logger.info(`Executing tool: ${name}`, { input });
-    const result = await tool.execute(input);
+    const { _confirmed, ...cleanInput } = input;
+    logger.info(`Executing tool: ${name}`, { input: cleanInput });
+    const result = await tool.execute(cleanInput);
     return {
       tool_use_id: toolUseId,
       content: typeof result === "string" ? result : JSON.stringify(result),

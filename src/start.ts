@@ -9,6 +9,12 @@ import { registerDatetimeTool } from "./tools/builtin/datetime";
 import { registerMemoryWriteTool } from "./tools/builtin/memory-write";
 import { registerMemorySearchTool } from "./tools/builtin/memory-search";
 import { registerManageSkillsTool } from "./tools/builtin/manage-skills";
+import { registerCronTools } from "./tools/builtin/cron";
+import { registerSecretTools } from "./tools/builtin/secrets";
+import { registerConnectServiceTool } from "./tools/builtin/connect-service";
+import { registerDelegateTool } from "./tools/builtin/delegate";
+import { registerManageAgentsTool } from "./tools/builtin/manage-agents";
+import { exposeSecretsRuntime } from "./secrets/store";
 import { loadSkills } from "./tools/skill-loader";
 import { createRouter, type MessageRouter } from "./channels/router";
 import { startHeartbeat } from "./scheduler/heartbeat";
@@ -130,6 +136,9 @@ export async function startZubo(isDaemon = false) {
   registerMemoryWriteTool();
   registerMemorySearchTool(db);
   registerManageSkillsTool();
+  registerSecretTools();
+  exposeSecretsRuntime();
+  registerConnectServiceTool();
 
   // Load skills
   try {
@@ -146,12 +155,19 @@ export async function startZubo(isDaemon = false) {
   // Create message router
   const router = createRouter(llm, db);
 
+  // Register cron tools (need router for scheduling)
+  registerCronTools(db, router, config, llm);
+
+  // Register delegation tools
+  registerDelegateTool(llm);
+  registerManageAgentsTool();
+
   // Start all configured channels
   const stopChannels = await startChannels(config, router);
 
   // Start scheduler
   startHeartbeat();
-  initCronScheduler(db, router, config);
+  initCronScheduler(db, router, config, llm);
   logger.info("Scheduler started");
 
   logger.info("Zubo is running. Press Ctrl+C to stop.");

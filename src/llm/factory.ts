@@ -24,7 +24,9 @@ function buildSingleProvider(
     if (!providerCfg.apiKey) {
       throw new Error("Anthropic provider requires an apiKey");
     }
-    return new ClaudeProvider(providerCfg.apiKey, providerCfg.model);
+    const provider = new ClaudeProvider(providerCfg.apiKey, providerCfg.model);
+    if (providerCfg.contextWindow) provider.contextWindow = providerCfg.contextWindow;
+    return provider;
   }
 
   // Everything else goes through OpenAI-compatible
@@ -40,6 +42,7 @@ function buildSingleProvider(
     apiKey: providerCfg.apiKey ?? "no-key",
     model: providerCfg.model,
     streaming: providerCfg.streaming,
+    contextWindow: providerCfg.contextWindow,
   });
 }
 
