@@ -5,6 +5,9 @@ import { searchMemory } from "../memory/engine";
 import { logger } from "../util/logger";
 import { Database } from "bun:sqlite";
 
+/** All channels share one session file since Zubo is a single-owner agent. */
+const UNIFIED_SESSION = "owner";
+
 export interface MessageRouter {
   handleMessage(
     message: InboundMessage,
@@ -65,7 +68,7 @@ export function createRouter(
           }
         }
 
-        const result = await agentLoop(llm, sessionKey, text, memories);
+        const result = await agentLoop(llm, UNIFIED_SESSION, text, memories);
         if (result.reply) {
           await reply(result.reply);
         }
@@ -77,7 +80,7 @@ export function createRouter(
 
     async sendProactive(sessionKey, task) {
       try {
-        const result = await agentLoop(llm, sessionKey, task);
+        const result = await agentLoop(llm, UNIFIED_SESSION, task);
         const adapter = getAdapterForSession(sessionKey);
         if (adapter && result.reply) {
           await adapter.sendMessage(sessionKey, result.reply);
