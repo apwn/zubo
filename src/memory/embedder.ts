@@ -15,10 +15,15 @@ let vocab: Map<string, number> | null = null;
 async function downloadFile(url: string, dest: string) {
   if (existsSync(dest)) return;
   logger.info(`Downloading ${url}...`);
-  const resp = await fetch(url);
+  const resp = await fetch(url, { redirect: "follow" });
   if (!resp.ok) throw new Error(`Failed to download ${url}: ${resp.status}`);
-  await Bun.write(dest, resp);
-  logger.info(`Saved to ${dest}`);
+  const contentLength = resp.headers.get("content-length");
+  if (contentLength) {
+    logger.info(`Download size: ${(Number(contentLength) / 1024 / 1024).toFixed(1)} MB`);
+  }
+  const buffer = await resp.arrayBuffer();
+  await Bun.write(dest, buffer);
+  logger.info(`Saved to ${dest} (${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB)`);
 }
 
 async function ensureModel(): Promise<string> {
