@@ -1,6 +1,6 @@
 import type { LlmProvider } from "../llm/provider";
 import type { InboundMessage, ChannelAdapter } from "./adapter";
-import { agentLoop } from "../agent/loop";
+import { agentLoop, agentLoopStream, type StreamCallbacks } from "../agent/loop";
 import { searchMemory } from "../memory/engine";
 import { logger } from "../util/logger";
 import { Database } from "bun:sqlite";
@@ -13,7 +13,14 @@ export interface MessageRouter {
     message: InboundMessage,
     reply: (text: string) => Promise<void>
   ): Promise<void>;
+  handleMessageStream?(
+    message: InboundMessage,
+    onDelta: (text: string) => void,
+    onToolStart?: (name: string) => void,
+    onToolEnd?: (name: string) => void,
+  ): Promise<string>;
   sendProactive(sessionKey: string, task: string): Promise<string>;
+  broadcastProactive?(message: string): Promise<void>;
   addAdapter(adapter: ChannelAdapter): void;
   /** @deprecated Use addAdapter instead */
   setAdapter(adapter: ChannelAdapter): void;
@@ -78,6 +85,40 @@ export function createRouter(
       }
     },
 
+    async handleMessageStream(message, onDelta, onToolStart?, onToolEnd?) {
+      const { text } = message;
+
+      logger.info(`Stream message from ${message.channel}:${message.userId}`);
+
+      let memories = "";
+      try {
+        const results = searchMemory(db, text, 3);
+        if (results.length > 0) {
+          memories = results.map((r) => r.content).join("\n\n");
+        }
+      } catch (err: any) {
+        if (!err.message?.includes("no such table")) {
+          logger.warn("Memory search failed", { error: err.message });
+        }
+      }
+
+      return new Promise<string>((resolve, reject) => {
+        agentLoopStream(
+          llm,
+          UNIFIED_SESSION,
+          text,
+          {
+            onTextDelta: onDelta,
+            onToolStart: onToolStart ? (name) => onToolStart(name) : undefined,
+            onToolEnd: onToolEnd ? (name) => onToolEnd(name) : undefined,
+            onDone: (result) => resolve(result.reply),
+            onError: (err) => reject(err),
+          },
+          memories
+        );
+      });
+    },
+
     async sendProactive(sessionKey, task) {
       try {
         const result = await agentLoop(llm, UNIFIED_SESSION, task);
@@ -89,6 +130,17 @@ export function createRouter(
       } catch (err: any) {
         logger.error("Proactive message error", { error: err.message });
         return "";
+      }
+    },
+
+    async broadcastProactive(message) {
+      for (const [name, adapter] of adapters) {
+        try {
+          // Use a generic session key for each channel
+          await adapter.sendMessage(`${name}:owner`, message);
+        } catch (err: any) {
+          logger.warn(`Failed to broadcast to ${name}`, { error: err.message });
+        }
       }
     },
   };

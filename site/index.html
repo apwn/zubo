@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zubo — Your AI Agent That Actually Remembers You</title>
+  <meta name="description" content="Zubo is an open-source AI agent with persistent memory, multi-channel support, smart tools, and sub-agent delegation. Built with Bun, TypeScript, and SQLite.">
+  <meta name="theme-color" content="#09090b">
+  <meta property="og:title" content="Zubo — Your AI Agent That Actually Remembers You">
+  <meta property="og:description" content="Open-source AI agent with persistent memory, multi-channel support, and smart tools. No cloud required.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>Z</text></svg>">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner container">
+      <a href="#" class="nav-logo">
+        <span class="logo-icon">Z</span>
+        <span class="logo-text">Zubo</span>
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#channels">Channels</a>
+        <a href="#open-source">Open Source</a>
+        <a href="#community">Community</a>
+      </div>
+      <div class="nav-actions">
+        <a href="#community" class="btn btn-sm btn-ghost">Star on GitHub</a>
+        <a href="#how-it-works" class="btn btn-sm btn-primary">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-gradient"></div>
+      <div class="hero-grid"></div>
+    </div>
+    <div class="container hero-inner">
+      <div class="hero-content fade-in">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Open Source &middot; Self-Hosted &middot; Private
+        </div>
+        <h1 class="hero-title">
+          Meet <span class="gradient-text">Zubo</span>.<br>
+          Your AI agent that<br>
+          actually <em>remembers</em> you.
+        </h1>
+        <p class="hero-subtitle">
+          An open-source AI agent with persistent memory, multi-channel presence,
+          smart tool use, and sub-agent delegation. Runs locally. No cloud required.
+        </p>
+        <div class="hero-actions">
+          <a href="#how-it-works" class="btn btn-primary btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Get Started
+          </a>
+          <a href="#community" class="btn btn-ghost btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+      <div class="hero-terminal fade-in fade-in-delay-1">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="terminal-title">zubo</span>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="typed-text" data-text="bunx zubo init" data-speed="60" data-delay="800"></span>
+            </div>
+            <div class="terminal-output terminal-output-1" style="opacity:0">
+              <span class="terminal-success">&#10003;</span> Zubo initialized successfully
+            </div>
+            <div class="terminal-line terminal-line-2" style="opacity:0">
+              <span class="terminal-prompt">$</span>
+              <span class="typed-text" data-text="bunx zubo start" data-speed="60" data-delay="2800"></span>
+            </div>
+            <div class="terminal-output terminal-output-2" style="opacity:0">
+              <span class="terminal-muted">[info]</span> Loading memory store...<br>
+              <span class="terminal-muted">[info]</span> Connecting channels: <span class="terminal-blue">telegram</span>, <span class="terminal-blue">discord</span>, <span class="terminal-blue">slack</span><br>
+              <span class="terminal-muted">[info]</span> Registering 12 tools...<br>
+              <span class="terminal-success">&#10003;</span> Zubo is running on <span class="terminal-link">http://localhost:3000</span>
+            </div>
+            <div class="terminal-line terminal-line-3" style="opacity:0">
+              <span class="terminal-prompt">&gt;</span>
+              <span class="typed-text" data-text="Hey Zubo, remember I prefer TypeScript and dark themes" data-speed="35" data-delay="5200"></span>
+            </div>
+            <div class="terminal-output terminal-output-3" style="opacity:0">
+              <span class="terminal-purple">Zubo:</span> Got it! I'll remember that you prefer TypeScript and dark themes.<br>
+              <span class="terminal-muted" style="font-size:0.8em">&#128270; Stored in long-term memory</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll-indicator">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section features" id="features">
+    <div class="container">
+      <div class="section-header fade-in">
+        <span class="section-label">Features</span>
+        <h2 class="section-title">Everything you need.<br><span class="gradient-text">Nothing you don't.</span></h2>
+        <p class="section-subtitle">Zubo combines persistent memory, multi-channel presence, and intelligent tool use into a single, self-hosted AI agent.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card fade-in">
+          <div class="feature-icon feature-icon-memory">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <h3 class="feature-title">Persistent Memory</h3>
+          <p class="feature-desc">Zubo remembers your preferences, past conversations, and context across sessions. Powered by vector embeddings stored locally in SQLite.</p>
+        </div>
+        <div class="feature-card fade-in">
+          <div class="feature-icon feature-icon-channels">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3 class="feature-title">Multi-Channel</h3>
+          <p class="feature-desc">Talk to Zubo on Telegram, Discord, Slack, WhatsApp, or the web. One agent, one memory, everywhere you are.</p>
+        </div>
+        <div class="feature-card fade-in">
+          <div class="feature-icon feature-icon-tools">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <h3 class="feature-title">Smart Tools</h3>
+          <p class="feature-desc">Browse the web, search GitHub, manage files, run code, and more. Zubo picks the right tool for each task automatically.</p>
+        </div>
+        <div class="feature-card fade-in">
+          <div class="feature-icon feature-icon-schedule">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <h3 class="feature-title">Scheduled Tasks</h3>
+          <p class="feature-desc">Set recurring reminders, daily digests, or automated workflows. Zubo runs tasks on schedule even when you're away.</p>
+        </div>
+        <div class="feature-card fade-in">
+          <div class="feature-icon feature-icon-llm">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h3 class="feature-title">Multi-Provider LLM</h3>
+          <p class="feature-desc">Use OpenAI, Anthropic, Google, Groq, Ollama, or any OpenAI-compatible API. Switch providers without changing a line of code.</p>
+        </div>
+        <div class="feature-card fade-in">
+          <div class="feature-icon feature-icon-agents">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="feature-title">Sub-Agent Delegation</h3>
+          <p class="feature-desc">Zubo can spawn specialized sub-agents for complex tasks like research, coding, or analysis, then synthesize their results.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section how-it-works" id="how-it-works">
+    <div class="container">
+      <div class="section-header fade-in">
+        <span class="section-label">Quick Start</span>
+        <h2 class="section-title">Up and running in<br><span class="gradient-text">under two minutes.</span></h2>
+        <p class="section-subtitle">Three commands. That's all it takes to have your own AI agent with persistent memory running locally.</p>
+      </div>
+      <div class="steps">
+        <div class="step fade-in">
+          <div class="step-number">01</div>
+          <div class="step-content">
+            <h3 class="step-title">Install</h3>
+            <p class="step-desc">Install Zubo globally with Bun. No Docker, no containers, no complex setup.</p>
+            <div class="step-terminal">
+              <div class="terminal terminal-sm">
+                <div class="terminal-bar">
+                  <div class="terminal-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                  </div>
+                </div>
+                <div class="terminal-body">
+                  <div class="terminal-line">
+                    <span class="terminal-prompt">$</span>
+                    <span class="typed-text" data-text="bun add -g zubo" data-speed="50" data-delay="400" data-trigger="scroll"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step fade-in">
+          <div class="step-number">02</div>
+          <div class="step-content">
+            <h3 class="step-title">Configure</h3>
+            <p class="step-desc">Run the interactive setup. Pick your LLM provider, enable channels, and configure tools.</p>
+            <div class="step-terminal">
+              <div class="terminal terminal-sm">
+                <div class="terminal-bar">
+                  <div class="terminal-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                  </div>
+                </div>
+                <div class="terminal-body">
+                  <div class="terminal-line">
+                    <span class="terminal-prompt">$</span>
+                    <span class="typed-text" data-text="zubo init" data-speed="50" data-delay="400" data-trigger="scroll"></span>
+                  </div>
+                  <div class="terminal-output" style="opacity:1;margin-top:0.5rem">
+                    <span class="terminal-purple">?</span> LLM Provider: <span class="terminal-blue">Anthropic (Claude)</span><br>
+                    <span class="terminal-purple">?</span> Channels: <span class="terminal-blue">telegram, discord, web</span><br>
+                    <span class="terminal-purple">?</span> Enable tools: <span class="terminal-blue">Yes (all)</span><br>
+                    <span class="terminal-success">&#10003;</span> Config saved to ~/.orba/config.yaml
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step fade-in">
+          <div class="step-number">03</div>
+          <div class="step-content">
+            <h3 class="step-title">Chat</h3>
+            <p class="step-desc">Start Zubo and begin chatting. Your agent is live on all configured channels instantly.</p>
+            <div class="step-terminal">
+              <div class="terminal terminal-sm">
+                <div class="terminal-bar">
+                  <div class="terminal-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                  </div>
+                </div>
+                <div class="terminal-body">
+                  <div class="terminal-line">
+                    <span class="terminal-prompt">$</span>
+                    <span class="typed-text" data-text="zubo start" data-speed="50" data-delay="400" data-trigger="scroll"></span>
+                  </div>
+                  <div class="terminal-output" style="opacity:1;margin-top:0.5rem">
+                    <span class="terminal-success">&#10003;</span> Zubo is live on 3 channels<br>
+                    <span class="terminal-muted">[web]</span> <span class="terminal-link">http://localhost:3000</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integrations -->
+  <section class="section integrations" id="integrations">
+    <div class="container">
+      <div class="section-header fade-in">
+        <span class="section-label">Integrations</span>
+        <h2 class="section-title">Connects to the tools<br><span class="gradient-text">you already use.</span></h2>
+        <p class="section-subtitle">Zubo integrates with your favorite platforms out of the box. Build custom skills for anything else.</p>
+      </div>
+      <div class="integrations-grid fade-in">
+        <div class="integration-card">
+          <div class="integration-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </div>
+          <span class="integration-name">GitHub</span>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          </div>
+          <span class="integration-name">Google</span>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4.5C4 3.12 5.12 2 6.5 2h11C18.88 2 20 3.12 20 4.5v15c0 1.38-1.12 2.5-2.5 2.5h-11C5.12 22 4 20.88 4 19.5v-15zM14.5 5h-5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zm-7 4h9a.5.5 0 0 0 0-1h-9a.5.5 0 0 0 0 1zm0 3h9a.5.5 0 0 0 0-1h-9a.5.5 0 0 0 0 1zm0 3h6a.5.5 0 0 0 0-1h-6a.5.5 0 0 0 0 1z"/></svg>
+          </div>
+          <span class="integration-name">Notion</span>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zm10.122 2.521a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zm-1.268 0a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zm-2.523 10.122a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zm0-1.268a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+          </div>
+          <span class="integration-name">Slack</span>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L19.27 7.5 12 10.82 4.73 7.5 12 4.18zM4 8.96l7 3.5V19.4l-7-3.5V8.96zm9 10.44V12.46l7-3.5v6.94l-7 3.5z"/></svg>
+          </div>
+          <span class="integration-name">Linear</span>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M11.53 2c-.739 0-1.478.282-2.042.846L2.846 9.488a2.889 2.889 0 0 0 0 4.084l6.642 6.642a2.889 2.889 0 0 0 4.084 0l6.642-6.642a2.889 2.889 0 0 0 0-4.084L13.572 2.846A2.874 2.874 0 0 0 11.53 2zm-.475 5.206h1.888v5.138h-1.888V7.206zm0 6.07h1.888v1.888h-1.888v-1.888z"/></svg>
+          </div>
+          <span class="integration-name">Jira</span>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <span class="integration-name">Twitter / X</span>
+        </div>
+        <div class="integration-card integration-card-custom">
+          <div class="integration-icon integration-icon-custom">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <span class="integration-name">Build Your Own</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Channels -->
+  <section class="section channels" id="channels">
+    <div class="container">
+      <div class="section-header fade-in">
+        <span class="section-label">Channels</span>
+        <h2 class="section-title">One agent.<br><span class="gradient-text">Every platform.</span></h2>
+        <p class="section-subtitle">Zubo lives wherever you do. Same memory, same personality, across every channel. Start a conversation on Telegram, continue it on Discord.</p>
+      </div>
+      <div class="channels-grid">
+        <div class="channel-card fade-in">
+          <div class="channel-mockup channel-mockup-telegram">
+            <div class="mockup-header">
+              <div class="mockup-avatar mockup-avatar-tg">Z</div>
+              <div class="mockup-info">
+                <span class="mockup-name">Zubo</span>
+                <span class="mockup-status">online</span>
+              </div>
+            </div>
+            <div class="mockup-messages">
+              <div class="mockup-msg mockup-msg-sent">Summarize my GitHub PRs from today</div>
+              <div class="mockup-msg mockup-msg-received">You have 3 open PRs. The auth refactor has 2 approvals and is ready to merge. The API docs PR needs review from @sarah.</div>
+            </div>
+          </div>
+          <span class="channel-label">Telegram</span>
+        </div>
+        <div class="channel-card fade-in">
+          <div class="channel-mockup channel-mockup-discord">
+            <div class="mockup-header mockup-header-discord">
+              <span class="mockup-channel-name"># general</span>
+            </div>
+            <div class="mockup-messages">
+              <div class="mockup-msg-discord">
+                <div class="mockup-discord-avatar">T</div>
+                <div><span class="mockup-discord-user">thomas</span> <span class="mockup-discord-time">Today at 2:14 PM</span><br>@Zubo what's the status of Sprint 4?</div>
+              </div>
+              <div class="mockup-msg-discord">
+                <div class="mockup-discord-avatar mockup-discord-avatar-bot">Z</div>
+                <div><span class="mockup-discord-user mockup-discord-bot-name">Zubo</span> <span class="mockup-discord-badge">BOT</span> <span class="mockup-discord-time">Today at 2:14 PM</span><br>Sprint 4 has 8/12 tasks done. 2 are in review, 2 are blocked by the API migration.</div>
+              </div>
+            </div>
+          </div>
+          <span class="channel-label">Discord</span>
+        </div>
+        <div class="channel-card fade-in">
+          <div class="channel-mockup channel-mockup-slack">
+            <div class="mockup-header mockup-header-slack">
+              <span class="mockup-channel-name"># zubo-assistant</span>
+            </div>
+            <div class="mockup-messages">
+              <div class="mockup-msg-slack">
+                <div class="mockup-slack-avatar">S</div>
+                <div><span class="mockup-slack-user">sarah</span> <span class="mockup-slack-time">2:30 PM</span><br>@zubo create a Linear ticket for the login bug</div>
+              </div>
+              <div class="mockup-msg-slack">
+                <div class="mockup-slack-avatar mockup-slack-avatar-bot">Z</div>
+                <div><span class="mockup-slack-user">Zubo</span> <span class="mockup-slack-time">2:30 PM</span><br>Created <span class="terminal-blue">ENG-247</span>: "Login redirect fails on Safari" assigned to @thomas, priority High.</div>
+              </div>
+            </div>
+          </div>
+          <span class="channel-label">Slack</span>
+        </div>
+        <div class="channel-card fade-in">
+          <div class="channel-mockup channel-mockup-whatsapp">
+            <div class="mockup-header">
+              <div class="mockup-avatar mockup-avatar-wa">Z</div>
+              <div class="mockup-info">
+                <span class="mockup-name">Zubo</span>
+                <span class="mockup-status">online</span>
+              </div>
+            </div>
+            <div class="mockup-messages">
+              <div class="mockup-msg mockup-msg-sent">Remind me to review the design docs tomorrow at 9am</div>
+              <div class="mockup-msg mockup-msg-received">Done! I'll remind you tomorrow at 9:00 AM to review the design docs.</div>
+            </div>
+          </div>
+          <span class="channel-label">WhatsApp</span>
+        </div>
+        <div class="channel-card fade-in">
+          <div class="channel-mockup channel-mockup-web">
+            <div class="mockup-header mockup-header-web">
+              <div class="mockup-web-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+              </div>
+              <span class="mockup-web-url">localhost:3000</span>
+            </div>
+            <div class="mockup-messages mockup-messages-web">
+              <div class="mockup-msg mockup-msg-sent">Analyze my codebase and suggest improvements</div>
+              <div class="mockup-msg mockup-msg-received">I found 3 areas for improvement: unused imports in 12 files, missing error handling in the API layer, and inconsistent naming in utils/.</div>
+            </div>
+          </div>
+          <span class="channel-label">Web</span>
+        </div>
+        <div class="channel-card fade-in">
+          <div class="channel-mockup channel-mockup-desktop">
+            <div class="mockup-header mockup-header-web">
+              <div class="mockup-web-dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+              </div>
+              <span class="mockup-web-url">Zubo Desktop</span>
+            </div>
+            <div class="mockup-messages mockup-messages-web">
+              <div class="mockup-msg mockup-msg-sent">Draft a reply to the latest email from Jake</div>
+              <div class="mockup-msg mockup-msg-received">Here's a draft: "Hey Jake, thanks for the update. I've reviewed the proposal and have a few thoughts..."</div>
+            </div>
+          </div>
+          <span class="channel-label">Desktop</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Open Source -->
+  <section class="section open-source" id="open-source">
+    <div class="container">
+      <div class="oss-card fade-in">
+        <div class="oss-content">
+          <span class="section-label">Open Source</span>
+          <h2 class="section-title" style="text-align:left">Built with <span class="gradient-text">Bun, TypeScript, SQLite.</span><br>No cloud required.</h2>
+          <p class="oss-desc">Zubo is fully open source under the MIT license. Your data stays on your machine. No telemetry, no tracking, no cloud dependency. Fork it, extend it, make it yours.</p>
+          <div class="oss-tech-stack">
+            <div class="tech-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+              Bun
+            </div>
+            <div class="tech-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              TypeScript
+            </div>
+            <div class="tech-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+              SQLite
+            </div>
+            <div class="tech-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              MIT License
+            </div>
+          </div>
+          <div class="oss-actions">
+            <a href="#community" class="btn btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              View on GitHub
+            </a>
+            <a href="#" class="btn btn-ghost">Read the Docs</a>
+          </div>
+        </div>
+        <div class="oss-stats">
+          <div class="oss-stat-card">
+            <div class="oss-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="oss-stat-value" data-count="2847">0</span>
+            <span class="oss-stat-label">GitHub Stars</span>
+          </div>
+          <div class="oss-stat-card">
+            <div class="oss-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
+            </div>
+            <span class="oss-stat-value" data-count="412">0</span>
+            <span class="oss-stat-label">Forks</span>
+          </div>
+          <div class="oss-stat-card">
+            <div class="oss-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <span class="oss-stat-value" data-count="89">0</span>
+            <span class="oss-stat-label">Contributors</span>
+          </div>
+          <div class="oss-stat-card">
+            <div class="oss-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <span class="oss-stat-value" data-count="1563">0</span>
+            <span class="oss-stat-label">Commits</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Community -->
+  <section class="section community" id="community">
+    <div class="container">
+      <div class="section-header fade-in">
+        <span class="section-label">Community</span>
+        <h2 class="section-title">Join the <span class="gradient-text">Zubo community.</span></h2>
+        <p class="section-subtitle">Get help, share what you've built, and help shape the future of personal AI agents.</p>
+      </div>
+      <div class="community-grid fade-in">
+        <a href="#" class="community-card community-card-discord">
+          <div class="community-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/></svg>
+          </div>
+          <h3 class="community-card-title">Discord Server</h3>
+          <p class="community-card-desc">Join 800+ members discussing Zubo, sharing configs, and building custom tools.</p>
+          <span class="community-card-link">Join Discord &rarr;</span>
+        </a>
+        <a href="#" class="community-card community-card-github">
+          <div class="community-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </div>
+          <h3 class="community-card-title">GitHub Repository</h3>
+          <p class="community-card-desc">Star the repo, report issues, submit PRs, and help build the future of personal AI.</p>
+          <span class="community-card-link">View Repository &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a href="#" class="nav-logo">
+            <span class="logo-icon">Z</span>
+            <span class="logo-text">Zubo</span>
+          </a>
+          <p class="footer-tagline">Your AI agent that actually remembers you.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4 class="footer-col-title">Product</h4>
+            <a href="#features">Features</a>
+            <a href="#integrations">Integrations</a>
+            <a href="#channels">Channels</a>
+            <a href="#how-it-works">Quick Start</a>
+          </div>
+          <div class="footer-col">
+            <h4 class="footer-col-title">Resources</h4>
+            <a href="#">Documentation</a>
+            <a href="#">API Reference</a>
+            <a href="#">Changelog</a>
+            <a href="#">Examples</a>
+          </div>
+          <div class="footer-col">
+            <h4 class="footer-col-title">Community</h4>
+            <a href="#">GitHub</a>
+            <a href="#">Discord</a>
+            <a href="#">Twitter / X</a>
+            <a href="#">Blog</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">Made with love and <span class="footer-bun">Bun</span></p>
+        <p class="footer-copy">&copy; 2026 Zubo. Open source under MIT License.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

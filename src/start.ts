@@ -86,6 +86,50 @@ async function startChannels(config: ZuboConfig, router: MessageRouter) {
     logger.info("Discord channel started");
   }
 
+  // Slack
+  if (config.channels?.slack?.enabled !== false && config.channels?.slack?.botToken) {
+    const { createSlackAdapter } = await import("./channels/slack");
+    const slack = createSlackAdapter(
+      config.channels.slack.botToken,
+      config.channels.slack.appToken,
+      config.channels.slack.allowedUsers ?? [],
+      router
+    );
+    router.addAdapter(slack);
+    slack.start();
+    stoppers.push(() => slack.stop());
+    logger.info("Slack channel started");
+  }
+
+  // WhatsApp
+  if (config.channels?.whatsapp?.enabled !== false && config.channels?.whatsapp) {
+    const { createWhatsAppAdapter } = await import("./channels/whatsapp");
+    const whatsapp = createWhatsAppAdapter(
+      config.channels.whatsapp.allowedNumbers ?? [],
+      config.channels.whatsapp.authDir,
+      router
+    );
+    router.addAdapter(whatsapp);
+    whatsapp.start();
+    stoppers.push(() => whatsapp.stop());
+    logger.info("WhatsApp channel started");
+  }
+
+  // Signal
+  if (config.channels?.signal?.enabled !== false && config.channels?.signal?.phoneNumber) {
+    const { createSignalAdapter } = await import("./channels/signal");
+    const signal = createSignalAdapter(
+      config.channels.signal.phoneNumber,
+      config.channels.signal.allowedNumbers ?? [],
+      config.channels.signal.signalCliPath,
+      router
+    );
+    router.addAdapter(signal);
+    signal.start();
+    stoppers.push(() => signal.stop());
+    logger.info("Signal channel started");
+  }
+
   // WebChat + Dashboard (always enabled)
   if (config.channels?.webchat?.enabled !== false) {
     const requestedPort = config.channels?.webchat?.port ?? 0;
@@ -131,6 +175,16 @@ export async function startZubo(isDaemon = false) {
   // Init LLM
   const llm = createProvider(config);
 
+  // Init voice (STT/TTS) if configured
+  if (config.voice?.stt) {
+    const { initStt } = await import("./voice/stt");
+    initStt(config.voice.stt);
+  }
+  if (config.voice?.tts) {
+    const { initTts } = await import("./voice/tts");
+    initTts(config.voice.tts);
+  }
+
   // Register tools
   registerDatetimeTool();
   registerMemoryWriteTool();
@@ -139,6 +193,10 @@ export async function startZubo(isDaemon = false) {
   registerSecretTools();
   exposeSecretsRuntime();
   registerConnectServiceTool();
+
+  // Register skill registry tool
+  const { registerSkillRegistryTool } = await import("./tools/builtin/skill-registry");
+  registerSkillRegistryTool();
 
   // Load skills
   try {
@@ -162,13 +220,37 @@ export async function startZubo(isDaemon = false) {
   registerDelegateTool(llm);
   registerManageAgentsTool();
 
+  // Register workflow + team tools
+  const { registerManageWorkflowsTool } = await import("./tools/builtin/manage-workflows");
+  const { registerRunWorkflowTool } = await import("./tools/builtin/run-workflow");
+  const { registerManageTeamsTool } = await import("./tools/builtin/manage-teams");
+  registerManageWorkflowsTool();
+  registerRunWorkflowTool(llm);
+  registerManageTeamsTool();
+
+  // Register proactive intelligence tools
+  const { registerManageTriggersTool } = await import("./tools/builtin/manage-triggers");
+  registerManageTriggersTool();
+
   // Start all configured channels
   const stopChannels = await startChannels(config, router);
 
   // Start scheduler
-  startHeartbeat();
+  startHeartbeat(config.heartbeatMinutes);
   initCronScheduler(db, router, config, llm);
   logger.info("Scheduler started");
+
+  // Init proactive intelligence
+  const { initProactiveIntelligence } = await import("./scheduler/proactive");
+  initProactiveIntelligence(db, router, llm, config);
+
+  // Ensure morning briefing cron exists
+  const { ensureBriefingCron } = await import("./scheduler/briefing");
+  ensureBriefingCron(db);
+
+  // Init performance collector
+  const { initPerfCollector } = await import("./util/perf-collector");
+  initPerfCollector();
 
   logger.info("Zubo is running. Press Ctrl+C to stop.");
 

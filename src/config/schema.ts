@@ -31,6 +31,23 @@ const channelsConfigSchema = z.object({
       port: z.number().default(0),
     })
     .optional(),
+  slack: z.object({
+    enabled: z.boolean().default(true),
+    botToken: z.string().min(1),
+    appToken: z.string().min(1),
+    allowedUsers: z.array(z.string()).default([]),
+  }).optional(),
+  whatsapp: z.object({
+    enabled: z.boolean().default(true),
+    authDir: z.string().optional(),
+    allowedNumbers: z.array(z.string()).default([]),
+  }).optional(),
+  signal: z.object({
+    enabled: z.boolean().default(true),
+    phoneNumber: z.string().min(1),
+    signalCliPath: z.string().optional(),
+    allowedNumbers: z.array(z.string()).default([]),
+  }).optional(),
 });
 
 export type ChannelsConfig = z.infer<typeof channelsConfigSchema>;
@@ -50,8 +67,23 @@ export const configSchema = z.object({
   // Multi-channel system
   channels: channelsConfigSchema.optional(),
 
+  // Voice (STT/TTS)
+  voice: z.object({
+    stt: z.object({
+      provider: z.string().default("whisper"),
+      apiKey: z.string().min(1),
+      model: z.string().optional(),
+    }).optional(),
+    tts: z.object({
+      provider: z.string().default("openai"),
+      apiKey: z.string().min(1),
+      voice: z.string().optional(),
+    }).optional(),
+  }).optional(),
+
   // Agent
   maxTurns: z.number().default(50),
+  heartbeatMinutes: z.number().min(1).max(1440).default(30),
   createdAt: z.string().default(() => new Date().toISOString()),
 });
 

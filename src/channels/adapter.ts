@@ -1,8 +1,16 @@
+export interface InboundAttachment {
+  filename: string;
+  mimeType: string;
+  size: number;
+  filePath: string;
+}
+
 export interface InboundMessage {
   channel: string;
   userId: string;
   sessionKey: string;
   text: string;
+  attachments?: InboundAttachment[];
 }
 
 export interface ChannelAdapter {

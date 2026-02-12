@@ -1,3 +1,5 @@
+import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+
 const API = "https://api.github.com";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
@@ -30,7 +32,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       case "list": {
         const qs = new URLSearchParams({ state: state || "open", per_page: "30" });
         const res = await fetch(`${API}/repos/${owner}/${repo}/issues?${qs}`, { headers });
-        if (!res.ok) return JSON.stringify({ error: `GitHub API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "GitHub");
         const issues = (await res.json()) as any[];
         return JSON.stringify(
           issues.map((i) => ({
@@ -52,7 +54,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers: { ...headers, "Content-Type": "application/json" },
           body: JSON.stringify({ title, body: body || "", labels: labels || [] }),
         });
-        if (!res.ok) return JSON.stringify({ error: `GitHub API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "GitHub");
         const issue = (await res.json()) as any;
         return JSON.stringify({ number: issue.number, title: issue.title, url: issue.html_url });
       }
@@ -60,7 +62,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       case "get": {
         if (!issue_number) return JSON.stringify({ error: "issue_number is required for get" });
         const res = await fetch(`${API}/repos/${owner}/${repo}/issues/${issue_number}`, { headers });
-        if (!res.ok) return JSON.stringify({ error: `GitHub API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "GitHub");
         const issue = (await res.json()) as any;
         return JSON.stringify({
           number: issue.number,
@@ -83,7 +85,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers: { ...headers, "Content-Type": "application/json" },
           body: JSON.stringify({ body }),
         });
-        if (!res.ok) return JSON.stringify({ error: `GitHub API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "GitHub");
         const comment = (await res.json()) as any;
         return JSON.stringify({ id: comment.id, url: comment.html_url, created_at: comment.created_at });
       }
@@ -92,6 +94,6 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return JSON.stringify({ error: `Request failed: ${err.message}` });
+    return safeExceptionError(err, "GitHub");
   }
 }

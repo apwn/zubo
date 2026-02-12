@@ -31,6 +31,9 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   // Built-in skills — potentially dangerous
   shell: "confirm",
   file_write: "confirm",
+
+  // Integration skills — posting requires confirmation
+  twitter_posts: "confirm",
 };
 
 /**

@@ -60,6 +60,13 @@ export function registerConnectServiceTool() {
             return JSON.stringify({ error: "service is required for connect" });
           }
 
+          // Validate service name to prevent path traversal
+          if (!/^[a-z0-9_-]+$/.test(service)) {
+            return JSON.stringify({
+              error: "Invalid service name. Must contain only lowercase letters, numbers, hyphens, and underscores.",
+            });
+          }
+
           // Store credentials
           if (credentials) {
             for (const [name, value] of Object.entries(credentials)) {

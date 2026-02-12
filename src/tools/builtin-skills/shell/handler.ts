@@ -6,6 +6,15 @@ const BLOCKED_PATTERNS = [
   /\bshutdown\b/,
   /\breboot\b/,
   /\b:(){ :\|:& };:/,                    // fork bomb
+  /\bkill\s+(-9\s+)?-1\b/,              // kill all processes
+  /\bchmod\s+0{3}\s+\//,                // chmod 000 /
+  /\bchown\s+.*\s+\/\s*$/,              // chown ... /
+  /\bfind\s+\/\s+.*-delete\b/,          // find / -delete
+  /\bcurl\s+.*\|\s*sh\b/,               // curl pipe to sh
+  /\bwget\s+.*\|\s*sh\b/,               // wget pipe to sh
+  /bash\s+-i\s+>&\s*\/dev\/tcp\//,      // reverse shell
+  /\b>\s*\/dev\/[sv]d/,                  // overwrite disk devices
+  /\bnc\s+(-[a-zA-Z]*\s+)*-e\b/,        // netcat reverse shell
 ];
 
 const SENSITIVE_ENV_KEYS = [

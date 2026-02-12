@@ -16,6 +16,8 @@
     "model": "bun run src/index.ts model",
     "skills": "bun run src/index.ts skills",
     "dev": "bun run --watch src/index.ts start",
+    "desktop:dev": "cd desktop && npm run dev",
+    "desktop:build": "cd desktop && npm run build",
     "test": "bun test"
   },
   "dependencies": {

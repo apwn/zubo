@@ -41,6 +41,32 @@ switch (command) {
     await runSkillsCommand(process.argv.slice(3));
     break;
   }
+  case "install": {
+    const skillName = process.argv[3];
+    if (!skillName) {
+      console.log("Usage: zubo install <skill-name>");
+      process.exit(1);
+    }
+    const { handleRegistryInstall } = await import("./registry/cli");
+    await handleRegistryInstall(skillName);
+    break;
+  }
+  case "search": {
+    const query = process.argv.slice(3).join(" ");
+    if (!query) {
+      console.log("Usage: zubo search <query>");
+      process.exit(1);
+    }
+    const { handleRegistrySearch } = await import("./registry/cli");
+    await handleRegistrySearch(query);
+    break;
+  }
+  case "publish": {
+    const pubName = process.argv[3] ?? "";
+    const { handleRegistryPublish } = await import("./registry/cli");
+    await handleRegistryPublish(pubName);
+    break;
+  }
   default:
     console.log("Usage: zubo <command>\n");
     console.log("Commands:");
@@ -59,5 +85,8 @@ switch (command) {
     console.log("  skills new         Create a new skill");
     console.log("  skills reinstall   Reinstall built-in skills");
     console.log("  skills remove      Remove a skill");
+    console.log("  install <skill>    Install a skill from the registry");
+    console.log("  search <query>     Search the skill registry");
+    console.log("  publish            How to publish a skill");
     process.exit(1);
 }

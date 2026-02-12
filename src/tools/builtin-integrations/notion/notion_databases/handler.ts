@@ -1,3 +1,5 @@
+import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+
 const API = "https://api.notion.com/v1";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
@@ -35,7 +37,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify(body),
         });
-        if (!res.ok) return JSON.stringify({ error: `Notion API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Notion");
         const data = (await res.json()) as any;
         return JSON.stringify({
           results: (data.results || []).map((r: any) => ({
@@ -58,7 +60,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
             properties,
           }),
         });
-        if (!res.ok) return JSON.stringify({ error: `Notion API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Notion");
         const page = (await res.json()) as any;
         return JSON.stringify({ id: page.id, url: page.url, created_time: page.created_time });
       }
@@ -67,6 +69,6 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return JSON.stringify({ error: `Request failed: ${err.message}` });
+    return safeExceptionError(err, "Notion");
   }
 }

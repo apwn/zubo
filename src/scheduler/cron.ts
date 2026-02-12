@@ -3,6 +3,7 @@ import { Database } from "bun:sqlite";
 import type { MessageRouter } from "../channels/router";
 import type { ZuboConfig } from "../config/schema";
 import type { LlmProvider } from "../llm/provider";
+import { delegateToAgent } from "../agent/delegate";
 import { logger } from "../util/logger";
 
 export interface CronJob {
@@ -78,7 +79,6 @@ function scheduleJob(
 
         // If job has an agent and we have an LLM provider, delegate to the agent
         if (job.agent && llm) {
-          const { delegateToAgent } = await import("../agent/delegate");
           reply = await delegateToAgent(llm, job.agent, job.task);
         } else {
           reply = await router.sendProactive(sessionKey, job.task);
@@ -144,6 +144,43 @@ function scheduleJob(
   activeCrons.set(job.id, cron);
 }
 
+const MAX_CRON_JOBS = 50;
+
+/**
+ * Validate a cron schedule is not too aggressive.
+ * Rejects schedules that fire more than once per minute.
+ */
+function validateCronSchedule(schedule: string): void {
+  // Quick check: if it has 6 fields (seconds), reject sub-minute schedules
+  const parts = schedule.trim().split(/\s+/);
+  if (parts.length === 6 && parts[0] !== "0") {
+    throw new Error(
+      "Sub-minute cron schedules are not allowed. Use at least 1-minute intervals."
+    );
+  }
+
+  // Try to parse and check next 2 runs are at least 60s apart
+  try {
+    const cron = new Cron(schedule);
+    const next1 = cron.nextRun();
+    const next2 = cron.nextRuns(2)[1];
+    if (next1 && next2) {
+      const gapMs = next2.getTime() - next1.getTime();
+      if (gapMs < 60_000) {
+        throw new Error(
+          "Cron schedule fires too frequently. Minimum interval is 1 minute."
+        );
+      }
+    }
+    cron.stop();
+  } catch (err: any) {
+    if (err.message?.includes("too frequently") || err.message?.includes("Sub-minute")) {
+      throw err;
+    }
+    throw new Error(`Invalid cron expression: ${schedule}`);
+  }
+}
+
 export function addCronJob(
   db: Database,
   name: string,
@@ -154,6 +191,19 @@ export function addCronJob(
   agent?: string,
   llm?: LlmProvider
 ) {
+  // Validate schedule interval
+  validateCronSchedule(schedule);
+
+  // Enforce max active jobs
+  const activeCount = db
+    .query("SELECT COUNT(*) as c FROM cron_jobs WHERE enabled = 1")
+    .get() as { c: number };
+  if (activeCount.c >= MAX_CRON_JOBS) {
+    throw new Error(
+      `Maximum ${MAX_CRON_JOBS} active cron jobs allowed. Delete or disable some first.`
+    );
+  }
+
   const result = db
     .prepare(
       "INSERT INTO cron_jobs (name, schedule, task, agent) VALUES (?, ?, ?, ?)"

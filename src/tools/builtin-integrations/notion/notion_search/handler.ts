@@ -1,3 +1,5 @@
+import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+
 const API = "https://api.notion.com/v1";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
@@ -34,7 +36,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       headers,
       body: JSON.stringify(body),
     });
-    if (!res.ok) return JSON.stringify({ error: `Notion API error: ${res.status} ${await res.text()}` });
+    if (!res.ok) return await safeApiError(res, "Notion");
     const data = (await res.json()) as any;
 
     return JSON.stringify({
@@ -53,6 +55,6 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       has_more: data.has_more,
     });
   } catch (err: any) {
-    return JSON.stringify({ error: `Request failed: ${err.message}` });
+    return safeExceptionError(err, "Notion");
   }
 }

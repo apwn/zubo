@@ -17,6 +17,9 @@ export const paths = {
   logFile: join(ZUBO_HOME, "logs", "zubo.log"),
   skills: join(ZUBO_HOME, "workspace", "skills"),
   agents: join(ZUBO_HOME, "workspace", "agents"),
+  workflows: join(ZUBO_HOME, "workspace", "workflows"),
+  teams: join(ZUBO_HOME, "workspace", "teams"),
+  uploads: join(ZUBO_HOME, "workspace", "uploads"),
   pidFile: join(ZUBO_HOME, "zubo.pid"),
 };
 
@@ -30,6 +33,9 @@ export function ensureDirectories() {
     paths.logs,
     paths.skills,
     paths.agents,
+    paths.workflows,
+    paths.teams,
+    paths.uploads,
   ];
   for (const dir of dirs) {
     Bun.spawnSync(["mkdir", "-p", dir]);

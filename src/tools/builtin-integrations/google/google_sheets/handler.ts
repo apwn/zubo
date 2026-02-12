@@ -1,3 +1,5 @@
+import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+
 const API = "https://sheets.googleapis.com/v4/spreadsheets";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
@@ -30,7 +32,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify({ properties: { title } }),
         });
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const sheet = (await res.json()) as any;
         return JSON.stringify({
           spreadsheet_id: sheet.spreadsheetId,
@@ -44,7 +46,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         if (!range) return JSON.stringify({ error: "range is required for read" });
         const encodedRange = encodeURIComponent(range);
         const res = await fetch(`${API}/${spreadsheet_id}/values/${encodedRange}`, { headers });
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const data = (await res.json()) as any;
         return JSON.stringify({ range: data.range, values: data.values || [] });
       }
@@ -62,7 +64,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
             body: JSON.stringify({ values }),
           }
         );
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const result = (await res.json()) as any;
         return JSON.stringify({
           updated_range: result.updates?.updatedRange,
@@ -83,7 +85,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
             body: JSON.stringify({ values }),
           }
         );
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const result = (await res.json()) as any;
         return JSON.stringify({
           updated_range: result.updatedRange,
@@ -95,6 +97,6 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return JSON.stringify({ error: `Request failed: ${err.message}` });
+    return safeExceptionError(err, "Google");
   }
 }

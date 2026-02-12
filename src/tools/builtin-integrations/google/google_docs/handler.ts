@@ -1,3 +1,5 @@
+import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+
 const API = "https://docs.googleapis.com/v1/documents";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
@@ -30,7 +32,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify({ title }),
         });
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const doc = (await res.json()) as any;
         return JSON.stringify({
           document_id: doc.documentId,
@@ -42,7 +44,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       case "read": {
         if (!document_id) return JSON.stringify({ error: "document_id is required for read" });
         const res = await fetch(`${API}/${document_id}`, { headers });
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const doc = (await res.json()) as any;
         // Extract plain text from doc body
         let content = "";
@@ -79,7 +81,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
             ],
           }),
         });
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         return JSON.stringify({ success: true, message: "Document updated." });
       }
 
@@ -87,6 +89,6 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return JSON.stringify({ error: `Request failed: ${err.message}` });
+    return safeExceptionError(err, "Google");
   }
 }

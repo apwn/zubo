@@ -1,3 +1,5 @@
+import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+
 const API = "https://api.notion.com/v1";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
@@ -60,7 +62,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify(body),
         });
-        if (!res.ok) return JSON.stringify({ error: `Notion API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Notion");
         const page = (await res.json()) as any;
         return JSON.stringify({ id: page.id, url: page.url, created_time: page.created_time });
       }
@@ -69,8 +71,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         if (!page_id) return JSON.stringify({ error: "page_id is required for read" });
         // Get page properties
         const pageRes = await fetch(`${API}/pages/${page_id}`, { headers });
-        if (!pageRes.ok)
-          return JSON.stringify({ error: `Notion API error: ${pageRes.status} ${await pageRes.text()}` });
+        if (!pageRes.ok) return await safeApiError(pageRes, "Notion");
         const page = (await pageRes.json()) as any;
 
         // Get page content (blocks)
@@ -106,7 +107,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify({ properties }),
         });
-        if (!res.ok) return JSON.stringify({ error: `Notion API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Notion");
         const page = (await res.json()) as any;
         return JSON.stringify({ id: page.id, url: page.url, message: "Page updated." });
       }
@@ -115,6 +116,6 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return JSON.stringify({ error: `Request failed: ${err.message}` });
+    return safeExceptionError(err, "Notion");
   }
 }

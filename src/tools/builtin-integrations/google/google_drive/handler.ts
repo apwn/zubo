@@ -1,3 +1,5 @@
+import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+
 const API = "https://www.googleapis.com/drive/v3";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
@@ -31,7 +33,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         });
         if (query) qs.set("q", query);
         const res = await fetch(`${API}/files?${qs}`, { headers });
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const data = (await res.json()) as any;
         return JSON.stringify(
           (data.files || []).map((f: any) => ({
@@ -57,7 +59,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify(metadata),
         });
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const folder = (await res.json()) as any;
         return JSON.stringify({ id: folder.id, name: folder.name });
       }
@@ -68,7 +70,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           fields: "id,name,mimeType,size,modifiedTime,webViewLink,description",
         });
         const res = await fetch(`${API}/files/${file_id}?${qs}`, { headers });
-        if (!res.ok) return JSON.stringify({ error: `Google API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "Google");
         const f = (await res.json()) as any;
         return JSON.stringify({
           id: f.id,
@@ -85,6 +87,6 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return JSON.stringify({ error: `Request failed: ${err.message}` });
+    return safeExceptionError(err, "Google");
   }
 }

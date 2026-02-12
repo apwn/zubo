@@ -1,3 +1,5 @@
+import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+
 const API = "https://api.github.com";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
@@ -32,7 +34,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           per_page: "30",
         });
         const res = await fetch(`${endpoint}?${qs}`, { headers });
-        if (!res.ok) return JSON.stringify({ error: `GitHub API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "GitHub");
         const repos = (await res.json()) as any[];
         return JSON.stringify(
           repos.map((r) => ({
@@ -51,7 +53,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       case "get": {
         if (!owner || !repo) return JSON.stringify({ error: "owner and repo are required for get" });
         const res = await fetch(`${API}/repos/${owner}/${repo}`, { headers });
-        if (!res.ok) return JSON.stringify({ error: `GitHub API error: ${res.status} ${await res.text()}` });
+        if (!res.ok) return await safeApiError(res, "GitHub");
         const r = (await res.json()) as any;
         return JSON.stringify({
           full_name: r.full_name,
@@ -72,6 +74,6 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return JSON.stringify({ error: `Request failed: ${err.message}` });
+    return safeExceptionError(err, "GitHub");
   }
 }

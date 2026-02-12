@@ -6,9 +6,13 @@ const BLOCKED_PATHS = [
   "/.gnupg/",
   "/.aws/credentials",
   "/.zubo/config.json",
+  "/.zubo/zubo.db",
   "/id_rsa",
   "/id_ed25519",
   "/.env",
+  "/.npmrc",
+  "/.netrc",
+  "/.docker/config.json",
 ];
 
 function validatePath(rawPath: string): string {

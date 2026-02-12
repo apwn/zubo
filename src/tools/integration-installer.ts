@@ -13,6 +13,10 @@ const SERVICE_SECRETS: Record<string, string> = {
   github: "github_token",
   google: "google_api_key",
   notion: "notion_token",
+  slack: "slack_token",
+  linear: "linear_token",
+  jira: "jira_token",
+  twitter: "twitter_bearer_token",
 };
 
 /**
