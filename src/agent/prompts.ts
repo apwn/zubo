@@ -1,8 +1,7 @@
-export function buildSystemPrompt(memories: string = ""): string {
-  const now = new Date().toISOString();
-  let prompt = `You are Orba, a personal AI agent. You are helpful, proactive, and have a persistent memory.
+import { existsSync, readFileSync } from "fs";
+import { paths } from "../config/paths";
 
-Current time: ${now}
+const DEFAULT_PERSONALITY = `You are Orba, a personal AI agent. You are helpful, proactive, and have a persistent memory.
 
 ## Your capabilities
 - You remember things about the user across conversations using your memory tools.
@@ -16,6 +15,26 @@ Current time: ${now}
 - Use memory_write to save important facts the user shares.
 - Use memory_search to recall previously stored information.
 - If you're unsure about something, say so.`;
+
+function loadPersonality(): string {
+  try {
+    if (existsSync(paths.systemPrompt)) {
+      const content = readFileSync(paths.systemPrompt, "utf-8").trim();
+      if (content) return content;
+    }
+  } catch {
+    // fall through to default
+  }
+  return DEFAULT_PERSONALITY;
+}
+
+export function buildSystemPrompt(memories: string = ""): string {
+  const now = new Date().toISOString();
+  const personality = loadPersonality();
+
+  let prompt = `${personality}
+
+Current time: ${now}`;
 
   if (memories) {
     prompt += `\n\n## Relevant memories\n${memories}`;

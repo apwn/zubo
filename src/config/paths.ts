@@ -10,9 +10,12 @@ export const paths = {
   workspace: join(ORBA_HOME, "workspace"),
   memory: join(ORBA_HOME, "workspace", "memory"),
   memoryFile: join(ORBA_HOME, "workspace", "MEMORY.md"),
+  systemPrompt: join(ORBA_HOME, "workspace", "SYSTEM.md"),
   sessions: join(ORBA_HOME, "sessions"),
   models: join(ORBA_HOME, "models"),
   logs: join(ORBA_HOME, "logs"),
+  logFile: join(ORBA_HOME, "logs", "orba.log"),
+  pidFile: join(ORBA_HOME, "orba.pid"),
 };
 
 export function ensureDirectories() {

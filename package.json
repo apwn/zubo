@@ -5,6 +5,11 @@
   "scripts": {
     "setup": "bun run src/index.ts setup",
     "start": "bun run src/index.ts start",
+    "start:daemon": "bun run src/index.ts start --daemon",
+    "stop": "bun run src/index.ts stop",
+    "status": "bun run src/index.ts status",
+    "logs": "bun run src/index.ts logs",
+    "logs:follow": "bun run src/index.ts logs --follow",
     "dev": "bun run --watch src/index.ts start"
   },
   "dependencies": {
