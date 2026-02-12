@@ -345,5 +345,5 @@ export async function runSetup() {
     console.log("Built-in skills already installed.");
   }
 
-  console.log("\nSetup complete! Run 'bun run start' to launch Zubo.\n");
+  console.log("\nSetup complete! Run 'zubo start' to launch Zubo.\n");
 }
