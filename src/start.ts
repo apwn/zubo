@@ -39,14 +39,15 @@ export async function startOrba() {
   // Create message router
   const router = createRouter(llm, db);
 
-  // Start Telegram
+  // Start Telegram and wire adapter into router for proactive messaging
   const telegram = createTelegramAdapter(config.telegramBotToken, config, router);
+  router.setAdapter(telegram);
   telegram.start();
   logger.info("Telegram bot started");
 
   // Start scheduler
   startHeartbeat();
-  initCronScheduler(db, router);
+  initCronScheduler(db, router, config);
   logger.info("Scheduler started");
 
   logger.info("Orba is running. Press Ctrl+C to stop.");

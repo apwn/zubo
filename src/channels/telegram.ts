@@ -12,8 +12,14 @@ export function createTelegramAdapter(
 ): ChannelAdapter {
   const bot = new Bot(token);
 
-  // Map chat IDs to reply functions for proactive messaging
+  // Map session keys to chat IDs for proactive messaging
   const chatIds = new Map<string, number>();
+
+  // Pre-populate chat IDs from config (for proactive messaging after restart).
+  // For DMs, chat ID equals user ID.
+  for (const userId of config.telegramAllowedUsers) {
+    chatIds.set(`telegram:${userId}`, userId);
+  }
 
   bot.on("message:text", async (ctx) => {
     const userId = ctx.from.id;
@@ -81,8 +87,12 @@ export function createTelegramAdapter(
       if (chatId) {
         const chunks = splitMessage(text, 4000);
         for (const chunk of chunks) {
-          await bot.api.sendMessage(chatId, chunk).catch(() => {});
+          await bot.api.sendMessage(chatId, chunk).catch((err) => {
+            logger.error("Failed to send Telegram message", { error: err.message });
+          });
         }
+      } else {
+        logger.warn("No chat ID for session key", { sessionKey });
       }
     },
   };

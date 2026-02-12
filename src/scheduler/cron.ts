@@ -1,6 +1,7 @@
 import { Cron } from "croner";
 import { Database } from "bun:sqlite";
 import type { MessageRouter } from "../channels/router";
+import type { OrbaConfig } from "../config/schema";
 import { logger } from "../util/logger";
 
 interface CronJob {
@@ -15,19 +16,35 @@ interface CronJob {
 
 const activeCrons: Map<number, Cron> = new Map();
 
-export function initCronScheduler(db: Database, router: MessageRouter) {
+export function initCronScheduler(
+  db: Database,
+  router: MessageRouter,
+  config: OrbaConfig
+) {
   const jobs = db
     .query("SELECT * FROM cron_jobs WHERE enabled = 1")
     .all() as CronJob[];
 
   for (const job of jobs) {
-    scheduleJob(db, job, router);
+    scheduleJob(db, job, router, config);
   }
 
   logger.info("Cron scheduler initialized", { jobCount: jobs.length });
 }
 
-function scheduleJob(db: Database, job: CronJob, router: MessageRouter) {
+function getOwnerSessionKey(config: OrbaConfig): string | null {
+  if (config.telegramAllowedUsers.length > 0) {
+    return `telegram:${config.telegramAllowedUsers[0]}`;
+  }
+  return null;
+}
+
+function scheduleJob(
+  db: Database,
+  job: CronJob,
+  router: MessageRouter,
+  config: OrbaConfig
+) {
   if (activeCrons.has(job.id)) {
     activeCrons.get(job.id)!.stop();
   }
@@ -35,53 +52,59 @@ function scheduleJob(db: Database, job: CronJob, router: MessageRouter) {
   let cron: Cron;
   try {
     cron = new Cron(job.schedule, async () => {
-    logger.info(`Cron job firing: ${job.name}`);
+      logger.info(`Cron job firing: ${job.name}`);
 
-    // Log start
-    const logResult = db
-      .prepare(
-        "INSERT INTO cron_logs (job_id, status) VALUES (?, 'running')"
-      )
-      .run(job.id);
-    const logId = Number(logResult.lastInsertRowid);
-
-    try {
-      // Use a dedicated session for cron tasks
-      const sessionKey = `cron:${job.name}`;
-      const reply = await router.sendProactive(sessionKey, job.task);
-
-      // Log success
-      db.prepare(
-        "UPDATE cron_logs SET status = 'success', output = ?, finished_at = datetime('now') WHERE id = ?"
-      ).run(reply || "", logId);
-
-      // Update last_run
-      db.prepare(
-        "UPDATE cron_jobs SET last_run = datetime('now'), retry_count = 0 WHERE id = ?"
-      ).run(job.id);
-    } catch (err: any) {
-      logger.error(`Cron job failed: ${job.name}`, { error: err.message });
-
-      // Log failure
-      db.prepare(
-        "UPDATE cron_logs SET status = 'failed', error = ?, finished_at = datetime('now') WHERE id = ?"
-      ).run(err.message, logId);
-
-      // Increment retry count
-      const newRetry = job.retry_count + 1;
-      if (newRetry >= job.max_retries) {
-        logger.warn(`Cron job disabled after ${job.max_retries} retries: ${job.name}`);
-        db.prepare(
-          "UPDATE cron_jobs SET enabled = 0, retry_count = ? WHERE id = ?"
-        ).run(newRetry, job.id);
-        activeCrons.get(job.id)?.stop();
-        activeCrons.delete(job.id);
-      } else {
-        db.prepare(
-          "UPDATE cron_jobs SET retry_count = ? WHERE id = ?"
-        ).run(newRetry, job.id);
+      const sessionKey = getOwnerSessionKey(config);
+      if (!sessionKey) {
+        logger.warn("No owner registered, skipping cron job");
+        return;
       }
-    }
+
+      // Log start
+      const logResult = db
+        .prepare(
+          "INSERT INTO cron_logs (job_id, status) VALUES (?, 'running')"
+        )
+        .run(job.id);
+      const logId = Number(logResult.lastInsertRowid);
+
+      try {
+        const reply = await router.sendProactive(sessionKey, job.task);
+
+        // Log success
+        db.prepare(
+          "UPDATE cron_logs SET status = 'success', output = ?, finished_at = datetime('now') WHERE id = ?"
+        ).run(reply || "", logId);
+
+        // Update last_run
+        db.prepare(
+          "UPDATE cron_jobs SET last_run = datetime('now'), retry_count = 0 WHERE id = ?"
+        ).run(job.id);
+      } catch (err: any) {
+        logger.error(`Cron job failed: ${job.name}`, { error: err.message });
+
+        // Log failure
+        db.prepare(
+          "UPDATE cron_logs SET status = 'failed', error = ?, finished_at = datetime('now') WHERE id = ?"
+        ).run(err.message, logId);
+
+        // Increment retry count
+        const newRetry = job.retry_count + 1;
+        if (newRetry >= job.max_retries) {
+          logger.warn(
+            `Cron job disabled after ${job.max_retries} retries: ${job.name}`
+          );
+          db.prepare(
+            "UPDATE cron_jobs SET enabled = 0, retry_count = ? WHERE id = ?"
+          ).run(newRetry, job.id);
+          activeCrons.get(job.id)?.stop();
+          activeCrons.delete(job.id);
+        } else {
+          db.prepare(
+            "UPDATE cron_jobs SET retry_count = ? WHERE id = ?"
+          ).run(newRetry, job.id);
+        }
+      }
     });
   } catch (err: any) {
     logger.error(`Invalid cron schedule for job '${job.name}'`, {
@@ -100,7 +123,8 @@ export function addCronJob(
   name: string,
   schedule: string,
   task: string,
-  router: MessageRouter
+  router: MessageRouter,
+  config: OrbaConfig
 ) {
   const result = db
     .prepare(
@@ -119,7 +143,7 @@ export function addCronJob(
     max_retries: 3,
   };
 
-  scheduleJob(db, job, router);
+  scheduleJob(db, job, router, config);
   logger.info(`Cron job added: ${name}`, { schedule, task });
 }
 

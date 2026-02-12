@@ -1,5 +1,5 @@
 import type { LlmProvider } from "../llm/provider";
-import type { InboundMessage } from "./adapter";
+import type { InboundMessage, ChannelAdapter } from "./adapter";
 import { agentLoop } from "../agent/loop";
 import { searchMemory } from "../memory/engine";
 import { logger } from "../util/logger";
@@ -11,21 +11,22 @@ export interface MessageRouter {
     reply: (text: string) => Promise<void>
   ): Promise<void>;
   sendProactive(sessionKey: string, task: string): Promise<string>;
+  setAdapter(adapter: ChannelAdapter): void;
 }
 
 export function createRouter(
   llm: LlmProvider,
   db: Database
 ): MessageRouter {
-  // Store reply functions for proactive messaging
-  const replyFns = new Map<string, (text: string) => Promise<void>>();
+  let adapter: ChannelAdapter | null = null;
 
   return {
+    setAdapter(a: ChannelAdapter) {
+      adapter = a;
+    },
+
     async handleMessage(message, reply) {
       const { sessionKey, text } = message;
-
-      // Cache reply function for proactive messaging
-      replyFns.set(sessionKey, reply);
 
       logger.info(`Message from ${message.channel}:${message.userId}`, {
         sessionKey,
@@ -58,9 +59,8 @@ export function createRouter(
     async sendProactive(sessionKey, task) {
       try {
         const result = await agentLoop(llm, sessionKey, task);
-        const replyFn = replyFns.get(sessionKey);
-        if (replyFn && result.reply) {
-          await replyFn(result.reply);
+        if (adapter && result.reply) {
+          await adapter.sendMessage(sessionKey, result.reply);
         }
         return result.reply;
       } catch (err: any) {
