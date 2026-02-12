@@ -24,12 +24,30 @@ export function enableFileLogging() {
   fileLogging = true;
 }
 
+const SENSITIVE_KEYS = ["value", "secret", "password", "token", "key", "credential", "apikey", "api_key", "input"];
+
+function sanitizeLogData(data: Record<string, unknown>): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    const lower = k.toLowerCase();
+    if (SENSITIVE_KEYS.some((s) => lower.includes(s)) && typeof v === "string" && v.length > 20) {
+      sanitized[k] = v.slice(0, 8) + "…[REDACTED]";
+    } else if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+      sanitized[k] = sanitizeLogData(v as Record<string, unknown>);
+    } else {
+      sanitized[k] = v;
+    }
+  }
+  return sanitized;
+}
+
 function log(level: LogLevel, msg: string, data?: Record<string, unknown>) {
   if (LEVELS[level] < LEVELS[currentLevel]) return;
   const ts = new Date().toISOString();
   const prefix = `[${ts}] [${level.toUpperCase()}]`;
-  const line = data
-    ? `${prefix} ${msg} ${JSON.stringify(data)}`
+  const safeData = data ? sanitizeLogData(data) : undefined;
+  const line = safeData
+    ? `${prefix} ${msg} ${JSON.stringify(safeData)}`
     : `${prefix} ${msg}`;
 
   console.log(line);

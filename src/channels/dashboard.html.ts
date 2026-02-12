@@ -28,6 +28,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     --yellow: #eab308;
     --yellow-bg: rgba(234,179,8,0.1);
     --red: #ef4444;
+    --purple: #8b5cf6;
+    --purple-bg: rgba(139,92,246,0.08);
     --radius: 10px;
     --radius-lg: 14px;
     --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
@@ -61,18 +63,23 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     letter-spacing: 0.8px; color: var(--text-faint);
   }
 
-  #sidebar nav { display: flex; flex-direction: column; gap: 2px; padding: 4px 8px; flex: 1; }
+  #sidebar nav { display: flex; flex-direction: column; gap: 2px; padding: 4px 8px; flex: 1; overflow-y: auto; }
 
   #sidebar nav a {
     display: flex; align-items: center; gap: 10px;
     padding: 9px 12px; color: var(--text-secondary); text-decoration: none;
     font-size: 13px; font-weight: 500; border-radius: 8px;
-    transition: all var(--transition); cursor: pointer;
+    transition: all var(--transition); cursor: pointer; position: relative;
   }
   #sidebar nav a .nav-icon {
     width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
     font-size: 14px; opacity: 0.7; flex-shrink: 0;
   }
+  #sidebar nav a .channel-dot {
+    width: 6px; height: 6px; border-radius: 50%; margin-left: auto; flex-shrink: 0;
+  }
+  #sidebar nav a .channel-dot.connected { background: var(--green); box-shadow: 0 0 4px rgba(34,197,94,0.5); }
+  #sidebar nav a .channel-dot.disconnected { background: var(--text-faint); }
   #sidebar nav a:hover { color: var(--text); background: var(--bg-hover); }
   #sidebar nav a.active {
     color: var(--accent); background: var(--accent-bg);
@@ -84,7 +91,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
   .sidebar-footer {
     padding: 12px 16px; border-top: 1px solid var(--border);
-    font-size: 11px; color: var(--text-faint);
+    font-size: 11px; color: var(--text-faint); display: flex; align-items: center; gap: 6px;
+  }
+  .sidebar-footer .conn-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; padding: 2px 8px; border-radius: 10px;
+    background: var(--green-bg); color: var(--green);
   }
 
   /* Main area */
@@ -159,8 +171,18 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
   #chat-input-bar {
     padding: 16px 24px 20px; background: var(--bg-raised); border-top: 1px solid var(--border);
-    display: flex; gap: 10px; flex-shrink: 0;
+    display: flex; gap: 10px; flex-shrink: 0; align-items: center;
   }
+  .chat-attach-btn, .chat-mic-btn {
+    width: 40px; height: 40px; border: 1px solid var(--border); background: var(--bg-surface);
+    border-radius: var(--radius); color: var(--text-muted); font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition); flex-shrink: 0;
+  }
+  .chat-attach-btn:hover, .chat-mic-btn:hover { color: var(--text); border-color: var(--accent); background: var(--accent-bg); }
+  .chat-mic-btn.recording { color: var(--red); border-color: var(--red); background: rgba(239,68,68,0.1); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
   #chat-input {
     flex: 1; padding: 12px 16px; background: var(--bg-surface); border: 1px solid var(--border);
     border-radius: var(--radius); color: var(--text); font-size: 14px; outline: none;
@@ -171,10 +193,26 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   #chat-send {
     padding: 12px 22px; background: var(--accent); color: white; border: none;
     border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer;
-    transition: background var(--transition);
+    transition: background var(--transition); flex-shrink: 0;
   }
   #chat-send:hover { background: var(--accent-hover); }
   #chat-send:disabled { opacity: 0.4; cursor: default; }
+
+  .file-pill {
+    display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+    background: var(--accent-bg); border: 1px solid var(--accent-border);
+    border-radius: 16px; font-size: 11px; color: var(--accent); font-weight: 500;
+  }
+  .file-pill .remove { cursor: pointer; opacity: 0.7; }
+  .file-pill .remove:hover { opacity: 1; }
+
+  .drop-overlay {
+    display: none; position: absolute; inset: 0; background: rgba(59,130,246,0.08);
+    border: 2px dashed var(--accent); border-radius: var(--radius-lg);
+    z-index: 10; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--accent); font-weight: 600;
+  }
+  .drop-overlay.visible { display: flex; }
 
   /* ===== CARDS ===== */
   .cards {
@@ -193,6 +231,20 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   .card .value { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
   .card .value.ok { color: var(--green); }
   .card .value.warn { color: var(--yellow); }
+
+  /* Quick action cards */
+  .quick-actions {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px; margin-top: 24px;
+  }
+  .quick-action {
+    background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 18px; cursor: pointer; transition: all var(--transition); text-align: center;
+  }
+  .quick-action:hover { border-color: var(--accent); background: var(--accent-bg); transform: translateY(-1px); }
+  .quick-action .qa-icon { font-size: 24px; margin-bottom: 8px; }
+  .quick-action .qa-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .quick-action .qa-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
   /* ===== EDITOR ===== */
   .editor-wrap { display: flex; flex-direction: column; height: 100%; }
@@ -217,6 +269,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
   .btn-ghost:hover { color: var(--text); border-color: #555; background: var(--bg-hover); }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+  .btn-purple { background: var(--purple); color: white; }
+  .btn-purple:hover { background: #7c3aed; }
 
   /* ===== STATUS LABEL ===== */
   .status-text { font-size: 12px; color: var(--text-faint); font-weight: 500; }
@@ -289,13 +344,28 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     position: fixed; bottom: 24px; right: 24px; background: var(--green);
     color: #000; padding: 12px 20px; border-radius: var(--radius); font-size: 13px;
     font-weight: 600; opacity: 0; transition: opacity 200ms, transform 200ms;
-    pointer-events: none; transform: translateY(8px); box-shadow: var(--shadow-lg);
+    pointer-events: none; transform: translateY(8px); box-shadow: var(--shadow-lg); z-index: 100;
   }
   .toast.show { opacity: 1; transform: translateY(0); }
 
-  /* ===== SETTINGS ===== */
-  .settings-section { max-width: 560px; }
-  .settings-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  /* ===== TOOLTIP ===== */
+  [data-tooltip] { position: relative; }
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; white-space: nowrap;
+    z-index: 50; pointer-events: none; box-shadow: var(--shadow);
+    animation: ttIn 100ms ease-out;
+  }
+  @keyframes ttIn { from { opacity: 0; transform: translateX(-50%) translateY(2px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+  /* ===== SETTINGS ENHANCED ===== */
+  .settings-section { max-width: 600px; margin-bottom: 32px; }
+  .settings-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .settings-title .conn-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .settings-title .conn-dot.on { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+  .settings-title .conn-dot.off { background: var(--text-faint); }
   .settings-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; }
   .settings-desc code {
     background: var(--bg-surface); padding: 2px 6px; border-radius: 4px;
@@ -313,6 +383,52 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   .settings-select:focus, .settings-input:focus { border-color: var(--accent); }
   .settings-select { cursor: pointer; appearance: auto; }
   .settings-input::placeholder { color: var(--text-faint); }
+
+  /* Analytics CSS bar chart */
+  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; }
+  .bar-col .bar { background: var(--accent); border-radius: 4px 4px 0 0; width: 100%; min-height: 2px; transition: height 300ms; }
+  .bar-col .bar-label { font-size: 10px; color: var(--text-faint); }
+
+  /* Workflow DAG */
+  .dag-container { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; min-height: 200px; }
+  .dag-container svg text { fill: var(--text-secondary); font-size: 11px; font-family: var(--font); }
+  .dag-container svg .dag-node { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.5; rx: 8; }
+  .dag-container svg .dag-edge { stroke: var(--border); stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+
+  /* Registry items */
+  .registry-item {
+    background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+    transition: border-color var(--transition);
+  }
+  .registry-item:hover { border-color: #3f3f46; }
+  .registry-item .ri-name { font-weight: 600; font-size: 13px; color: var(--text); }
+  .registry-item .ri-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ===== ONBOARDING MODAL ===== */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 200; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: var(--bg-raised); border: 1px solid var(--border); border-radius: 16px;
+    padding: 40px; max-width: 480px; width: 90%; box-shadow: var(--shadow-lg);
+    animation: modalIn 250ms ease-out;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .modal h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
+  .modal .steps { display: flex; gap: 6px; margin-bottom: 24px; }
+  .modal .steps .step-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--border);
+    transition: background 200ms;
+  }
+  .modal .steps .step-dot.active { background: var(--accent); }
+  .modal .steps .step-dot.done { background: var(--green); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; }
@@ -338,6 +454,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <a href="#status" onclick="showPanel('status')">
       <span class="nav-icon">\u{1F4CA}</span> Status
     </a>
+    <a href="#analytics" onclick="showPanel('analytics')">
+      <span class="nav-icon">\u{1F4C8}</span> Analytics
+    </a>
     <a href="#system" onclick="showPanel('system')">
       <span class="nav-icon">\u{2699}\u{FE0F}</span> System Prompt
     </a>
@@ -346,6 +465,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     </a>
     <a href="#skills" onclick="showPanel('skills')">
       <span class="nav-icon">\u{26A1}</span> Skills
+    </a>
+    <a href="#registry" onclick="showPanel('registry')">
+      <span class="nav-icon">\u{1F50D}</span> Registry
+    </a>
+    <a href="#workflows" onclick="showPanel('workflows')">
+      <span class="nav-icon">\u{1F500}</span> Workflows
     </a>
     <a href="#cron" onclick="showPanel('cron')">
       <span class="nav-icon">\u{1F504}</span> Cron Jobs
@@ -358,7 +483,10 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <span class="nav-icon">\u{2699}\u{FE0F}</span> Settings
     </a>
   </nav>
-  <div class="sidebar-footer">Zubo Agent</div>
+  <div class="sidebar-footer">
+    <span>Zubo</span>
+    <span class="conn-badge" id="sidebar-conn-badge"></span>
+  </div>
 </div>
 
 <div id="main">
@@ -369,23 +497,86 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   <div id="content">
 
     <!-- AGENT CHAT PANEL -->
-    <div id="panel-agent" class="panel active">
+    <div id="panel-agent" class="panel active" style="position:relative;">
+      <div class="drop-overlay" id="drop-overlay">Drop file to upload</div>
       <div id="chat-messages">
         <div class="chat-empty">
           <div class="chat-empty-icon">\u{1F4AC}</div>
           <div class="chat-empty-text">Send a message to start chatting with Zubo</div>
         </div>
       </div>
+      <div id="file-pill-bar" style="display:none; padding: 4px 24px 0;">
+        <div class="file-pill" id="file-pill"><span id="file-pill-name"></span><span class="remove" onclick="clearAttachedFile()">\u{2715}</span></div>
+      </div>
       <div id="chat-input-bar">
+        <button class="chat-attach-btn" data-tooltip="Attach file" onclick="triggerFileUpload()">\u{1F4CE}</button>
+        <button class="chat-mic-btn" id="mic-btn" data-tooltip="Voice input" onclick="toggleMic()">\u{1F3A4}</button>
         <input id="chat-input" type="text" placeholder="Message Zubo..." autocomplete="off">
         <button id="chat-send">Send</button>
       </div>
+      <input type="file" id="file-input" style="display:none" accept=".pdf,.docx,.txt,.md,.csv,.json,.html">
     </div>
 
     <!-- STATUS PANEL -->
     <div id="panel-status" class="panel">
       <div class="panel-body">
         <div class="cards" id="status-cards"></div>
+        <div class="quick-actions" id="quick-actions">
+          <div class="quick-action" onclick="showPanel('agent')">
+            <div class="qa-icon">\u{1F4AC}</div>
+            <div class="qa-label">Chat</div>
+            <div class="qa-desc">Start a conversation</div>
+          </div>
+          <div class="quick-action" onclick="showPanel('skills')">
+            <div class="qa-icon">\u{26A1}</div>
+            <div class="qa-label">Skills</div>
+            <div class="qa-desc">View installed skills</div>
+          </div>
+          <div class="quick-action" onclick="showPanel('registry')">
+            <div class="qa-icon">\u{1F50D}</div>
+            <div class="qa-label">Registry</div>
+            <div class="qa-desc">Browse skill registry</div>
+          </div>
+          <div class="quick-action" onclick="showPanel('cron')">
+            <div class="qa-icon">\u{1F504}</div>
+            <div class="qa-label">Cron Jobs</div>
+            <div class="qa-desc">Schedule tasks</div>
+          </div>
+          <div class="quick-action" onclick="triggerFileUpload()">
+            <div class="qa-icon">\u{1F4C4}</div>
+            <div class="qa-label">Upload File</div>
+            <div class="qa-desc">Add a document</div>
+          </div>
+          <div class="quick-action" onclick="showPanel('workflows')">
+            <div class="qa-icon">\u{1F500}</div>
+            <div class="qa-label">Workflows</div>
+            <div class="qa-desc">Multi-agent pipelines</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS PANEL -->
+    <div id="panel-analytics" class="panel">
+      <div class="panel-body">
+        <div class="cards" id="analytics-summary"></div>
+        <div class="memory-section-title" style="margin-top:28px;">Token Usage (Last 7 Days)</div>
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+          <div class="bar-chart" id="usage-chart"></div>
+        </div>
+        <div class="memory-section-title" style="margin-top:28px;">
+          <span>Tool Usage</span>
+          <span class="badge" id="tool-count"></span>
+        </div>
+        <table id="tools-table">
+          <thead><tr><th>Tool</th><th>Calls</th><th>Avg Time</th><th>Errors</th></tr></thead>
+          <tbody id="tools-body"></tbody>
+        </table>
+        <div class="memory-section-title" style="margin-top:28px;">Sessions</div>
+        <table id="sessions-table">
+          <thead><tr><th>Session</th><th>Provider</th><th>Tokens</th><th>Cost</th><th>Last Used</th></tr></thead>
+          <tbody id="sessions-body"></tbody>
+        </table>
       </div>
     </div>
 
@@ -433,7 +624,32 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <thead><tr><th>Name</th><th>Description</th><th>Status</th></tr></thead>
           <tbody id="skills-body"></tbody>
         </table>
-        <p id="skills-empty" class="empty-state" style="display:none;">No skills installed.</p>
+        <p id="skills-empty" class="empty-state" style="display:none;">No skills installed. <a href="#registry" onclick="showPanel('registry')" style="color:var(--accent);">Browse the registry</a></p>
+      </div>
+    </div>
+
+    <!-- REGISTRY PANEL -->
+    <div id="panel-registry" class="panel">
+      <div class="panel-body">
+        <div class="search-bar">
+          <input id="registry-search" type="text" placeholder="Search skills (e.g. email, calendar, weather...)">
+          <button class="btn btn-primary" onclick="searchRegistry()">Search</button>
+        </div>
+        <div id="registry-results" style="display:flex;flex-direction:column;gap:10px;">
+          <p class="empty-state">Search the skill registry to find and install new skills.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKFLOWS PANEL -->
+    <div id="panel-workflows" class="panel">
+      <div class="panel-body">
+        <div class="editor-toolbar">
+          <button class="btn btn-ghost" onclick="loadWorkflows()">Refresh</button>
+          <span id="workflows-status" class="status-text"></span>
+        </div>
+        <div id="workflows-list" style="display:flex;flex-direction:column;gap:14px;"></div>
+        <p id="workflows-empty" class="empty-state" style="display:none;">No workflows defined. Ask Zubo to create a workflow in chat.</p>
       </div>
     </div>
 
@@ -463,11 +679,11 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <div id="panel-settings" class="panel">
       <div class="panel-body">
         <div class="settings-section">
-          <h3 class="settings-title">LLM Provider</h3>
-          <p class="settings-desc">Select which provider and model Zubo uses. Changes are saved to config and take effect on restart.</p>
+          <h3 class="settings-title" data-tooltip="Select which AI model powers Zubo">LLM Provider</h3>
+          <p class="settings-desc">Select which provider and model Zubo uses.</p>
           <div class="settings-grid">
             <div class="settings-field">
-              <label class="settings-label" for="settings-provider">Provider</label>
+              <label class="settings-label" data-tooltip="Cloud AI service" for="settings-provider">Provider</label>
               <select id="settings-provider" class="settings-select" onchange="onProviderChange()"></select>
             </div>
             <div class="settings-field">
@@ -477,12 +693,37 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           </div>
           <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
             <button class="btn btn-primary" onclick="saveModelConfig()">Save</button>
+            <button class="btn btn-ghost" onclick="testLlm()">Test Connection</button>
             <span id="settings-status" class="status-text"></span>
           </div>
         </div>
-        <div class="settings-section" style="margin-top: 32px;">
+
+        <div class="settings-section">
+          <h3 class="settings-title" data-tooltip="Connected messaging channels">Channels
+            <span id="channel-count-badge" class="conn-badge" style="font-size:10px;"></span>
+          </h3>
+          <p class="settings-desc">Status of connected messaging channels.</p>
+          <div id="channel-status-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-title" data-tooltip="Background task frequency">Heartbeat Interval</h3>
+          <p class="settings-desc">How often the background heartbeat runs. Default: 30 minutes.</p>
+          <div class="settings-grid">
+            <div class="settings-field">
+              <label class="settings-label" data-tooltip="Minutes between heartbeats" for="settings-heartbeat">Interval (minutes)</label>
+              <input id="settings-heartbeat" type="number" class="settings-input" min="1" max="1440" step="1" placeholder="30">
+            </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-primary" onclick="saveHeartbeat()">Save</button>
+            <span id="heartbeat-status" class="status-text"></span>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <h3 class="settings-title">Configuration</h3>
-          <p class="settings-desc">Manage your full config by editing <code>~/.zubo/config.json</code> directly, or re-run <code>zubo setup</code> to add new providers.</p>
+          <p class="settings-desc">Manage your full config by editing <code>~/.zubo/config.json</code> directly, or re-run <code>zubo setup</code>.</p>
         </div>
       </div>
     </div>
@@ -490,12 +731,32 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   </div>
 </div>
 
+<!-- Onboarding Modal -->
+<div class="modal-overlay" id="onboarding-modal">
+  <div class="modal">
+    <div class="steps" id="onboarding-steps">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+    <div id="onboarding-content">
+      <h2>Welcome to Zubo</h2>
+      <p>Your personal AI agent that remembers you, runs tasks, and connects to your favorite services. Let's get you set up.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="skipOnboarding()">Skip</button>
+      <button class="btn btn-primary" id="onboarding-next" onclick="nextOnboardingStep()">Get Started</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 // --- Panel routing ---
-var panelNames = ['agent','status','system','memory','skills','cron','logs','settings'];
-var panelTitles = { agent:'Agent', status:'Status', system:'System Prompt', memory:'Memory', skills:'Skills', cron:'Cron Jobs', logs:'Logs', settings:'Settings' };
+var panelNames = ['agent','status','analytics','system','memory','skills','registry','workflows','cron','logs','settings'];
+var panelTitles = { agent:'Agent', status:'Status', analytics:'Analytics', system:'System Prompt', memory:'Memory', skills:'Skills', registry:'Skill Registry', workflows:'Workflows', cron:'Cron Jobs', logs:'Logs', settings:'Settings' };
 
 function showPanel(name) {
   if (panelNames.indexOf(name) === -1) name = 'agent';
@@ -510,15 +771,16 @@ function showPanel(name) {
 
   if (name === 'agent') { document.getElementById('chat-input').focus(); }
   if (name === 'status') loadStatus();
+  if (name === 'analytics') loadAnalytics();
   if (name === 'system') loadSystem();
   if (name === 'memory') loadMemory();
   if (name === 'skills') loadSkills();
   if (name === 'cron') loadCron();
   if (name === 'logs') loadLogs();
   if (name === 'settings') loadSettings();
+  if (name === 'workflows') loadWorkflows();
 }
 
-// Handle hash on load + back/forward
 function routeFromHash() {
   var hash = window.location.hash.replace('#', '') || 'agent';
   showPanel(hash);
@@ -544,20 +806,19 @@ var chatInput = document.getElementById('chat-input');
 var chatSend = document.getElementById('chat-send');
 var chatBusy = false;
 var chatHistory = [];
+var attachedFile = null;
 
 function clearEmptyState() {
   var empty = chatMessages.querySelector('.chat-empty');
   if (empty) empty.remove();
 }
 
-// Safe markdown renderer: escapes HTML first via textContent, then applies
-// controlled substitutions. No raw user/bot HTML can pass through unescaped.
 function renderMd(text) {
   var tmp = document.createElement('div');
   tmp.textContent = text;
   var s = tmp.innerHTML;
-  s = s.replace(/\`\`\`([\\s\\S]*?)\`\`\`/g, '<pre><code>$1</code></pre>');
-  s = s.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
+  s = s.replace(/\\\`\\\`\\\`([\\s\\S]*?)\\\`\\\`\\\`/g, '<pre><code>$1</code></pre>');
+  s = s.replace(/\\\`([^\\\`]+)\\\`/g, '<code>$1</code>');
   s = s.replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
   s = s.replace(/\\*(.+?)\\*/g, '<em>$1</em>');
   s = s.replace(/\\n/g, '<br>');
@@ -584,22 +845,93 @@ function sendChatMessage() {
   chatBusy = true;
   chatSend.disabled = true;
   chatInput.value = '';
+
+  // Upload file first if attached
+  if (attachedFile) {
+    var formData = new FormData();
+    formData.append('file', attachedFile);
+    var fname = attachedFile.name;
+    clearAttachedFile();
+    addChatMsg('[Uploading ' + fname + '...]', 'user');
+    fetch('/api/upload', { method: 'POST', body: formData }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.uploaded) {
+        text = text + ' [Uploaded: ' + fname + ', ' + (data.chunks || 0) + ' chunks indexed]';
+      }
+      doStreamChat(text);
+    }).catch(function() { doStreamChat(text); });
+    return;
+  }
+
   addChatMsg(text, 'user');
   chatHistory.push({ role: 'user', text: text });
-  var thinking = addChatMsg('Thinking...', 'bot thinking');
-  fetch('/api/chat', {
+  doStreamChat(text);
+}
+
+function doStreamChat(text) {
+  clearEmptyState();
+  var botMsg = document.createElement('div');
+  botMsg.className = 'chat-msg bot thinking';
+  botMsg.textContent = '';
+  chatMessages.appendChild(botMsg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  var streamedText = '';
+
+  fetch('/api/chat/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: text }),
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    thinking.remove();
-    var reply = data.reply || 'No response.';
-    addChatMsg(reply, 'bot');
-    chatHistory.push({ role: 'bot', text: reply });
+  }).then(function(response) {
+    if (!response.ok) throw new Error('Stream request failed');
+    var reader = response.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+
+    function processChunk() {
+      return reader.read().then(function(result) {
+        if (result.done) {
+          botMsg.classList.remove('thinking');
+          botMsg.innerHTML = renderMd(streamedText || 'No response.');
+          chatHistory.push({ role: 'bot', text: streamedText });
+          chatBusy = false;
+          chatSend.disabled = false;
+          chatInput.focus();
+          return;
+        }
+        buffer += decoder.decode(result.value, { stream: true });
+        var lines = buffer.split('\\n');
+        buffer = lines.pop() || '';
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (line.startsWith('event: ')) {
+            var evtType = line.slice(7);
+            i++;
+            if (i < lines.length && lines[i].trim().startsWith('data: ')) {
+              try {
+                var evtData = JSON.parse(lines[i].trim().slice(6));
+                if (evtType === 'delta' && evtData.text) {
+                  streamedText += evtData.text;
+                  botMsg.textContent = streamedText;
+                  chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else if (evtType === 'tool') {
+                  if (evtData.status === 'start') {
+                    botMsg.textContent = streamedText + '\\n[Using ' + evtData.name + '...]';
+                  }
+                } else if (evtType === 'done') {
+                  streamedText = evtData.reply || streamedText;
+                } else if (evtType === 'error') {
+                  streamedText += '\\nError: ' + (evtData.error || 'Unknown error');
+                }
+              } catch(e) {}
+            }
+          }
+        }
+        return processChunk();
+      });
+    }
+    return processChunk();
   }).catch(function(e) {
-    thinking.remove();
-    addChatMsg('Error: ' + e.message, 'bot');
-  }).finally(function() {
+    botMsg.classList.remove('thinking');
+    botMsg.textContent = 'Error: ' + e.message;
     chatBusy = false;
     chatSend.disabled = false;
     chatInput.focus();
@@ -608,6 +940,87 @@ function sendChatMessage() {
 
 chatSend.addEventListener('click', sendChatMessage);
 chatInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendChatMessage(); });
+
+// --- File Upload ---
+function triggerFileUpload() {
+  document.getElementById('file-input').click();
+}
+document.getElementById('file-input').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (file) attachFile(file);
+  e.target.value = '';
+});
+function attachFile(file) {
+  attachedFile = file;
+  document.getElementById('file-pill-name').textContent = file.name;
+  document.getElementById('file-pill-bar').style.display = 'block';
+}
+function clearAttachedFile() {
+  attachedFile = null;
+  document.getElementById('file-pill-bar').style.display = 'none';
+}
+
+// Drag and drop
+var chatPanel = document.getElementById('panel-agent');
+var dropOverlay = document.getElementById('drop-overlay');
+chatPanel.addEventListener('dragover', function(e) { e.preventDefault(); dropOverlay.classList.add('visible'); });
+chatPanel.addEventListener('dragleave', function(e) { if (e.target === chatPanel || e.target === dropOverlay) dropOverlay.classList.remove('visible'); });
+chatPanel.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dropOverlay.classList.remove('visible');
+  if (e.dataTransfer.files.length) attachFile(e.dataTransfer.files[0]);
+});
+
+// --- Voice Input ---
+var micRecording = false;
+var mediaRecorder = null;
+function toggleMic() {
+  if (micRecording) { stopMic(); return; }
+  if (!navigator.mediaDevices) { toast('Microphone not available'); return; }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+    micRecording = true;
+    document.getElementById('mic-btn').classList.add('recording');
+    var chunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = function(e) { chunks.push(e.data); };
+    mediaRecorder.onstop = function() {
+      stream.getTracks().forEach(function(t) { t.stop(); });
+      var blob = new Blob(chunks, { type: 'audio/webm' });
+      sendVoice(blob);
+    };
+    mediaRecorder.start();
+  }).catch(function() { toast('Microphone access denied'); });
+}
+function stopMic() {
+  micRecording = false;
+  document.getElementById('mic-btn').classList.remove('recording');
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+}
+function sendVoice(blob) {
+  chatBusy = true;
+  chatSend.disabled = true;
+  addChatMsg('[Voice message]', 'user');
+  var botMsg = addChatMsg('Transcribing...', 'bot thinking');
+  var fd = new FormData();
+  fd.append('audio', blob, 'recording.webm');
+  fd.append('tts', 'false');
+  fetch('/api/chat/voice', { method: 'POST', body: fd }).then(function(r) { return r.json(); }).then(function(data) {
+    botMsg.classList.remove('thinking');
+    if (data.error) { botMsg.textContent = 'Error: ' + data.error; }
+    else {
+      if (data.transcript) chatHistory.push({ role: 'user', text: data.transcript });
+      botMsg.innerHTML = renderMd(data.reply || 'No response.');
+      chatHistory.push({ role: 'bot', text: data.reply });
+    }
+    chatBusy = false;
+    chatSend.disabled = false;
+  }).catch(function(e) {
+    botMsg.classList.remove('thinking');
+    botMsg.textContent = 'Error: ' + e.message;
+    chatBusy = false;
+    chatSend.disabled = false;
+  });
+}
 
 // --- STATUS ---
 function makeCard(label, value) {
@@ -632,6 +1045,84 @@ function loadStatus() {
     c.replaceChildren();
     Object.keys(data).forEach(function(label) {
       c.appendChild(makeCard(label, String(data[label])));
+    });
+  });
+}
+
+// --- ANALYTICS ---
+function loadAnalytics() {
+  // Summary cards
+  api('/analytics/summary').then(function(data) {
+    var c = document.getElementById('analytics-summary');
+    c.replaceChildren();
+    c.appendChild(makeCard('Total Tokens', (data.totalTokens || 0).toLocaleString()));
+    c.appendChild(makeCard('Estimated Cost', '$' + (data.estimatedCostUsd || 0).toFixed(4)));
+    c.appendChild(makeCard('Avg Response', (data.avgResponseTimeMs || 0) + 'ms'));
+    c.appendChild(makeCard('Sessions', String(data.sessionCount || 0)));
+  });
+
+  // Usage chart
+  api('/analytics/usage-over-time').then(function(data) {
+    var chart = document.getElementById('usage-chart');
+    chart.replaceChildren();
+    var days = data.days || [];
+    if (!days.length) { chart.textContent = 'No data yet'; return; }
+    var maxVal = 1;
+    days.forEach(function(d) { var t = (d.input || 0) + (d.output || 0); if (t > maxVal) maxVal = t; });
+    days.forEach(function(d) {
+      var total = (d.input || 0) + (d.output || 0);
+      var col = document.createElement('div');
+      col.className = 'bar-col';
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = Math.max(2, (total / maxVal) * 100) + 'px';
+      bar.setAttribute('data-tooltip', total.toLocaleString() + ' tokens');
+      var label = document.createElement('div');
+      label.className = 'bar-label';
+      label.textContent = (d.day || '').slice(5);
+      col.appendChild(bar);
+      col.appendChild(label);
+      chart.appendChild(col);
+    });
+  });
+
+  // Tools table
+  api('/analytics/tools').then(function(data) {
+    var body = document.getElementById('tools-body');
+    body.replaceChildren();
+    var tools = data.tools || [];
+    document.getElementById('tool-count').textContent = String(tools.length);
+    tools.forEach(function(t) {
+      var tr = document.createElement('tr');
+      var cells = [t.tool_name, String(t.calls), Math.round(t.avg_ms || 0) + 'ms', String(t.errors || 0)];
+      cells.forEach(function(text) {
+        var td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  });
+
+  // Sessions table
+  api('/analytics/sessions').then(function(data) {
+    var body = document.getElementById('sessions-body');
+    body.replaceChildren();
+    (data.sessions || []).forEach(function(s) {
+      var tr = document.createElement('tr');
+      var cells = [
+        (s.session_id || '').slice(0, 16) + '...',
+        s.provider + '/' + s.model,
+        ((s.input_tokens || 0) + (s.output_tokens || 0)).toLocaleString(),
+        '$' + (s.cost || 0).toFixed(4),
+        (s.last_used || '').replace('T', ' ').slice(0, 16)
+      ];
+      cells.forEach(function(text) {
+        var td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
     });
   });
 }
@@ -717,7 +1208,6 @@ function searchMemories() {
   });
 }
 
-// Allow Enter to search
 document.getElementById('memory-search').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') searchMemories();
 });
@@ -748,6 +1238,112 @@ function loadSkills() {
       tr.appendChild(statusCell);
       body.appendChild(tr);
     });
+  });
+}
+
+// --- REGISTRY ---
+function searchRegistry() {
+  var q = document.getElementById('registry-search').value.trim();
+  var container = document.getElementById('registry-results');
+  container.replaceChildren();
+  var loading = document.createElement('p');
+  loading.className = 'empty-state';
+  loading.textContent = 'Searching...';
+  container.appendChild(loading);
+
+  api('/registry/search?q=' + encodeURIComponent(q)).then(function(data) {
+    container.replaceChildren();
+    var results = data.results || [];
+    if (!results.length) {
+      var p = document.createElement('p');
+      p.className = 'empty-state';
+      p.textContent = q ? 'No skills found for "' + q + '".' : 'No skills available.';
+      container.appendChild(p);
+      return;
+    }
+    results.forEach(function(r) {
+      var item = document.createElement('div');
+      item.className = 'registry-item';
+      var info = document.createElement('div');
+      var name = document.createElement('div');
+      name.className = 'ri-name';
+      name.textContent = r.name;
+      var desc = document.createElement('div');
+      desc.className = 'ri-desc';
+      desc.textContent = r.description || '';
+      info.appendChild(name);
+      info.appendChild(desc);
+      var btn = document.createElement('button');
+      btn.className = 'btn btn-sm btn-primary';
+      btn.textContent = 'Install';
+      btn.onclick = function() { installRegistrySkill(r.name, btn); };
+      item.appendChild(info);
+      item.appendChild(btn);
+      container.appendChild(item);
+    });
+  }).catch(function(e) {
+    container.replaceChildren();
+    var p = document.createElement('p');
+    p.className = 'empty-state';
+    p.textContent = 'Error: ' + e.message;
+    container.appendChild(p);
+  });
+}
+
+document.getElementById('registry-search').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') searchRegistry();
+});
+
+function installRegistrySkill(name, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Installing...';
+  api('/registry/install', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name: name })
+  }).then(function(data) {
+    if (data.ok) {
+      btn.textContent = 'Installed';
+      btn.className = 'btn btn-sm btn-ghost';
+      toast(name + ' installed');
+    } else {
+      btn.textContent = 'Failed';
+      btn.disabled = false;
+    }
+  }).catch(function() {
+    btn.textContent = 'Error';
+    btn.disabled = false;
+  });
+}
+
+// --- WORKFLOWS ---
+function loadWorkflows() {
+  api('/workflows').then(function(data) {
+    var container = document.getElementById('workflows-list');
+    var empty = document.getElementById('workflows-empty');
+    container.replaceChildren();
+    var wfs = data.workflows || [];
+    if (!wfs.length) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    wfs.forEach(function(w) {
+      var card = document.createElement('div');
+      card.className = 'card';
+      var name = document.createElement('div');
+      name.className = 'value';
+      name.style.fontSize = '16px';
+      name.textContent = w.name;
+      var desc = document.createElement('div');
+      desc.style.cssText = 'font-size:13px;color:var(--text-muted);margin-top:4px;';
+      desc.textContent = w.description || '';
+      var meta = document.createElement('div');
+      meta.style.cssText = 'font-size:11px;color:var(--text-faint);margin-top:8px;';
+      meta.textContent = (w.agents || []).length + ' agents, ' + (w.steps || 0) + ' steps';
+      card.appendChild(name);
+      card.appendChild(desc);
+      card.appendChild(meta);
+      container.appendChild(card);
+    });
+    document.getElementById('workflows-status').textContent = wfs.length + ' workflows';
   });
 }
 
@@ -798,6 +1394,11 @@ function loadSettings() {
     document.getElementById('settings-model').value = data.model || '';
     document.getElementById('settings-status').textContent = '';
   });
+  api('/settings/heartbeat').then(function(data) {
+    document.getElementById('settings-heartbeat').value = data.minutes || 30;
+    document.getElementById('heartbeat-status').textContent = '';
+  });
+  loadChannelStatus();
 }
 
 function onProviderChange() {
@@ -823,7 +1424,7 @@ function saveModelConfig() {
     body: JSON.stringify({ provider: provider, model: model })
   }).then(function(data) {
     if (data.ok) {
-      document.getElementById('settings-status').textContent = 'Saved — restart Zubo to apply';
+      document.getElementById('settings-status').textContent = 'Saved \u2014 restart Zubo to apply';
       toast('Model updated');
       loadSettings();
     } else {
@@ -832,8 +1433,135 @@ function saveModelConfig() {
   });
 }
 
-// Init: route from hash
+function testLlm() {
+  document.getElementById('settings-status').textContent = 'Testing...';
+  api('/test-llm', { method: 'POST' }).then(function(data) {
+    if (data.ok) {
+      document.getElementById('settings-status').textContent = 'Connected (' + data.model + ')';
+      toast('LLM connection OK');
+    } else {
+      document.getElementById('settings-status').textContent = 'Failed: ' + (data.error || 'Unknown');
+    }
+  }).catch(function(e) {
+    document.getElementById('settings-status').textContent = 'Error: ' + e.message;
+  });
+}
+
+function saveHeartbeat() {
+  var mins = parseInt(document.getElementById('settings-heartbeat').value, 10);
+  if (!mins || mins < 1 || mins > 1440) {
+    document.getElementById('heartbeat-status').textContent = 'Must be 1\u20131440 minutes';
+    return;
+  }
+  api('/settings/heartbeat', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ minutes: mins })
+  }).then(function(data) {
+    if (data.ok) {
+      document.getElementById('heartbeat-status').textContent = 'Applied immediately';
+      toast('Heartbeat updated to ' + data.minutes + ' min');
+    } else {
+      document.getElementById('heartbeat-status').textContent = data.error || 'Error';
+    }
+  });
+}
+
+// --- Channel Status ---
+var channelLabels = { webchat: 'Web Chat', telegram: 'Telegram', discord: 'Discord', slack: 'Slack', whatsapp: 'WhatsApp', signal: 'Signal' };
+
+function loadChannelStatus() {
+  api('/channel-status').then(function(data) {
+    var list = document.getElementById('channel-status-list');
+    list.replaceChildren();
+    var channels = data.channels || {};
+    var connCount = 0;
+    Object.keys(channels).forEach(function(name) {
+      var ch = channels[name];
+      if (ch.enabled) connCount++;
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;';
+      var dot = document.createElement('span');
+      dot.className = 'status-dot ' + (ch.enabled ? 'ok' : '');
+      if (!ch.enabled) dot.style.background = 'var(--text-faint)';
+      var label = document.createElement('span');
+      label.style.cssText = 'font-size:13px;font-weight:500;color:var(--text);flex:1;';
+      label.textContent = channelLabels[name] || name;
+      var status = document.createElement('span');
+      status.style.cssText = 'font-size:11px;color:' + (ch.enabled ? 'var(--green)' : 'var(--text-faint)') + ';';
+      status.textContent = ch.enabled ? 'Connected' : (ch.configured ? 'Disabled' : 'Not configured');
+      row.appendChild(dot);
+      row.appendChild(label);
+      row.appendChild(status);
+      list.appendChild(row);
+    });
+    document.getElementById('channel-count-badge').textContent = connCount + ' active';
+    document.getElementById('sidebar-conn-badge').textContent = connCount + ' channels';
+  }).catch(function() {});
+}
+
+// --- ONBOARDING ---
+var onboardingStep = 0;
+var onboardingSteps = [
+  { title: 'Welcome to Zubo', body: 'Your personal AI agent that remembers you, runs tasks, and connects to your favorite services. Let\\'s get you set up.', btn: 'Get Started' },
+  { title: 'Set Your Agent\\'s Name', body: 'Give your Zubo agent a personality. Edit the system prompt to customize how it talks and what it knows about you.', btn: 'Next' },
+  { title: 'Connect a Channel', body: 'Zubo works via web chat by default. You can also connect Telegram, Discord, Slack, WhatsApp, or Signal in Settings.', btn: 'Next' },
+  { title: 'You\\'re All Set!', body: 'Start chatting with Zubo. It remembers your conversations, can learn new skills, and runs scheduled tasks for you.', btn: 'Start Chatting' },
+];
+
+function checkOnboarding() {
+  api('/onboarding').then(function(data) {
+    if (data.completed) return;
+    onboardingStep = data.step || 0;
+    showOnboardingStep();
+    document.getElementById('onboarding-modal').classList.add('visible');
+  }).catch(function() {});
+}
+
+function showOnboardingStep() {
+  var step = onboardingSteps[onboardingStep];
+  if (!step) return;
+  var content = document.getElementById('onboarding-content');
+  content.replaceChildren();
+  var h = document.createElement('h2');
+  h.textContent = step.title;
+  var p = document.createElement('p');
+  p.textContent = step.body;
+  content.appendChild(h);
+  content.appendChild(p);
+  document.getElementById('onboarding-next').textContent = step.btn;
+  // Update dots
+  var dots = document.querySelectorAll('#onboarding-steps .step-dot');
+  dots.forEach(function(d, i) {
+    d.className = 'step-dot';
+    if (i < onboardingStep) d.classList.add('done');
+    if (i === onboardingStep) d.classList.add('active');
+  });
+}
+
+function nextOnboardingStep() {
+  onboardingStep++;
+  if (onboardingStep >= onboardingSteps.length) {
+    skipOnboarding();
+    return;
+  }
+  showOnboardingStep();
+  api('/onboarding', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ completed: false, step: onboardingStep }) });
+}
+
+function skipOnboarding() {
+  document.getElementById('onboarding-modal').classList.remove('visible');
+  api('/onboarding', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ completed: true, step: onboardingSteps.length }) });
+}
+
+// Auto-refresh channel status every 30s
+setInterval(function() {
+  if (document.getElementById('panel-settings').classList.contains('active')) loadChannelStatus();
+}, 30000);
+
+// Init
 routeFromHash();
+checkOnboarding();
 </script>
 </body>
 </html>`;

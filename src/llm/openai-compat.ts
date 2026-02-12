@@ -4,6 +4,7 @@ import type {
   LlmResponse,
   LlmContentBlock,
   LlmToolDef,
+  LlmStreamEvent,
 } from "./provider";
 import { logger } from "../util/logger";
 
@@ -246,5 +247,149 @@ export class OpenAICompatProvider implements LlmProvider {
       default:
         return reason ?? "end_turn";
     }
+  }
+
+  async *chatStream(request: LlmRequest): AsyncIterable<LlmStreamEvent> {
+    logger.debug(`${this.providerName} stream request`, {
+      model: this.model,
+      messageCount: request.messages.length,
+      toolCount: request.tools?.length ?? 0,
+    });
+
+    const messages = this.convertMessages(request.system, request.messages);
+    const tools = request.tools?.length
+      ? this.convertTools(request.tools)
+      : undefined;
+
+    const body: Record<string, unknown> = {
+      model: this.model,
+      messages,
+      max_tokens: request.maxTokens ?? this.maxTokens,
+      stream: true,
+    };
+    if (tools) body.tools = tools;
+
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`${this.providerName} API error ${res.status}: ${text}`);
+    }
+
+    if (!res.body) {
+      throw new Error(`${this.providerName}: no response body for stream`);
+    }
+
+    // Track accumulated state for final message
+    let fullText = "";
+    const toolCalls = new Map<number, { id: string; name: string; args: string }>();
+    let stopReason = "end_turn";
+    let promptTokens = 0;
+    let completionTokens = 0;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+          const data = trimmed.slice(6);
+          if (data === "[DONE]") continue;
+
+          let parsed: any;
+          try { parsed = JSON.parse(data); } catch { continue; }
+
+          if (parsed.usage) {
+            promptTokens = parsed.usage.prompt_tokens ?? promptTokens;
+            completionTokens = parsed.usage.completion_tokens ?? completionTokens;
+          }
+
+          const choice = parsed.choices?.[0];
+          if (!choice) continue;
+
+          if (choice.finish_reason) {
+            stopReason = this.mapStopReason(choice.finish_reason);
+          }
+
+          const delta = choice.delta;
+          if (!delta) continue;
+
+          // Text content
+          if (delta.content) {
+            fullText += delta.content;
+            yield { type: "text_delta", text: delta.content };
+          }
+
+          // Tool calls
+          if (delta.tool_calls) {
+            for (const tc of delta.tool_calls) {
+              const idx = tc.index ?? 0;
+              if (!toolCalls.has(idx)) {
+                toolCalls.set(idx, { id: tc.id ?? "", name: tc.function?.name ?? "", args: "" });
+                if (tc.id && tc.function?.name) {
+                  yield { type: "tool_use_start", id: tc.id, name: tc.function.name };
+                }
+              }
+              const existing = toolCalls.get(idx)!;
+              if (tc.id) existing.id = tc.id;
+              if (tc.function?.name) existing.name = tc.function.name;
+              if (tc.function?.arguments) {
+                existing.args += tc.function.arguments;
+                yield { type: "tool_use_delta", id: existing.id, json: tc.function.arguments };
+              }
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+      // Ensure the response body is fully consumed/cancelled to free resources
+      try { await res.body!.cancel(); } catch {}
+    }
+
+    // Emit tool_use_end for all tool calls
+    for (const [_, tc] of toolCalls) {
+      yield { type: "tool_use_end", id: tc.id };
+    }
+
+    // Build final content blocks
+    const content: LlmContentBlock[] = [];
+    if (fullText) {
+      content.push({ type: "text", text: fullText });
+    }
+    for (const [_, tc] of toolCalls) {
+      let input: Record<string, unknown> = {};
+      try { input = JSON.parse(tc.args); } catch { input = { _raw: tc.args }; }
+      content.push({ type: "tool_use", id: tc.id, name: tc.name, input });
+    }
+
+    yield {
+      type: "message_done",
+      response: {
+        content,
+        stopReason,
+        usage: {
+          inputTokens: promptTokens,
+          outputTokens: completionTokens,
+        },
+      },
+    };
   }
 }
