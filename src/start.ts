@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import { loadConfig } from "./config/loader";
 import { ensureDirectories, paths } from "./config/paths";
-import type { OrbaConfig } from "./config/schema";
+import type { ZuboConfig } from "./config/schema";
 import { getDb, closeDb } from "./db/connection";
 import { runMigrations } from "./db/migrations";
 import { createProvider } from "./llm/factory";
@@ -28,7 +28,7 @@ function openBrowser(url: string) {
   } catch {}
 }
 
-function getTelegramToken(config: OrbaConfig): string | null {
+function getTelegramToken(config: ZuboConfig): string | null {
   if (config.channels?.telegram?.enabled !== false && config.channels?.telegram?.botToken) {
     return config.channels.telegram.botToken;
   }
@@ -39,14 +39,14 @@ function getTelegramToken(config: OrbaConfig): string | null {
   return null;
 }
 
-function getTelegramAllowedUsers(config: OrbaConfig): number[] {
+function getTelegramAllowedUsers(config: ZuboConfig): number[] {
   if (config.channels?.telegram?.allowedUsers?.length) {
     return config.channels.telegram.allowedUsers;
   }
   return config.telegramAllowedUsers ?? [];
 }
 
-async function startChannels(config: OrbaConfig, router: MessageRouter) {
+async function startChannels(config: ZuboConfig, router: MessageRouter) {
   const stoppers: (() => void)[] = [];
 
   // Telegram
@@ -102,13 +102,13 @@ async function startChannels(config: OrbaConfig, router: MessageRouter) {
   };
 }
 
-export async function startOrba(isDaemon = false) {
+export async function startZubo(isDaemon = false) {
   if (isDaemon) {
     return startDaemon();
   }
 
   enableFileLogging();
-  logger.info("Starting Orba...");
+  logger.info("Starting Zubo...");
 
   // Load config
   const config = await loadConfig();
@@ -154,7 +154,7 @@ export async function startOrba(isDaemon = false) {
   initCronScheduler(db, router, config);
   logger.info("Scheduler started");
 
-  logger.info("Orba is running. Press Ctrl+C to stop.");
+  logger.info("Zubo is running. Press Ctrl+C to stop.");
 
   // Graceful shutdown
   const shutdown = () => {
@@ -188,7 +188,7 @@ function startDaemon() {
   const pid = child.pid;
   writeFileSync(paths.pidFile, String(pid));
 
-  console.log(`Orba started in background (PID ${pid})`);
+  console.log(`Zubo started in background (PID ${pid})`);
   console.log(`Logs: ${paths.logFile}`);
   console.log(`Stop: bun run stop`);
 
@@ -199,7 +199,7 @@ function startDaemon() {
 
 export function stopDaemon() {
   if (!existsSync(paths.pidFile)) {
-    console.log("Orba is not running (no PID file found).");
+    console.log("Zubo is not running (no PID file found).");
     return;
   }
 
@@ -214,7 +214,7 @@ export function stopDaemon() {
   try {
     process.kill(pid, 0); // check if alive
     process.kill(pid, "SIGTERM");
-    console.log(`Sent SIGTERM to Orba (PID ${pid}).`);
+    console.log(`Sent SIGTERM to Zubo (PID ${pid}).`);
   } catch {
     console.log(`Process ${pid} is not running. Cleaning up PID file.`);
   }

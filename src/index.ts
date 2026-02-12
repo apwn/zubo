@@ -11,8 +11,8 @@ switch (command) {
   }
   case "start": {
     const isDaemon = process.argv.includes("--daemon");
-    const { startOrba } = await import("./start");
-    await startOrba(isDaemon);
+    const { startZubo } = await import("./start");
+    await startZubo(isDaemon);
     break;
   }
   case "stop": {
@@ -42,10 +42,10 @@ switch (command) {
     break;
   }
   default:
-    console.log("Usage: orba <command>\n");
+    console.log("Usage: zubo <command>\n");
     console.log("Commands:");
-    console.log("  setup              Configure Orba (API keys, Telegram token)");
-    console.log("  start              Start the Orba agent");
+    console.log("  setup              Configure Zubo (API keys, Telegram token)");
+    console.log("  start              Start the Zubo agent");
     console.log("  start --daemon     Start in background");
     console.log("  stop               Stop the background daemon");
     console.log("  status             Show config and runtime status");

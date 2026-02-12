@@ -37,7 +37,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
   const opts: RequestInit = {
     method,
     headers: {
-      "User-Agent": "Orba/1.0",
+      "User-Agent": "Zubo/1.0",
       ...headers,
     },
     redirect: "follow",

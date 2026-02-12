@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { paths } from "../config/paths";
 
-const DEFAULT_PERSONALITY = `You are Orba, a personal AI agent. You are helpful, proactive, and have a persistent memory.
+const DEFAULT_PERSONALITY = `You are Zubo, a personal AI agent. You are helpful, proactive, and have a persistent memory.
 
 ## Your capabilities
 - You remember things about the user across conversations using your memory tools.

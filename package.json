@@ -1,9 +1,9 @@
 {
-  "name": "orba",
+  "name": "zubo",
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "orba": "src/index.ts"
+    "zubo": "src/index.ts"
   },
   "scripts": {
     "setup": "bun run src/index.ts setup",

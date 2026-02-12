@@ -5,7 +5,7 @@ const BLOCKED_PATHS = [
   "/.ssh/",
   "/.gnupg/",
   "/.aws/credentials",
-  "/.orba/config.json",
+  "/.zubo/config.json",
   "/id_rsa",
   "/id_ed25519",
   "/.env",

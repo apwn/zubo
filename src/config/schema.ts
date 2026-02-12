@@ -54,4 +54,4 @@ export const configSchema = z.object({
   createdAt: z.string().default(() => new Date().toISOString()),
 });
 
-export type OrbaConfig = z.infer<typeof configSchema>;
+export type ZuboConfig = z.infer<typeof configSchema>;

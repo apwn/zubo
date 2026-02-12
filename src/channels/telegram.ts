@@ -1,13 +1,13 @@
 import { Bot } from "grammy";
 import type { ChannelAdapter, InboundMessage } from "./adapter";
 import type { MessageRouter } from "./router";
-import type { OrbaConfig } from "../config/schema";
+import type { ZuboConfig } from "../config/schema";
 import { saveConfig } from "../config/loader";
 import { logger } from "../util/logger";
 
 export function createTelegramAdapter(
   token: string,
-  config: OrbaConfig,
+  config: ZuboConfig,
   router: MessageRouter
 ): ChannelAdapter {
   const bot = new Bot(token);
@@ -32,7 +32,7 @@ export function createTelegramAdapter(
       await saveConfig(config);
       logger.info(`Auto-registered Telegram user: ${userId}`);
       await ctx.reply(
-        "Welcome! You've been registered as the owner of this Orba agent."
+        "Welcome! You've been registered as the owner of this Zubo agent."
       );
     }
 

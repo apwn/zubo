@@ -1,7 +1,7 @@
 import { Cron } from "croner";
 import { Database } from "bun:sqlite";
 import type { MessageRouter } from "../channels/router";
-import type { OrbaConfig } from "../config/schema";
+import type { ZuboConfig } from "../config/schema";
 import { logger } from "../util/logger";
 
 interface CronJob {
@@ -19,7 +19,7 @@ const activeCrons: Map<number, Cron> = new Map();
 export function initCronScheduler(
   db: Database,
   router: MessageRouter,
-  config: OrbaConfig
+  config: ZuboConfig
 ) {
   const jobs = db
     .query("SELECT * FROM cron_jobs WHERE enabled = 1")
@@ -32,7 +32,7 @@ export function initCronScheduler(
   logger.info("Cron scheduler initialized", { jobCount: jobs.length });
 }
 
-function getOwnerSessionKey(config: OrbaConfig): string | null {
+function getOwnerSessionKey(config: ZuboConfig): string | null {
   if (config.telegramAllowedUsers.length > 0) {
     return `telegram:${config.telegramAllowedUsers[0]}`;
   }
@@ -43,7 +43,7 @@ function scheduleJob(
   db: Database,
   job: CronJob,
   router: MessageRouter,
-  config: OrbaConfig
+  config: ZuboConfig
 ) {
   if (activeCrons.has(job.id)) {
     activeCrons.get(job.id)!.stop();
@@ -124,7 +124,7 @@ export function addCronJob(
   schedule: string,
   task: string,
   router: MessageRouter,
-  config: OrbaConfig
+  config: ZuboConfig
 ) {
   const result = db
     .prepare(

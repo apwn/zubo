@@ -47,13 +47,13 @@ function getInstalledSkills(): { name: string; status: string; description: stri
 }
 
 function listSkills() {
-  console.log("\n  Orba Skills\n");
+  console.log("\n  Zubo Skills\n");
 
   const skills = getInstalledSkills();
 
   if (skills.length === 0) {
     console.log("  No skills installed.\n");
-    console.log("  Drop skill folders into ~/.orba/workspace/skills/");
+    console.log("  Drop skill folders into ~/.zubo/workspace/skills/");
     console.log("  Each folder needs SKILL.md + handler.ts\n");
     return;
   }
@@ -158,11 +158,11 @@ ${paramLines || "  // Access parameters from input"}
   writeFileSync(join(destDir, "SKILL.md"), skillMd);
   writeFileSync(join(destDir, "handler.ts"), handlerTs);
 
-  console.log(`\n  Skill created at ~/.orba/workspace/skills/${name}/`);
+  console.log(`\n  Skill created at ~/.zubo/workspace/skills/${name}/`);
   console.log("  Files:");
   console.log(`    SKILL.md    — tool definition`);
   console.log(`    handler.ts  — implement your logic here`);
-  console.log(`\n  Restart Orba to load the new skill.\n`);
+  console.log(`\n  Restart Zubo to load the new skill.\n`);
 }
 
 async function reinstallBuiltins() {
@@ -230,7 +230,7 @@ async function removeSkill() {
 }
 
 async function showMenu() {
-  console.log("\n  Orba Skills\n");
+  console.log("\n  Zubo Skills\n");
   console.log("  1. List installed skills");
   console.log("  2. Create new skill");
   console.log("  3. Reinstall built-in skills");

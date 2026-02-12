@@ -34,19 +34,19 @@ function getDbStats(): { messages: number; memories: number } | null {
 }
 
 export function showStatus() {
-  console.log("\n  Orba Status\n");
+  console.log("\n  Zubo Status\n");
 
   // Config
   if (configExists()) {
-    console.log("  Config:    ~/.orba/config.json ✓");
+    console.log("  Config:    ~/.zubo/config.json ✓");
   } else {
-    console.log("  Config:    not found (run 'orba setup')");
+    console.log("  Config:    not found (run 'zubo setup')");
   }
 
   // Database
   const stats = getDbStats();
   if (stats) {
-    console.log(`  Database:  ~/.orba/orba.db ✓`);
+    console.log(`  Database:  ~/.zubo/zubo.db ✓`);
     console.log(`  Messages:  ${stats.messages}`);
     console.log(`  Memories:  ${stats.memories}`);
   } else {
@@ -104,7 +104,7 @@ export function showStatus() {
 
   // SYSTEM.md
   if (existsSync(paths.systemPrompt)) {
-    console.log("  Prompt:    ~/.orba/workspace/SYSTEM.md ✓");
+    console.log("  Prompt:    ~/.zubo/workspace/SYSTEM.md ✓");
   } else {
     console.log("  Prompt:    using default (no SYSTEM.md)");
   }

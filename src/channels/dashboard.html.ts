@@ -4,7 +4,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Orba</title>
+<title>Zubo</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -314,8 +314,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <div id="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-icon">O</div>
-    <span>Orba</span>
+    <div class="logo-icon">Z</div>
+    <span>Zubo</span>
   </div>
   <nav>
     <div class="sidebar-section">Agent</div>
@@ -347,13 +347,13 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <span class="nav-icon">\u{2699}\u{FE0F}</span> Settings
     </a>
   </nav>
-  <div class="sidebar-footer">Orba Agent</div>
+  <div class="sidebar-footer">Zubo Agent</div>
 </div>
 
 <div id="main">
   <div id="topbar">
     <span id="topbar-title">Agent</span>
-    <span id="topbar-badge">Orba</span>
+    <span id="topbar-badge">Zubo</span>
   </div>
   <div id="content">
 
@@ -362,11 +362,11 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <div id="chat-messages">
         <div class="chat-empty">
           <div class="chat-empty-icon">\u{1F4AC}</div>
-          <div class="chat-empty-text">Send a message to start chatting with Orba</div>
+          <div class="chat-empty-text">Send a message to start chatting with Zubo</div>
         </div>
       </div>
       <div id="chat-input-bar">
-        <input id="chat-input" type="text" placeholder="Message Orba..." autocomplete="off">
+        <input id="chat-input" type="text" placeholder="Message Zubo..." autocomplete="off">
         <button id="chat-send">Send</button>
       </div>
     </div>
@@ -453,7 +453,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <div class="panel-body">
         <div class="settings-section">
           <h3 class="settings-title">LLM Provider</h3>
-          <p class="settings-desc">Select which provider and model Orba uses. Changes are saved to config and take effect on restart.</p>
+          <p class="settings-desc">Select which provider and model Zubo uses. Changes are saved to config and take effect on restart.</p>
           <div class="settings-grid">
             <div class="settings-field">
               <label class="settings-label" for="settings-provider">Provider</label>
@@ -471,7 +471,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         </div>
         <div class="settings-section" style="margin-top: 32px;">
           <h3 class="settings-title">Configuration</h3>
-          <p class="settings-desc">Manage your full config by editing <code>~/.orba/config.json</code> directly, or re-run <code>orba setup</code> to add new providers.</p>
+          <p class="settings-desc">Manage your full config by editing <code>~/.zubo/config.json</code> directly, or re-run <code>zubo setup</code> to add new providers.</p>
         </div>
       </div>
     </div>
@@ -794,7 +794,7 @@ function saveModelConfig() {
     body: JSON.stringify({ provider: provider, model: model })
   }).then(function(data) {
     if (data.ok) {
-      document.getElementById('settings-status').textContent = 'Saved — restart Orba to apply';
+      document.getElementById('settings-status').textContent = 'Saved — restart Zubo to apply';
       toast('Model updated');
       loadSettings();
     } else {

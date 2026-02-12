@@ -43,7 +43,7 @@ export function createDiscordAdapter(
       allowedUsers.push(userId);
       logger.info(`Auto-registered Discord user: ${userId}`);
       await msg.reply(
-        "Welcome! You've been registered as the owner of this Orba agent."
+        "Welcome! You've been registered as the owner of this Zubo agent."
       );
     }
 

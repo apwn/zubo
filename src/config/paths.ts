@@ -1,22 +1,22 @@
 import { join } from "path";
 import { homedir } from "os";
 
-const ORBA_HOME = join(homedir(), ".orba");
+const ZUBO_HOME = join(homedir(), ".zubo");
 
 export const paths = {
-  root: ORBA_HOME,
-  config: join(ORBA_HOME, "config.json"),
-  db: join(ORBA_HOME, "orba.db"),
-  workspace: join(ORBA_HOME, "workspace"),
-  memory: join(ORBA_HOME, "workspace", "memory"),
-  memoryFile: join(ORBA_HOME, "workspace", "MEMORY.md"),
-  systemPrompt: join(ORBA_HOME, "workspace", "SYSTEM.md"),
-  sessions: join(ORBA_HOME, "sessions"),
-  models: join(ORBA_HOME, "models"),
-  logs: join(ORBA_HOME, "logs"),
-  logFile: join(ORBA_HOME, "logs", "orba.log"),
-  skills: join(ORBA_HOME, "workspace", "skills"),
-  pidFile: join(ORBA_HOME, "orba.pid"),
+  root: ZUBO_HOME,
+  config: join(ZUBO_HOME, "config.json"),
+  db: join(ZUBO_HOME, "zubo.db"),
+  workspace: join(ZUBO_HOME, "workspace"),
+  memory: join(ZUBO_HOME, "workspace", "memory"),
+  memoryFile: join(ZUBO_HOME, "workspace", "MEMORY.md"),
+  systemPrompt: join(ZUBO_HOME, "workspace", "SYSTEM.md"),
+  sessions: join(ZUBO_HOME, "sessions"),
+  models: join(ZUBO_HOME, "models"),
+  logs: join(ZUBO_HOME, "logs"),
+  logFile: join(ZUBO_HOME, "logs", "zubo.log"),
+  skills: join(ZUBO_HOME, "workspace", "skills"),
+  pidFile: join(ZUBO_HOME, "zubo.pid"),
 };
 
 export function ensureDirectories() {

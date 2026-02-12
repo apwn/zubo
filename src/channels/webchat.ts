@@ -188,7 +188,7 @@ function switchModelConfig(provider: string, model: string): { ok: boolean; erro
     if (!config.providers) config.providers = {};
 
     if (!config.providers[provider]) {
-      return { ok: false, error: `Provider "${provider}" is not configured. Add it via 'orba setup' first.` };
+      return { ok: false, error: `Provider "${provider}" is not configured. Add it via 'zubo setup' first.` };
     }
 
     config.activeProvider = provider;

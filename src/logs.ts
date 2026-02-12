@@ -3,7 +3,7 @@ import { paths } from "./config/paths";
 
 export async function showLogs(follow = false) {
   if (!existsSync(paths.logFile)) {
-    console.log("No log file found. Start Orba first.");
+    console.log("No log file found. Start Zubo first.");
     return;
   }
 

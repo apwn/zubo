@@ -263,8 +263,8 @@ async function setupChannels(): Promise<{
 }
 
 export async function runSetup() {
-  console.log("\n  Orba Setup Wizard\n");
-  console.log("This will configure your Orba agent.\n");
+  console.log("\n  Zubo Setup Wizard\n");
+  console.log("This will configure your Zubo agent.\n");
 
   // 1. LLM provider
   const { providers, activeProvider, anthropicApiKey } = await setupProvider();
@@ -276,7 +276,7 @@ export async function runSetup() {
   const { channels, telegramBotToken } = await setupChannels();
 
   // 3. Create directory tree
-  console.log("\nCreating ~/.orba/ directory tree...");
+  console.log("\nCreating ~/.zubo/ directory tree...");
   ensureDirectories();
 
   // 4. Write config
@@ -309,7 +309,7 @@ export async function runSetup() {
   if (!existsSync(paths.memoryFile)) {
     await Bun.write(
       paths.memoryFile,
-      `# Orba Memory\n\nThis file stores persistent memories about the user.\n`
+      `# Zubo Memory\n\nThis file stores persistent memories about the user.\n`
     );
     console.log(`Created ${paths.memoryFile}`);
   }
@@ -318,7 +318,7 @@ export async function runSetup() {
   if (!existsSync(paths.systemPrompt)) {
     await Bun.write(
       paths.systemPrompt,
-      `You are Orba, a personal AI agent. You are helpful, proactive, and have a persistent memory.
+      `You are Zubo, a personal AI agent. You are helpful, proactive, and have a persistent memory.
 
 ## Your capabilities
 - You remember things about the user across conversations using your memory tools.
@@ -345,5 +345,5 @@ export async function runSetup() {
     console.log("Built-in skills already installed.");
   }
 
-  console.log("\nSetup complete! Run 'bun run start' to launch Orba.\n");
+  console.log("\nSetup complete! Run 'bun run start' to launch Zubo.\n");
 }

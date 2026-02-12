@@ -4,7 +4,7 @@ import { configExists } from "./config/loader";
 
 function readConfig(): any {
   if (!configExists()) {
-    console.log("Config not found. Run 'orba setup' first.");
+    console.log("Config not found. Run 'zubo setup' first.");
     process.exit(1);
   }
   return JSON.parse(readFileSync(paths.config, "utf-8"));
@@ -90,13 +90,13 @@ function switchModel(target: string) {
 
     writeConfig(config);
     console.log(`Switched to ${providerName}/${config.providers[providerName].model}`);
-    console.log("Restart Orba for changes to take effect.");
+    console.log("Restart Zubo for changes to take effect.");
     return;
   }
 
   // Provider not configured — offer quick setup for known providers
   console.log(`Provider "${providerName}" is not configured.`);
-  console.log(`Run 'orba setup' to add it, or edit ~/.orba/config.json directly.`);
+  console.log(`Run 'zubo setup' to add it, or edit ~/.zubo/config.json directly.`);
   process.exit(1);
 }
 

@@ -1,8 +1,8 @@
-# Orba Roadmap
+# Zubo Roadmap
 
 > What makes OpenClaw a 145k-star project: multi-LLM with failover, 14+ channels
 > through one agent, a skills ecosystem, local-first gateway, and progressive
-> onboarding. Orba takes the same ideas but stays lean — no gateway daemon,
+> onboarding. Zubo takes the same ideas but stays lean — no gateway daemon,
 > no monorepo, just a single Bun process you can run anywhere.
 
 ---
@@ -194,7 +194,7 @@ Current `ChannelAdapter` interface is already clean. We add:
 **File:** `src/channels/whatsapp.ts` (new)
 
 - QR code pairing during setup
-- Store auth state in `~/.orba/channels/whatsapp/`
+- Store auth state in `~/.zubo/channels/whatsapp/`
 - Handle text messages, ignore media for now
 
 ### 2.4 WebChat (local HTTP UI)
@@ -219,13 +219,13 @@ Serves on `http://localhost:3000`. Good for testing without Telegram.
 
 ## Phase 3 — Skills / Plugin System
 
-**Goal:** Let users drop a folder into `~/.orba/workspace/skills/` and the agent
+**Goal:** Let users drop a folder into `~/.zubo/workspace/skills/` and the agent
 gains new abilities. No code changes, no restart.
 
 ### 3.1 Skill Format
 
 ```
-~/.orba/workspace/skills/
+~/.zubo/workspace/skills/
   web-search/
     SKILL.md        # Description, when to use, tool schema
     handler.ts      # Bun-loadable module exporting tool handler
@@ -264,7 +264,7 @@ export default async function(input: Record<string, unknown>): Promise<string> {
 **File:** `src/tools/skill-loader.ts` (new)
 
 ```
-1. Scan ~/.orba/workspace/skills/*/
+1. Scan ~/.zubo/workspace/skills/*/
 2. Parse each SKILL.md for tool name + schema + description
 3. Dynamic import() each handler.ts
 4. Register via existing registerTool()
@@ -348,7 +348,7 @@ Different models have different context windows. Compaction should respect this.
 
 ## Phase 5 — Proactive Agent + Automation
 
-**Goal:** Orba doesn't just respond — it acts on its own.
+**Goal:** Zubo doesn't just respond — it acts on its own.
 
 ### 5.1 Webhook Inbound
 
@@ -356,7 +356,7 @@ Different models have different context windows. Compaction should respect this.
 
 - Bun HTTP server on configurable port
 - Routes like `POST /webhook/:name` → trigger agent with payload
-- Use case: GitHub push → Orba summarizes commit
+- Use case: GitHub push → Zubo summarizes commit
 - Use case: IFTTT/Zapier integration
 
 ### 5.2 Agent-Managed Cron
@@ -396,7 +396,7 @@ Agent wants to run: shell("rm -rf /tmp/old-data")
 **File:** `src/tools/permissions.ts` (new)
 
 - Permission levels: `auto` (memory_search), `confirm` (shell), `deny`
-- Per-tool config in `~/.orba/workspace/PERMISSIONS.md` or config.json
+- Per-tool config in `~/.zubo/workspace/PERMISSIONS.md` or config.json
 - Channel adapters render approval buttons (Telegram inline keyboard)
 
 ### 6.2 Message Pairing / Auth
@@ -487,4 +487,4 @@ NICE TO HAVE (do when stable)
 5. Update `src/setup.ts` — Provider selection in wizard
 6. Test with Ollama locally
 
-This single change makes Orba usable with any model, which unlocks everything else.
+This single change makes Zubo usable with any model, which unlocks everything else.

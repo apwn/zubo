@@ -1,4 +1,4 @@
-import type { OrbaConfig, ProviderConfig } from "../config/schema";
+import type { ZuboConfig, ProviderConfig } from "../config/schema";
 import type { LlmProvider } from "./provider";
 import { ClaudeProvider } from "./claude";
 import { OpenAICompatProvider } from "./openai-compat";
@@ -43,7 +43,7 @@ function buildSingleProvider(
   });
 }
 
-export function createProvider(config: OrbaConfig): LlmProvider {
+export function createProvider(config: ZuboConfig): LlmProvider {
   // New multi-provider config
   if (config.providers && config.activeProvider) {
     const activeCfg = config.providers[config.activeProvider];
@@ -84,6 +84,6 @@ export function createProvider(config: OrbaConfig): LlmProvider {
   }
 
   throw new Error(
-    "No LLM provider configured. Run 'orba setup' or add a providers section to config.json"
+    "No LLM provider configured. Run 'zubo setup' or add a providers section to config.json"
   );
 }

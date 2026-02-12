@@ -4,7 +4,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
 
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "Orba/1.0",
+      "User-Agent": "Zubo/1.0",
       Accept: "text/html, application/json, text/plain, */*",
     },
     redirect: "follow",
