@@ -1,0 +1,25 @@
+{
+  "name": "orba",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "setup": "bun run src/index.ts setup",
+    "start": "bun run src/index.ts start",
+    "dev": "bun run --watch src/index.ts start"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "croner": "^9.0.0",
+    "grammy": "^1.35.0",
+    "onnxruntime-node": "^1.24.1",
+    "sqlite-vec": "^0.1.7-alpha.2",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.0",
+    "typescript": "^5.9.3"
+  },
+  "trustedDependencies": [
+    "onnxruntime-node"
+  ]
+}
