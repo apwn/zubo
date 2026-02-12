@@ -5,7 +5,7 @@ import { existsSync } from "fs";
 export async function loadConfig(): Promise<OrbaConfig> {
   if (!existsSync(paths.config)) {
     throw new Error(
-      `Config not found at ${paths.config}. Run 'bun run setup' first.`
+      `Config not found at ${paths.config}. Run 'orba setup' first.`
     );
   }
   const raw = await Bun.file(paths.config).json();

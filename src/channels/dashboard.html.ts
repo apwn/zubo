@@ -471,7 +471,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         </div>
         <div class="settings-section" style="margin-top: 32px;">
           <h3 class="settings-title">Configuration</h3>
-          <p class="settings-desc">Manage your full config by editing <code>~/.orba/config.json</code> directly, or re-run <code>bun run setup</code> to add new providers.</p>
+          <p class="settings-desc">Manage your full config by editing <code>~/.orba/config.json</code> directly, or re-run <code>orba setup</code> to add new providers.</p>
         </div>
       </div>
     </div>

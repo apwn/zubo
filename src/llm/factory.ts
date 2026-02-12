@@ -84,6 +84,6 @@ export function createProvider(config: OrbaConfig): LlmProvider {
   }
 
   throw new Error(
-    "No LLM provider configured. Run 'bun run setup' or add a providers section to config.json"
+    "No LLM provider configured. Run 'orba setup' or add a providers section to config.json"
   );
 }

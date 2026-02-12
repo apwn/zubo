@@ -4,7 +4,7 @@ import { configExists } from "./config/loader";
 
 function readConfig(): any {
   if (!configExists()) {
-    console.log("Config not found. Run 'bun run setup' first.");
+    console.log("Config not found. Run 'orba setup' first.");
     process.exit(1);
   }
   return JSON.parse(readFileSync(paths.config, "utf-8"));
@@ -96,7 +96,7 @@ function switchModel(target: string) {
 
   // Provider not configured — offer quick setup for known providers
   console.log(`Provider "${providerName}" is not configured.`);
-  console.log(`Run 'bun run setup' to add it, or edit ~/.orba/config.json directly.`);
+  console.log(`Run 'orba setup' to add it, or edit ~/.orba/config.json directly.`);
   process.exit(1);
 }
 

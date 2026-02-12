@@ -40,7 +40,7 @@ export function showStatus() {
   if (configExists()) {
     console.log("  Config:    ~/.orba/config.json ✓");
   } else {
-    console.log("  Config:    not found (run 'bun run setup')");
+    console.log("  Config:    not found (run 'orba setup')");
   }
 
   // Database
