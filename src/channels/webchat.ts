@@ -1,6 +1,9 @@
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import type { ChannelAdapter, InboundMessage } from "./adapter";
 import type { MessageRouter } from "./router";
+import { paths } from "../config/paths";
 import { logger } from "../util/logger";
+import { DASHBOARD_HTML } from "./dashboard.html";
 
 const WEBCHAT_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -11,7 +14,8 @@ const WEBCHAT_HTML = `<!DOCTYPE html>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
-  #header { padding: 12px 16px; background: #141414; border-bottom: 1px solid #222; font-size: 14px; font-weight: 600; color: #888; }
+  #header { padding: 12px 16px; background: #141414; border-bottom: 1px solid #222; font-size: 14px; font-weight: 600; color: #888; display: flex; justify-content: space-between; }
+  #header a { color: #2563eb; text-decoration: none; font-size: 12px; }
   #messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
   .msg { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
   .msg.user { align-self: flex-end; background: #2563eb; color: white; border-bottom-right-radius: 4px; }
@@ -26,20 +30,20 @@ const WEBCHAT_HTML = `<!DOCTYPE html>
 </style>
 </head>
 <body>
-<div id="header">Orba</div>
+<div id="header"><span>Orba</span><a href="/dashboard">Dashboard</a></div>
 <div id="messages"></div>
 <div id="input-bar">
   <input id="input" type="text" placeholder="Message Orba..." autocomplete="off">
   <button id="send">Send</button>
 </div>
 <script>
-const messages = document.getElementById('messages');
-const input = document.getElementById('input');
-const send = document.getElementById('send');
-let busy = false;
+var messages = document.getElementById('messages');
+var input = document.getElementById('input');
+var send = document.getElementById('send');
+var busy = false;
 
 function addMsg(text, cls) {
-  const d = document.createElement('div');
+  var d = document.createElement('div');
   d.className = 'msg ' + cls;
   d.textContent = text;
   messages.appendChild(d);
@@ -47,38 +51,185 @@ function addMsg(text, cls) {
   return d;
 }
 
-async function sendMessage() {
-  const text = input.value.trim();
+function sendMessage() {
+  var text = input.value.trim();
   if (!text || busy) return;
   busy = true;
   send.disabled = true;
   input.value = '';
   addMsg(text, 'user');
-  const thinking = addMsg('Thinking...', 'bot thinking');
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text }),
-    });
-    const data = await res.json();
+  var thinking = addMsg('Thinking...', 'bot thinking');
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: text }),
+  }).then(function(r) { return r.json(); }).then(function(data) {
     thinking.remove();
     addMsg(data.reply || 'No response.', 'bot');
-  } catch (e) {
+  }).catch(function(e) {
     thinking.remove();
     addMsg('Error: ' + e.message, 'bot');
-  }
-  busy = false;
-  send.disabled = false;
-  input.focus();
+  }).finally(function() {
+    busy = false;
+    send.disabled = false;
+    input.focus();
+  });
 }
 
 send.addEventListener('click', sendMessage);
-input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+input.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendMessage(); });
 input.focus();
 </script>
 </body>
 </html>`;
+
+// Dashboard API helpers
+function readFileOr(path: string, fallback: string): string {
+  try {
+    if (existsSync(path)) return readFileSync(path, "utf-8");
+  } catch {}
+  return fallback;
+}
+
+function getStatusData(): Record<string, string> {
+  const data: Record<string, string> = {};
+
+  // Provider
+  try {
+    const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+    if (config.providers && config.activeProvider) {
+      const p = config.providers[config.activeProvider];
+      data["Provider"] = `${config.activeProvider}/${p?.model ?? "?"}`;
+    } else if (config.anthropicApiKey) {
+      data["Provider"] = `anthropic/${config.model ?? "claude-sonnet-4-5"}`;
+    }
+    // Channels
+    const ch: string[] = [];
+    if (config.channels?.telegram?.botToken || config.telegramBotToken) ch.push("telegram");
+    if (config.channels?.discord?.botToken) ch.push("discord");
+    if (config.channels?.webchat) ch.push("webchat");
+    data["Channels"] = ch.join(", ") || "none";
+  } catch {}
+
+  // DB stats
+  try {
+    if (existsSync(paths.db)) {
+      const { Database } = require("bun:sqlite");
+      const db = new Database(paths.db, { readonly: true });
+      const msgs = (db.query("SELECT COUNT(*) as c FROM messages").get() as any)?.c ?? 0;
+      const mems = (db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as any)?.c ?? 0;
+      db.close();
+      data["Messages"] = String(msgs);
+      data["Memories"] = String(mems);
+    }
+  } catch {}
+
+  // Daemon
+  try {
+    if (existsSync(paths.pidFile)) {
+      const pid = parseInt(readFileSync(paths.pidFile, "utf-8").trim(), 10);
+      process.kill(pid, 0);
+      data["Status"] = "running";
+    } else {
+      data["Status"] = "running"; // if we're serving this, we're running
+    }
+  } catch {
+    data["Status"] = "running";
+  }
+
+  return data;
+}
+
+function getCronJobs(): any[] {
+  try {
+    if (!existsSync(paths.db)) return [];
+    const { Database } = require("bun:sqlite");
+    const db = new Database(paths.db, { readonly: true });
+    const jobs = db.query("SELECT * FROM cron_jobs ORDER BY id").all();
+    db.close();
+    return jobs as any[];
+  } catch {
+    return [];
+  }
+}
+
+function searchMemoryChunks(query: string): any[] {
+  try {
+    if (!existsSync(paths.db)) return [];
+    const { Database } = require("bun:sqlite");
+    const db = new Database(paths.db, { readonly: true });
+    const results = db
+      .query(
+        "SELECT mc.source_file as source, mc.content FROM memory_fts f JOIN memory_chunks mc ON mc.id = f.rowid WHERE memory_fts MATCH ? ORDER BY rank LIMIT 20"
+      )
+      .all(query);
+    db.close();
+    return results as any[];
+  } catch {
+    return [];
+  }
+}
+
+function handleDashboardApi(url: URL, req: Request): Response | null {
+  const path = url.pathname.replace("/api/dashboard", "");
+
+  // GET /api/dashboard/status
+  if (path === "/status" && req.method === "GET") {
+    return Response.json(getStatusData());
+  }
+
+  // GET /api/dashboard/system
+  if (path === "/system" && req.method === "GET") {
+    return Response.json({
+      content: readFileOr(paths.systemPrompt, ""),
+    });
+  }
+
+  // PUT /api/dashboard/system
+  if (path === "/system" && req.method === "PUT") {
+    return (async () => {
+      const body = (await req.json()) as { content?: string };
+      writeFileSync(paths.systemPrompt, body.content ?? "");
+      return Response.json({ ok: true });
+    })() as any;
+  }
+
+  // GET /api/dashboard/memory
+  if (path === "/memory" && req.method === "GET") {
+    return Response.json({
+      content: readFileOr(paths.memoryFile, ""),
+    });
+  }
+
+  // PUT /api/dashboard/memory
+  if (path === "/memory" && req.method === "PUT") {
+    return (async () => {
+      const body = (await req.json()) as { content?: string };
+      writeFileSync(paths.memoryFile, body.content ?? "");
+      return Response.json({ ok: true });
+    })() as any;
+  }
+
+  // GET /api/dashboard/memory/search?q=...
+  if (path === "/memory/search" && req.method === "GET") {
+    const q = url.searchParams.get("q") ?? "";
+    return Response.json({ results: searchMemoryChunks(q) });
+  }
+
+  // GET /api/dashboard/cron
+  if (path === "/cron" && req.method === "GET") {
+    return Response.json({ jobs: getCronJobs() });
+  }
+
+  // GET /api/dashboard/logs
+  if (path === "/logs" && req.method === "GET") {
+    const content = readFileOr(paths.logFile, "");
+    const lines = content.trimEnd().split("\n");
+    return Response.json({ content: lines.slice(-100).join("\n") });
+  }
+
+  return null;
+}
 
 export function createWebChatAdapter(
   port: number,
@@ -96,11 +247,24 @@ export function createWebChatAdapter(
         async fetch(req) {
           const url = new URL(req.url);
 
-          // Serve chat UI
+          // Chat UI
           if (url.pathname === "/" || url.pathname === "/index.html") {
             return new Response(WEBCHAT_HTML, {
               headers: { "Content-Type": "text/html" },
             });
+          }
+
+          // Dashboard UI
+          if (url.pathname === "/dashboard") {
+            return new Response(DASHBOARD_HTML, {
+              headers: { "Content-Type": "text/html" },
+            });
+          }
+
+          // Dashboard API
+          if (url.pathname.startsWith("/api/dashboard")) {
+            const result = handleDashboardApi(url, req);
+            if (result) return result;
           }
 
           // Chat API
@@ -137,7 +301,7 @@ export function createWebChatAdapter(
         },
       });
 
-      logger.info(`WebChat running at http://localhost:${port}`);
+      logger.info(`WebChat + Dashboard at http://localhost:${port}`);
     },
 
     stop() {
@@ -148,8 +312,6 @@ export function createWebChatAdapter(
     },
 
     async sendMessage(_sessionKey: string, text: string) {
-      // WebChat is pull-based (HTTP), no push mechanism for now.
-      // Proactive messages are logged but not delivered until user polls.
       logger.debug("WebChat proactive message (not delivered)", {
         text: text.slice(0, 100),
       });

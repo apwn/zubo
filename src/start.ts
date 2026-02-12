@@ -14,6 +14,18 @@ import { initCronScheduler } from "./scheduler/cron";
 import { initMemory } from "./memory/engine";
 import { logger, enableFileLogging } from "./util/logger";
 
+function openBrowser(url: string) {
+  try {
+    const cmd =
+      process.platform === "darwin"
+        ? ["open", url]
+        : process.platform === "win32"
+          ? ["cmd", "/c", "start", url]
+          : ["xdg-open", url];
+    Bun.spawn(cmd, { stdio: ["ignore", "ignore", "ignore"] });
+  } catch {}
+}
+
 function getTelegramToken(config: OrbaConfig): string | null {
   if (config.channels?.telegram?.enabled !== false && config.channels?.telegram?.botToken) {
     return config.channels.telegram.botToken;
@@ -66,16 +78,20 @@ async function startChannels(config: OrbaConfig, router: MessageRouter) {
     logger.info("Discord channel started");
   }
 
-  // WebChat
+  // WebChat + Dashboard
   if (config.channels?.webchat?.enabled !== false && config.channels?.webchat) {
+    const port = config.channels.webchat.port ?? 3000;
     const { createWebChatAdapter } = await import("./channels/webchat");
-    const webchat = createWebChatAdapter(
-      config.channels.webchat.port ?? 3000,
-      router
-    );
+    const webchat = createWebChatAdapter(port, router);
     router.addAdapter(webchat);
     webchat.start();
     stoppers.push(() => webchat.stop());
+
+    // Print URLs and auto-open browser
+    const url = `http://localhost:${port}`;
+    console.log(`\n  Chat:      ${url}`);
+    console.log(`  Dashboard: ${url}/dashboard\n`);
+    openBrowser(url);
   }
 
   return () => {
