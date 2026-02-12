@@ -15,6 +15,7 @@ export const paths = {
   models: join(ORBA_HOME, "models"),
   logs: join(ORBA_HOME, "logs"),
   logFile: join(ORBA_HOME, "logs", "orba.log"),
+  skills: join(ORBA_HOME, "workspace", "skills"),
   pidFile: join(ORBA_HOME, "orba.pid"),
 };
 
@@ -26,6 +27,7 @@ export function ensureDirectories() {
     paths.sessions,
     paths.models,
     paths.logs,
+    paths.skills,
   ];
   for (const dir of dirs) {
     Bun.spawnSync(["mkdir", "-p", dir]);

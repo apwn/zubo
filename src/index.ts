@@ -35,6 +35,11 @@ switch (command) {
     runModelCommand(process.argv.slice(3));
     break;
   }
+  case "skills": {
+    const { runSkillsCommand } = await import("./skills");
+    runSkillsCommand();
+    break;
+  }
   default:
     console.log("Usage: bun run src/index.ts <command>\n");
     console.log("Commands:");
@@ -48,5 +53,6 @@ switch (command) {
     console.log("  model              Show active LLM provider/model");
     console.log("  model <p/m>        Switch provider/model (e.g. ollama/llama3.3)");
     console.log("  model --list       List all configured providers");
+    console.log("  skills             List installed skills");
     process.exit(1);
 }

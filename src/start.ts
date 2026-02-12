@@ -8,6 +8,7 @@ import { createProvider } from "./llm/factory";
 import { registerDatetimeTool } from "./tools/builtin/datetime";
 import { registerMemoryWriteTool } from "./tools/builtin/memory-write";
 import { registerMemorySearchTool } from "./tools/builtin/memory-search";
+import { loadSkills } from "./tools/skill-loader";
 import { createRouter, type MessageRouter } from "./channels/router";
 import { startHeartbeat } from "./scheduler/heartbeat";
 import { initCronScheduler } from "./scheduler/cron";
@@ -127,6 +128,18 @@ export async function startOrba(isDaemon = false) {
   registerDatetimeTool();
   registerMemoryWriteTool();
   registerMemorySearchTool(db);
+
+  // Load skills
+  try {
+    const skillNames = await loadSkills(paths.skills);
+    if (skillNames.length) {
+      logger.info(`Skills loaded: ${skillNames.join(", ")}`);
+    } else {
+      logger.info("No skills found in workspace");
+    }
+  } catch (err: any) {
+    logger.error(`Failed to load skills: ${err.message}`);
+  }
 
   // Create message router
   const router = createRouter(llm, db);

@@ -6,6 +6,7 @@ import { getDb } from "./db/connection";
 import { runMigrations } from "./db/migrations";
 import { logger } from "./util/logger";
 import { existsSync } from "fs";
+import { installBuiltinSkills } from "./tools/skill-installer";
 
 async function prompt(question: string): Promise<string> {
   process.stdout.write(question);
@@ -334,6 +335,14 @@ export async function runSetup() {
 `
     );
     console.log(`Created ${paths.systemPrompt}`);
+  }
+
+  // 8. Install built-in skills
+  const installed = installBuiltinSkills(paths.skills);
+  if (installed.length) {
+    console.log(`Installed ${installed.length} built-in skills: ${installed.join(", ")}`);
+  } else {
+    console.log("Built-in skills already installed.");
   }
 
   console.log("\nSetup complete! Run 'bun run start' to launch Orba.\n");

@@ -77,6 +77,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   <a href="#status" class="active" onclick="showPanel('status')">Status</a>
   <a href="#system" onclick="showPanel('system')">System Prompt</a>
   <a href="#memory" onclick="showPanel('memory')">Memory</a>
+  <a href="#skills" onclick="showPanel('skills')">Skills</a>
   <a href="#cron" onclick="showPanel('cron')">Cron Jobs</a>
   <a href="#logs" onclick="showPanel('logs')">Logs</a>
   <a href="/" style="margin-top: auto; border-top: 1px solid #222; padding-top: 12px;">&#8592; Chat</a>
@@ -124,6 +125,15 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <div class="memory-list" id="memory-results"></div>
     </div>
 
+    <!-- SKILLS PANEL -->
+    <div id="panel-skills" class="panel">
+      <table>
+        <thead><tr><th>Name</th><th>Description</th><th>Status</th></tr></thead>
+        <tbody id="skills-body"></tbody>
+      </table>
+      <p id="skills-empty" style="color:#555; padding:20px; text-align:center; display:none;">No skills installed.</p>
+    </div>
+
     <!-- CRON PANEL -->
     <div id="panel-cron" class="panel">
       <table>
@@ -159,6 +169,7 @@ function showPanel(name) {
   if (name === 'status') loadStatus();
   if (name === 'system') loadSystem();
   if (name === 'memory') loadMemory();
+  if (name === 'skills') loadSkills();
   if (name === 'cron') loadCron();
   if (name === 'logs') loadLogs();
 }
@@ -252,6 +263,31 @@ function searchMemories() {
       item.appendChild(src);
       item.appendChild(cnt);
       el.appendChild(item);
+    });
+  });
+}
+
+function loadSkills() {
+  api('/skills').then(function(data) {
+    var body = document.getElementById('skills-body');
+    var empty = document.getElementById('skills-empty');
+    body.replaceChildren();
+    if (!data.skills || !data.skills.length) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    data.skills.forEach(function(s) {
+      var tr = document.createElement('tr');
+      var nameCell = document.createElement('td');
+      nameCell.textContent = s.name;
+      nameCell.style.fontWeight = '600';
+      var descCell = document.createElement('td');
+      descCell.textContent = s.description || '';
+      var statusCell = document.createElement('td');
+      statusCell.textContent = s.status;
+      statusCell.style.color = s.status === 'ok' ? '#22c55e' : '#f59e0b';
+      tr.appendChild(nameCell);
+      tr.appendChild(descCell);
+      tr.appendChild(statusCell);
+      body.appendChild(tr);
     });
   });
 }

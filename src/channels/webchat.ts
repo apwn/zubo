@@ -1,9 +1,11 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, readdirSync } from "fs";
+import { join } from "path";
 import type { ChannelAdapter, InboundMessage } from "./adapter";
 import type { MessageRouter } from "./router";
 import { paths } from "../config/paths";
 import { logger } from "../util/logger";
 import { DASHBOARD_HTML } from "./dashboard.html";
+import { parseSkillMd } from "../tools/skill-loader";
 
 const WEBCHAT_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -170,6 +172,36 @@ function searchMemoryChunks(query: string): any[] {
   }
 }
 
+function getSkillsData(): { name: string; description: string; status: string; path: string }[] {
+  const skillsDir = paths.skills;
+  const results: { name: string; description: string; status: string; path: string }[] = [];
+
+  try {
+    if (!existsSync(skillsDir)) return results;
+    const entries = readdirSync(skillsDir) as string[];
+
+    for (const entry of entries) {
+      const dirPath = join(skillsDir, entry);
+      const skillMdPath = join(dirPath, "SKILL.md");
+      const handlerPath = join(dirPath, "handler.ts");
+
+      if (!existsSync(skillMdPath)) continue;
+
+      const mdContent = readFileSync(skillMdPath, "utf-8");
+      const parsed = parseSkillMd(mdContent, dirPath);
+
+      const hasHandler = existsSync(handlerPath);
+      const status = parsed && hasHandler ? "ok" : "error";
+      const name = parsed?.name ?? entry;
+      const description = parsed?.description?.split("\n")[0].slice(0, 100) ?? "";
+
+      results.push({ name, description, status, path: dirPath });
+    }
+  } catch {}
+
+  return results;
+}
+
 function handleDashboardApi(url: URL, req: Request): Response | null {
   const path = url.pathname.replace("/api/dashboard", "");
 
@@ -226,6 +258,11 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     const content = readFileOr(paths.logFile, "");
     const lines = content.trimEnd().split("\n");
     return Response.json({ content: lines.slice(-100).join("\n") });
+  }
+
+  // GET /api/dashboard/skills
+  if (path === "/skills" && req.method === "GET") {
+    return Response.json({ skills: getSkillsData() });
   }
 
   return null;

@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, readdirSync } from "fs";
+import { join } from "path";
 import { paths } from "./config/paths";
 import { configExists } from "./config/loader";
 
@@ -85,6 +86,20 @@ export function showStatus() {
       }
       console.log(`  Channels:  ${active.length ? active.join(", ") : "none"}`);
     } catch {}
+  }
+
+  // Skills
+  if (existsSync(paths.skills)) {
+    try {
+      const skillEntries = readdirSync(paths.skills).filter((e) =>
+        existsSync(join(paths.skills, e, "SKILL.md"))
+      );
+      console.log(`  Skills:    ${skillEntries.length} installed`);
+    } catch {
+      console.log("  Skills:    error reading");
+    }
+  } else {
+    console.log("  Skills:    none");
   }
 
   // SYSTEM.md
