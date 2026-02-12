@@ -132,6 +132,17 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     border-bottom-left-radius: 4px; color: var(--text);
   }
   .chat-msg.bot.thinking { color: var(--text-muted); }
+  .chat-msg.bot code {
+    background: rgba(255,255,255,0.06); padding: 2px 5px; border-radius: 4px;
+    font-family: var(--mono); font-size: 13px;
+  }
+  .chat-msg.bot pre { margin: 8px 0; }
+  .chat-msg.bot pre code {
+    display: block; background: var(--bg); padding: 12px; border-radius: 6px;
+    overflow-x: auto; white-space: pre-wrap;
+  }
+  .chat-msg.bot strong { font-weight: 700; }
+  .chat-msg.bot em { font-style: italic; }
   .chat-msg.bot.thinking::after {
     content: ''; display: inline-block; width: 4px; height: 14px;
     background: var(--text-muted); margin-left: 4px; vertical-align: middle;
@@ -539,11 +550,29 @@ function clearEmptyState() {
   if (empty) empty.remove();
 }
 
+// Safe markdown renderer: escapes HTML first via textContent, then applies
+// controlled substitutions. No raw user/bot HTML can pass through unescaped.
+function renderMd(text) {
+  var tmp = document.createElement('div');
+  tmp.textContent = text;
+  var s = tmp.innerHTML;
+  s = s.replace(/\`\`\`([\\s\\S]*?)\`\`\`/g, '<pre><code>$1</code></pre>');
+  s = s.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
+  s = s.replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
+  s = s.replace(/\\*(.+?)\\*/g, '<em>$1</em>');
+  s = s.replace(/\\n/g, '<br>');
+  return s;
+}
+
 function addChatMsg(text, cls) {
   clearEmptyState();
   var d = document.createElement('div');
   d.className = 'chat-msg ' + cls;
-  d.textContent = text;
+  if (cls.indexOf('bot') !== -1 && cls.indexOf('thinking') === -1) {
+    d.innerHTML = renderMd(text);
+  } else {
+    d.textContent = text;
+  }
   chatMessages.appendChild(d);
   chatMessages.scrollTop = chatMessages.scrollHeight;
   return d;
