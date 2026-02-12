@@ -85,6 +85,23 @@ export const configSchema = z.object({
   maxTurns: z.number().default(50),
   heartbeatMinutes: z.number().min(1).max(1440).default(30),
   createdAt: z.string().default(() => new Date().toISOString()),
+
+  // Rate limiting
+  rateLimit: z.object({
+    chatPerMinute: z.number().default(60),
+    uploadPerMinute: z.number().default(10),
+  }).optional(),
+
+  // API authentication
+  auth: z.object({
+    enabled: z.boolean().default(false),
+  }).optional(),
+
+  // Skill sandboxing
+  sandbox: z.object({
+    enabled: z.boolean().default(true),
+    timeoutMs: z.number().default(30_000),
+  }).optional(),
 });
 
 export type ZuboConfig = z.infer<typeof configSchema>;

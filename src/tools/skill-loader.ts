@@ -125,7 +125,7 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
           input_schema: skill.inputSchema,
         },
         execute: handler,
-      });
+      }, true);
 
       loaded.push(skill.name);
     } catch (err: any) {

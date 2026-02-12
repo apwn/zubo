@@ -1,6 +1,7 @@
 import { getTool } from "./registry";
 import { getToolPermission } from "./permissions";
 import { logger } from "../util/logger";
+import { executeSandboxed } from "./sandbox";
 
 export interface ToolResult {
   tool_use_id: string;
@@ -16,6 +17,54 @@ function cleanStaleConfirmations() {
   const cutoff = Date.now() - 10 * 60 * 1000;
   for (const [token, entry] of pendingConfirmations) {
     if (entry.timestamp < cutoff) pendingConfirmations.delete(token);
+  }
+}
+
+// Determine if a tool should run in the sandbox (user-installed skills only)
+async function shouldSandbox(
+  toolName: string
+): Promise<{ handlerPath: string; timeoutMs: number; env: Record<string, string> } | null> {
+  try {
+    const { isUserInstalledSkill } = await import("./registry");
+
+    // Only sandbox tools that were loaded via the skill-loader from the user's skills directory
+    if (!isUserInstalledSkill(toolName)) return null;
+
+    const { existsSync, readFileSync } = await import("fs");
+    const { join } = await import("path");
+    const { paths } = await import("../config/paths");
+
+    // Check if sandbox is enabled in config
+    let timeoutMs = 30_000;
+    try {
+      const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+      if (config.sandbox?.enabled === false) return null;
+      if (config.sandbox?.timeoutMs) timeoutMs = config.sandbox.timeoutMs;
+    } catch {}
+
+    // Resolve the handler path and read SKILL.md for declared secrets
+    const skillDir = join(paths.skills, toolName);
+    const handlerPath = join(skillDir, "handler.ts");
+    if (!existsSync(handlerPath)) return null;
+
+    // Only pass secrets that the skill actually references (grep handler for getSecret calls)
+    const env: Record<string, string> = {};
+    try {
+      const { getDb } = await import("../db/connection");
+      const db = getDb();
+      const handlerCode = readFileSync(handlerPath, "utf-8");
+      const rows = db.query("SELECT name, value FROM secrets").all() as { name: string; value: string }[];
+      for (const row of rows) {
+        // Only pass secrets referenced in the handler code
+        if (handlerCode.includes(`"${row.name}"`) || handlerCode.includes(`'${row.name}'`)) {
+          env[`ZUBO_SECRET_${row.name.toUpperCase()}`] = row.value;
+        }
+      }
+    } catch {}
+
+    return { handlerPath, timeoutMs, env };
+  } catch {
+    return null;
   }
 }
 
@@ -91,7 +140,18 @@ export async function executeTool(
   try {
     const { _confirmed, _confirmToken, ...cleanInput } = input;
     logger.info(`Executing tool: ${name}`);
-    const result = await tool.execute(cleanInput);
+
+    // Check if this is a user-installed skill that should be sandboxed
+    let result: any;
+    const sandboxed = await shouldSandbox(name);
+    if (sandboxed) {
+      result = await executeSandboxed(sandboxed.handlerPath, cleanInput, {
+        timeoutMs: sandboxed.timeoutMs,
+        env: sandboxed.env,
+      });
+    } else {
+      result = await tool.execute(cleanInput);
+    }
     const durationMs = Date.now() - startTime;
 
     // Record tool metrics

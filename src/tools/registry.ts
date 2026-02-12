@@ -7,8 +7,18 @@ export interface ToolHandler {
 
 const tools = new Map<string, ToolHandler>();
 
-export function registerTool(handler: ToolHandler) {
+// Track which tools were loaded from the user skills directory (for sandboxing)
+const userInstalledSkills = new Set<string>();
+
+export function registerTool(handler: ToolHandler, isUserSkill: boolean = false) {
   tools.set(handler.definition.name, handler);
+  if (isUserSkill) {
+    userInstalledSkills.add(handler.definition.name);
+  }
+}
+
+export function isUserInstalledSkill(name: string): boolean {
+  return userInstalledSkills.has(name);
 }
 
 export function getTool(name: string): ToolHandler | undefined {

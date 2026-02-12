@@ -722,6 +722,19 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         </div>
 
         <div class="settings-section">
+          <h3 class="settings-title">Data</h3>
+          <p class="settings-desc">Export, backup, or import your Zubo database.</p>
+          <div id="db-stats" style="font-size:12px;color:var(--text-muted);margin-bottom:16px;"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="exportJson()">Export JSON</button>
+            <button class="btn btn-ghost" onclick="backupDb()">Backup SQLite</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">Import JSON</button>
+            <input type="file" id="import-file" style="display:none" accept=".json" onchange="importJson(event)">
+          </div>
+          <span id="data-status" class="status-text" style="display:block;margin-top:10px;"></span>
+        </div>
+
+        <div class="settings-section">
           <h3 class="settings-title">Configuration</h3>
           <p class="settings-desc">Manage your full config by editing <code>~/.zubo/config.json</code> directly, or re-run <code>zubo setup</code>.</p>
         </div>
@@ -1399,6 +1412,7 @@ function loadSettings() {
     document.getElementById('heartbeat-status').textContent = '';
   });
   loadChannelStatus();
+  loadDbStats();
 }
 
 function onProviderChange() {
@@ -1498,6 +1512,72 @@ function loadChannelStatus() {
     document.getElementById('channel-count-badge').textContent = connCount + ' active';
     document.getElementById('sidebar-conn-badge').textContent = connCount + ' channels';
   }).catch(function() {});
+}
+
+// --- DATA EXPORT/IMPORT ---
+function loadDbStats() {
+  api('/db-stats').then(function(data) {
+    var el = document.getElementById('db-stats');
+    var tables = data.tables || {};
+    var totalRows = 0;
+    Object.keys(tables).forEach(function(k) { totalRows += tables[k]; });
+    var sizeMb = ((data.sizeBytes || 0) / 1024 / 1024).toFixed(2);
+    el.textContent = 'DB size: ' + sizeMb + ' MB, ' + totalRows + ' total rows';
+  }).catch(function() {});
+}
+
+function exportJson() {
+  document.getElementById('data-status').textContent = 'Exporting...';
+  fetch('/api/dashboard/export', { method: 'POST' }).then(function(r) {
+    if (!r.ok) throw new Error('Export failed');
+    return r.blob();
+  }).then(function(blob) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'zubo-export.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    document.getElementById('data-status').textContent = 'Export downloaded';
+    toast('Export complete');
+  }).catch(function(e) {
+    document.getElementById('data-status').textContent = 'Error: ' + e.message;
+  });
+}
+
+function backupDb() {
+  document.getElementById('data-status').textContent = 'Backing up...';
+  api('/backup', { method: 'POST' }).then(function(data) {
+    if (data.ok) {
+      document.getElementById('data-status').textContent = 'Backup saved: ' + data.path;
+      toast('SQLite backup created');
+    } else {
+      document.getElementById('data-status').textContent = 'Error: ' + (data.error || 'Unknown');
+    }
+  }).catch(function(e) {
+    document.getElementById('data-status').textContent = 'Error: ' + e.message;
+  });
+}
+
+function importJson(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  document.getElementById('data-status').textContent = 'Importing...';
+  var reader = new FileReader();
+  reader.onload = function() {
+    fetch('/api/dashboard/import', { method: 'POST', body: reader.result }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.ok) {
+        document.getElementById('data-status').textContent = 'Imported ' + data.imported + ' rows (' + data.skipped + ' skipped)';
+        toast('Import complete');
+        loadDbStats();
+      } else {
+        document.getElementById('data-status').textContent = 'Error: ' + (data.error || 'Unknown');
+      }
+    }).catch(function(e) {
+      document.getElementById('data-status').textContent = 'Error: ' + e.message;
+    });
+  };
+  reader.readAsText(file);
 }
 
 // --- ONBOARDING ---

@@ -8,6 +8,9 @@ import { getHeartbeatMinutes, restartHeartbeat } from "../scheduler/heartbeat";
 import { logger } from "../util/logger";
 import { DASHBOARD_HTML } from "./dashboard.html";
 import { parseSkillMd } from "../tools/skill-loader";
+import { RateLimiter } from "../util/rate-limiter";
+import { initAuth, validateRequest, createApiKey, listApiKeys, deleteApiKey, generateSessionToken } from "../util/auth";
+import { exportDatabase, backupDatabase, importDatabase, getDbStats, getDbSizeBytes } from "../db/export";
 
 // Dashboard API helpers
 function readFileOr(path: string, fallback: string): string {
@@ -496,6 +499,73 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     })() as any;
   }
 
+  // POST /api/dashboard/export — JSON export
+  if (path === "/export" && req.method === "POST") {
+    try {
+      const db = getDb();
+      const outputPath = join(paths.workspace, `export-${Date.now()}.json`);
+      exportDatabase(db, outputPath);
+      const data = readFileSync(outputPath, "utf-8");
+      // Clean up temp file
+      try { const { unlinkSync } = require("fs"); unlinkSync(outputPath); } catch {}
+      return new Response(data, {
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Disposition": `attachment; filename="zubo-export.json"`,
+        },
+      });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // POST /api/dashboard/backup — SQLite backup
+  if (path === "/backup" && req.method === "POST") {
+    try {
+      const backupPath = backupDatabase(paths.db, paths.workspace);
+      return Response.json({ ok: true, path: backupPath });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // POST /api/dashboard/import — JSON import (max 100MB)
+  if (path === "/import" && req.method === "POST") {
+    return (async () => {
+      const tmpPath = join(paths.workspace, `import-${Date.now()}.json`);
+      try {
+        const contentLength = parseInt(req.headers.get("content-length") ?? "0", 10);
+        if (contentLength > 100 * 1024 * 1024) {
+          return Response.json({ error: "Import too large (max 100MB)" }, { status: 413 });
+        }
+        const body = await req.text();
+        if (body.length > 100 * 1024 * 1024) {
+          return Response.json({ error: "Import too large (max 100MB)" }, { status: 413 });
+        }
+        writeFileSync(tmpPath, body);
+        const db = getDb();
+        const result = importDatabase(db, tmpPath);
+        return Response.json({ ok: true, ...result });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      } finally {
+        try { const { unlinkSync } = require("fs"); unlinkSync(tmpPath); } catch {}
+      }
+    })() as any;
+  }
+
+  // GET /api/dashboard/db-stats
+  if (path === "/db-stats" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const stats = getDbStats(db);
+      const sizeBytes = getDbSizeBytes(paths.db);
+      return Response.json({ ...stats, sizeBytes });
+    } catch {
+      return Response.json({ tables: {}, sizeBytes: 0 });
+    }
+  }
+
   // GET /api/dashboard/agents
   if (path === "/agents" && req.method === "GET") {
     return (async () => {
@@ -516,12 +586,59 @@ export interface WebChatAdapter extends ChannelAdapter {
   getPort(): number;
 }
 
+// Cached config values — refreshed every 30s to avoid reading disk on every request
+let _cachedRateLimit: { chatPerMinute: number; uploadPerMinute: number } | null = null;
+let _cachedAuthEnabled: boolean | null = null;
+let _configCacheTime = 0;
+const CONFIG_CACHE_TTL = 30_000;
+
+function refreshConfigCache(): void {
+  const now = Date.now();
+  if (_cachedRateLimit !== null && now - _configCacheTime < CONFIG_CACHE_TTL) return;
+  _configCacheTime = now;
+  try {
+    const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+    _cachedRateLimit = {
+      chatPerMinute: config.rateLimit?.chatPerMinute ?? 60,
+      uploadPerMinute: config.rateLimit?.uploadPerMinute ?? 10,
+    };
+    _cachedAuthEnabled = config.auth?.enabled === true;
+  } catch {
+    _cachedRateLimit = { chatPerMinute: 60, uploadPerMinute: 10 };
+    _cachedAuthEnabled = false;
+  }
+}
+
+function getRateLimitConfig(): { chatPerMinute: number; uploadPerMinute: number } {
+  refreshConfigCache();
+  return _cachedRateLimit!;
+}
+
+function isAuthEnabled(): boolean {
+  refreshConfigCache();
+  return _cachedAuthEnabled!;
+}
+
+function getClientIp(req: Request, server: any): string {
+  // Prefer actual connection IP from Bun server to prevent header spoofing
+  try {
+    const addr = server?.requestIP?.(req);
+    if (addr?.address) return addr.address;
+  } catch {}
+  // Fallback to x-forwarded-for only if behind a trusted proxy
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1";
+}
+
 export function createWebChatAdapter(
   port: number,
   router: MessageRouter
 ): WebChatAdapter {
   let server: ReturnType<typeof Bun.serve> | null = null;
   const sessionKey = "webchat:local";
+
+  const rlConfig = getRateLimitConfig();
+  const chatLimiter = new RateLimiter(rlConfig.chatPerMinute, 60_000);
+  const uploadLimiter = new RateLimiter(rlConfig.uploadPerMinute, 60_000);
 
   return {
     channelName: "webchat",
@@ -551,10 +668,68 @@ export function createWebChatAdapter(
             });
           }
 
+          // Auth check for /api/* endpoints (if enabled) — runs BEFORE any API handler
+          if (url.pathname.startsWith("/api/") && isAuthEnabled()) {
+            const db = getDb();
+            initAuth(db);
+            if (!validateRequest(db, req)) {
+              return Response.json(
+                { error: "Unauthorized. Provide a valid API key via Authorization: Bearer <key>" },
+                { status: 401, headers: { "WWW-Authenticate": "Bearer" } }
+              );
+            }
+          }
+
           // Dashboard API
           if (url.pathname.startsWith("/api/dashboard")) {
             const result = handleDashboardApi(url, req);
             if (result) return result;
+          }
+
+          // API key management endpoints
+          if (url.pathname === "/api/keys" && req.method === "POST") {
+            const db = getDb();
+            initAuth(db);
+            const body = (await req.json()) as { label?: string };
+            const result = createApiKey(db, body.label ?? "");
+            return Response.json(result, { status: 201 });
+          }
+          if (url.pathname === "/api/keys" && req.method === "GET") {
+            const db = getDb();
+            initAuth(db);
+            return Response.json({ keys: listApiKeys(db) });
+          }
+          if (url.pathname.startsWith("/api/keys/") && req.method === "DELETE") {
+            const id = parseInt(url.pathname.split("/").pop()!, 10);
+            if (isNaN(id)) return Response.json({ error: "Invalid key ID" }, { status: 400 });
+            const db = getDb();
+            initAuth(db);
+            const deleted = deleteApiKey(db, id);
+            return Response.json({ deleted });
+          }
+
+          // Rate limiting for chat endpoints
+          if (url.pathname.startsWith("/api/chat")) {
+            const ip = getClientIp(req, server);
+            const check = chatLimiter.check(ip);
+            if (!check.allowed) {
+              return Response.json(
+                { error: "Rate limit exceeded" },
+                { status: 429, headers: { "Retry-After": String(Math.ceil((check.retryAfterMs ?? 1000) / 1000)) } }
+              );
+            }
+          }
+
+          // Rate limiting for upload endpoint
+          if (url.pathname === "/api/upload") {
+            const ip = getClientIp(req, server);
+            const check = uploadLimiter.check(ip);
+            if (!check.allowed) {
+              return Response.json(
+                { error: "Rate limit exceeded" },
+                { status: 429, headers: { "Retry-After": String(Math.ceil((check.retryAfterMs ?? 1000) / 1000)) } }
+              );
+            }
           }
 
           // Chat API (non-streaming, backward compat)
