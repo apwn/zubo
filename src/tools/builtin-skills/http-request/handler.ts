@@ -37,10 +37,16 @@ function validateUrl(raw: string): void {
 export default async function (input: Record<string, unknown>): Promise<string> {
   const url = input.url as string;
   const method = ((input.method as string) || "GET").toUpperCase();
-  const headers = (input.headers as Record<string, string>) || {};
+  const rawHeaders = (input.headers as Record<string, string>) || {};
   const body = input.body as string | undefined;
 
   validateUrl(url);
+
+  // Strip non-ASCII characters from header values (HTTP/1.1 requires ASCII)
+  const headers: Record<string, string> = {};
+  for (const [key, value] of Object.entries(rawHeaders)) {
+    headers[key] = String(value).replace(/[^\x20-\x7E]/g, "");
+  }
 
   const opts: RequestInit = {
     method,
