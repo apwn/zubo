@@ -159,6 +159,26 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
             <td><code>http://localhost:1234/v1</code></td>
             <td>Local model GUI. Download and run models with a graphical interface. No API key required.</td>
           </tr>
+          <tr>
+            <td><code>google</code></td>
+            <td><code>https://generativelanguage.googleapis.com/v1beta</code></td>
+            <td>Google Gemini models. Supports Gemini Pro, Gemini Flash, and other Google AI models.</td>
+          </tr>
+          <tr>
+            <td><code>deepseek</code></td>
+            <td><code>https://api.deepseek.com/v1</code></td>
+            <td>DeepSeek models. OpenAI-compatible API with strong reasoning capabilities at competitive pricing.</td>
+          </tr>
+          <tr>
+            <td><code>xai</code></td>
+            <td><code>https://api.x.ai/v1</code></td>
+            <td>xAI Grok models. OpenAI-compatible API with real-time knowledge.</td>
+          </tr>
+          <tr>
+            <td><code>fireworks</code></td>
+            <td><code>https://api.fireworks.ai/inference/v1</code></td>
+            <td>Fireworks AI. Fast inference for open-source models with optimized serving.</td>
+          </tr>
         </tbody>
       </table>
 
@@ -235,6 +255,51 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
 }</code></pre>
 
       <p>In this configuration, Zubo uses Claude as the primary model. If Anthropic returns an error (rate limit, network issue, etc.), it automatically tries OpenAI next, and finally Ollama as a local fallback. The failover is transparent to the user &mdash; they receive a response regardless of which provider handled it.</p>
+
+      <h3>Smart Routing</h3>
+
+      <p>
+        Smart routing automatically selects the best provider for each query based on complexity. Simple questions (greetings, quick lookups, short follow-ups) are routed to fast, inexpensive models, while complex queries (multi-step reasoning, code generation, long-form writing) go to your most capable provider. This can significantly reduce costs without noticeable quality loss.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>smartRouting.enabled</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>Enable automatic query routing between providers.</td>
+          </tr>
+          <tr>
+            <td><code>smartRouting.fastProvider</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>Provider key to use for simple queries (e.g., <code>"groq"</code>, <code>"deepseek"</code>).</td>
+          </tr>
+          <tr>
+            <td><code>smartRouting.complexProvider</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>Provider key to use for complex queries. Defaults to <code>activeProvider</code> if not set.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"smartRouting": {
+  "enabled": true,
+  "fastProvider": "groq",
+  "complexProvider": "anthropic"
+}</code></pre>
+
+      <p>When smart routing is enabled, Zubo classifies each incoming message and routes it accordingly. You can always override the routing for a specific message by prefixing it with the provider name (e.g., <code>@anthropic explain quantum computing</code>).</p>
 
       <!-- ================================================================ -->
       <h2 id="channel-configuration">Channel Configuration</h2>
@@ -645,6 +710,52 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
       <p>For personal use on localhost, the defaults are generous. If you are exposing Zubo on a public network or sharing it with others, consider lowering these values (e.g., <code>chatPerMinute: 30</code>, <code>uploadPerMinute: 5</code>).</p>
 
       <!-- ================================================================ -->
+      <h2 id="budget-controls">Budget Controls</h2>
+
+      <p>
+        Zubo tracks token usage and estimated costs for every LLM request. You can set spending limits to prevent surprise bills and view per-model cost breakdowns in the dashboard.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>budget.dailyLimit</code></td>
+            <td>number</td>
+            <td><code>0</code></td>
+            <td>Maximum daily spend in USD. Set to <code>0</code> for no limit. When the limit is reached, Zubo pauses LLM requests and notifies you.</td>
+          </tr>
+          <tr>
+            <td><code>budget.monthlyLimit</code></td>
+            <td>number</td>
+            <td><code>0</code></td>
+            <td>Maximum monthly spend in USD. Set to <code>0</code> for no limit.</td>
+          </tr>
+          <tr>
+            <td><code>budget.warningThreshold</code></td>
+            <td>number</td>
+            <td><code>0.8</code></td>
+            <td>Percentage (0&ndash;1) of the budget at which Zubo sends a warning notification. Default is 80%.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"budget": {
+  "dailyLimit": 5,
+  "monthlyLimit": 50,
+  "warningThreshold": 0.8
+}</code></pre>
+
+      <p>Cost tracking is always active even without spending limits. View your usage breakdown in the dashboard under Analytics &rarr; Costs, or ask Zubo directly: &ldquo;How much have I spent today?&rdquo;</p>
+
+      <!-- ================================================================ -->
       <h2 id="authentication">Authentication</h2>
 
       <p>
@@ -739,7 +850,7 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
       <!-- ================================================================ -->
       <h2 id="full-example">Full Example</h2>
 
-      <p>Here is a complete <code>~/.zubo/config.json</code> showing all configuration sections together. This represents a fully configured instance with Anthropic as the primary provider, Ollama as a local failover, three channels enabled, voice support, and production-ready security settings:</p>
+      <p>Here is a complete <code>~/.zubo/config.json</code> showing all configuration sections together. This represents a fully configured instance with Anthropic as the primary provider, Groq for smart routing, Ollama as a local failover, three channels enabled, voice support, budget controls, and production-ready security settings:</p>
 
 <pre><code>{
   "providers": {
@@ -749,6 +860,11 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
       "streaming": true,
       "contextWindow": 200000
     },
+    "groq": {
+      "apiKey": "gsk_...",
+      "model": "llama-3.3-70b-versatile",
+      "streaming": true
+    },
     "ollama": {
       "baseUrl": "http://localhost:11434/v1",
       "model": "llama3.3",
@@ -756,7 +872,13 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
     }
   },
   "activeProvider": "anthropic",
-  "failover": ["ollama"],
+  "failover": ["groq", "ollama"],
+
+  "smartRouting": {
+    "enabled": true,
+    "fastProvider": "groq",
+    "complexProvider": "anthropic"
+  },
 
   "channels": {
     "webchat": {
@@ -811,6 +933,12 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
   "rateLimit": {
     "chatPerMinute": 60,
     "uploadPerMinute": 10
+  },
+
+  "budget": {
+    "dailyLimit": 5,
+    "monthlyLimit": 50,
+    "warningThreshold": 0.8
   },
 
   "auth": {

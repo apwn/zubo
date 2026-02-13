@@ -83,7 +83,8 @@
 
       <h3>AI Engine</h3>
       <ul>
-        <li><strong>Multi-provider LLM support</strong> &mdash; Claude (Anthropic), OpenAI (GPT-4o, GPT-4-turbo), Ollama (local models), Groq (fast inference), Together (open models), OpenRouter (multi-model gateway), and LM Studio (local GUI). Switch providers with a single config change.</li>
+        <li><strong>Multi-provider LLM support</strong> &mdash; Claude (Anthropic), OpenAI (GPT-4o, GPT-4-turbo), Google Gemini, Ollama (local models), Groq (fast inference), Together (open models), OpenRouter (multi-model gateway), DeepSeek, xAI (Grok), Fireworks, LM Studio (local GUI), and any OpenAI-compatible endpoint. Switch providers with a single config change.</li>
+        <li><strong>Smart routing</strong> &mdash; automatically routes simple queries to fast, cheap models and complex queries to more capable ones. Saves cost without sacrificing quality, with full manual override when you need it.</li>
         <li><strong>Automatic failover</strong> &mdash; define an ordered list of backup providers. If the primary is down or rate-limited, Zubo seamlessly falls through to the next provider in the chain with no user-facing interruption.</li>
         <li><strong>Streaming responses</strong> &mdash; token-by-token streaming for all providers that support it. Messages appear in real time across every channel.</li>
         <li><strong>Context compaction</strong> &mdash; when the conversation approaches the context window limit, Zubo automatically summarizes older turns to free space while preserving critical details.</li>
@@ -149,6 +150,7 @@
 
       <h3>Scheduling</h3>
       <ul>
+        <li><strong>Natural language scheduling</strong> &mdash; describe schedules in plain English like &ldquo;every weekday at 9am&rdquo; or &ldquo;twice a day&rdquo;. Zubo parses natural language into cron expressions automatically.</li>
         <li><strong>Cron jobs</strong> supporting any standard cron expression (e.g., <code>0 9 * * 1-5</code> for weekday mornings).</li>
         <li><strong>Configurable heartbeat</strong> from 1 to 1440 minutes (default 30), where Zubo wakes up, checks for pending tasks, processes scheduled jobs, and optionally sends proactive messages.</li>
         <li><strong>Proactive memory-based triggers</strong> &mdash; Zubo can surface reminders and follow-ups based on things it has remembered.</li>
@@ -165,6 +167,12 @@
       <ul>
         <li><strong>Built-in web UI</strong> served as zero-dependency inline HTML on the configured port. No build step, no npm dependencies, no CDN calls.</li>
         <li>Includes real-time chat, analytics (token usage, tool calls, response times), memory browser with search, skill manager (install, enable, disable, delete), settings editor, and full data export/import.</li>
+      </ul>
+
+      <h3>Budget &amp; Cost Controls</h3>
+      <ul>
+        <li><strong>Spending limits</strong> &mdash; set daily or monthly budgets per provider or globally. Zubo pauses requests when limits are reached, preventing surprise bills.</li>
+        <li><strong>Per-model cost tracking</strong> &mdash; view token usage and costs broken down by model in the dashboard. Full transparency into where your money goes.</li>
       </ul>
 
       <h3>Security</h3>
@@ -367,6 +375,8 @@ zubo start --daemon</code></pre>
         <li><strong>Use <code>zubo start --daemon</code></strong> for always-on operation. Zubo writes a PID file and rotates logs automatically.</li>
         <li><strong>Check <code>zubo status</code> and <code>zubo logs</code></strong> for troubleshooting. The status command shows uptime, memory usage, connected channels, and pending scheduled jobs.</li>
         <li><strong>Back up your data</strong> with <code>zubo export</code> for a full JSON export, or rely on the automatic daily SQLite backups in <code>~/.zubo/workspace/backups/</code>.</li>
+        <li><strong>Enable smart routing</strong> to automatically send simple queries to fast, cheap models. Set <code>smartRouting.enabled</code> to <code>true</code> and configure a <code>fastProvider</code> (e.g., Groq) alongside your primary. This can cut costs significantly.</li>
+        <li><strong>Set a budget</strong> to avoid surprise bills: <code>zubo config set budget.dailyLimit 5</code>. Cost tracking is always active in the dashboard under Analytics &rarr; Costs.</li>
         <li><strong>Configure failover providers</strong> so your agent stays available even if your primary LLM provider has an outage. For example, set Anthropic as primary and Ollama as failover for fully offline operation when the cloud is down.</li>
         <li><strong>Keep skills small and focused</strong> &mdash; one skill per task. This makes them easier to test, share, and debug.</li>
       </ul>

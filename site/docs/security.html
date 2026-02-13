@@ -297,6 +297,7 @@ zubo config set rateLimit.uploadPerMinute 5</code></pre>
         <li><strong>Automatic backups:</strong> Daily backups are created automatically in <code>~/.zubo/workspace/backups/</code>, with the last 7 backups retained</li>
         <li><strong>Manual export:</strong> Run <code>zubo export</code> to export your data &mdash; this excludes secrets and API keys by default</li>
         <li><strong>Excluded from exports:</strong> The <code>secrets</code> and <code>api_keys</code> tables are always excluded from exports to prevent accidental credential leakage</li>
+        <li><strong>Budget controls:</strong> Set daily and monthly spending limits to prevent surprise bills. Zubo tracks token usage and estimated costs per model, with configurable warning thresholds. See <a href="config.html#budget-controls">Budget Controls</a> in the configuration docs.</li>
       </ul>
 
       <h2 id="logging">Logging</h2>
