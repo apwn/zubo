@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync, mkdirSync } from "fs";
+import { join } from "path";
 import { loadConfig } from "./config/loader";
 import { ensureDirectories, paths } from "./config/paths";
 import type { ZuboConfig } from "./config/schema";
@@ -239,6 +240,30 @@ export async function startZubo(isDaemon = false) {
   startHeartbeat(config.heartbeatMinutes);
   initCronScheduler(db, router, config, llm);
   logger.info("Scheduler started");
+
+  // Register daily backup handler
+  const { onHeartbeat } = await import("./scheduler/heartbeat");
+  const { backupDatabase } = await import("./db/export");
+  let lastBackupDay = "";
+  onHeartbeat(async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (today === lastBackupDay) return;
+    try {
+      const backupDir = join(paths.workspace, "backups");
+      mkdirSync(backupDir, { recursive: true });
+      backupDatabase(paths.db, backupDir);
+      lastBackupDay = today;
+      // Prune old backups — keep last 7
+      const { readdirSync: ls, unlinkSync: rm } = await import("fs");
+      const files = ls(backupDir).filter((f: string) => f.startsWith("zubo-backup-")).sort();
+      while (files.length > 7) {
+        rm(join(backupDir, files.shift()!));
+      }
+      logger.info("Daily backup complete");
+    } catch (err: any) {
+      logger.warn("Daily backup failed", { error: err.message });
+    }
+  });
 
   // Init proactive intelligence
   const { initProactiveIntelligence } = await import("./scheduler/proactive");

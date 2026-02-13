@@ -110,6 +110,84 @@ switch (command) {
     }
     break;
   }
+  case "config": {
+    const configAction = process.argv[3];
+    if (configAction === "set") {
+      const key = process.argv[4];
+      const value = process.argv[5];
+      if (!key || value === undefined) {
+        console.log("Usage: zubo config set <key> <value>");
+        console.log("\nExamples:");
+        console.log("  zubo config set heartbeatMinutes 60");
+        console.log("  zubo config set maxTurns 100");
+        console.log("  zubo config set activeProvider ollama");
+        console.log("  zubo config set model llama3.3");
+        console.log("  zubo config set auth.enabled true");
+        console.log("  zubo config set rateLimit.chatPerMinute 30");
+        process.exit(1);
+      }
+      const { readFileSync, writeFileSync } = await import("fs");
+      const { paths: cfgPaths } = await import("./config/paths");
+      try {
+        const config = JSON.parse(readFileSync(cfgPaths.config, "utf-8"));
+        // Support dotted keys (e.g. auth.enabled, rateLimit.chatPerMinute)
+        const keys = key.split(".");
+        let target = config;
+        for (let i = 0; i < keys.length - 1; i++) {
+          if (!target[keys[i]] || typeof target[keys[i]] !== "object") {
+            target[keys[i]] = {};
+          }
+          target = target[keys[i]];
+        }
+        const finalKey = keys[keys.length - 1];
+        // Parse value types
+        let parsed: any = value;
+        if (value === "true") parsed = true;
+        else if (value === "false") parsed = false;
+        else if (/^\d+$/.test(value)) parsed = parseInt(value, 10);
+        else if (/^\d+\.\d+$/.test(value)) parsed = parseFloat(value);
+
+        target[finalKey] = parsed;
+        writeFileSync(cfgPaths.config, JSON.stringify(config, null, 2) + "\n");
+        console.log(`Set ${key} = ${JSON.stringify(parsed)}`);
+      } catch (err: any) {
+        console.error(`Error: ${err.message}`);
+        process.exit(1);
+      }
+    } else if (configAction === "get") {
+      const key = process.argv[4];
+      const { readFileSync } = await import("fs");
+      const { paths: cfgPaths } = await import("./config/paths");
+      try {
+        const config = JSON.parse(readFileSync(cfgPaths.config, "utf-8"));
+        if (!key) {
+          // Print full config (mask sensitive values)
+          const masked = { ...config };
+          if (masked.anthropicApiKey) masked.anthropicApiKey = "***";
+          if (masked.providers) {
+            for (const p of Object.values(masked.providers) as any[]) {
+              if (p.apiKey) p.apiKey = "***";
+            }
+          }
+          console.log(JSON.stringify(masked, null, 2));
+        } else {
+          const keys = key.split(".");
+          let val: any = config;
+          for (const k of keys) val = val?.[k];
+          console.log(val !== undefined ? JSON.stringify(val) : "(not set)");
+        }
+      } catch (err: any) {
+        console.error(`Error: ${err.message}`);
+        process.exit(1);
+      }
+    } else {
+      console.log("Usage: zubo config <command>\n");
+      console.log("Commands:");
+      console.log("  set <key> <value>   Set a config value");
+      console.log("  get [key]           Get a config value (or all if no key)");
+    }
+    break;
+  }
   case "export": {
     const { getDb } = await import("./db/connection");
     const { runMigrations } = await import("./db/migrations");
@@ -174,6 +252,8 @@ switch (command) {
     console.log("  auth create-key    Create an API key");
     console.log("  auth list-keys     List all API keys");
     console.log("  auth delete-key    Delete an API key");
+    console.log("  config set <k> <v> Set a config value");
+    console.log("  config get [key]   Show config value(s)");
     console.log("  export             Export database as JSON");
     console.log("  export --format sqlite  Backup as SQLite file");
     console.log("  import <path>      Import data from JSON export");

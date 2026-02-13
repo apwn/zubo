@@ -7,6 +7,8 @@ import { hybridSearch, type SearchResult } from "./hybrid-search";
 import { ftsSearch } from "./fts-index";
 import { logger } from "../util/logger";
 
+const DEFAULT_MAX_CHUNKS = 10_000;
+
 /**
  * Initialize the memory engine: load embedder, index existing files.
  */
@@ -105,6 +107,44 @@ export async function writeAndIndexMemory(
   }
 
   logger.info("Memory written and indexed", { filePath, content: content.slice(0, 50) });
+
+  // Prune if over limit
+  pruneOldChunks(db);
+}
+
+/**
+ * Remove oldest memory chunks when the total exceeds the max limit.
+ */
+export function pruneOldChunks(db: Database, maxChunks: number = DEFAULT_MAX_CHUNKS): number {
+  try {
+    const row = db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as { c: number } | null;
+    const count = row?.c ?? 0;
+    if (count <= maxChunks) return 0;
+
+    const excess = count - maxChunks;
+    db.prepare(
+      "DELETE FROM memory_chunks WHERE id IN (SELECT id FROM memory_chunks ORDER BY id ASC LIMIT ?)"
+    ).run(excess);
+    logger.info(`Pruned ${excess} old memory chunks (was ${count}, max ${maxChunks})`);
+    return excess;
+  } catch (err: any) {
+    logger.warn("Memory pruning failed", { error: err.message });
+    return 0;
+  }
+}
+
+/**
+ * Get memory statistics.
+ */
+export function getMemoryStats(db: Database): { totalChunks: number; oldestDate: string | null } {
+  try {
+    const row = db.query(
+      "SELECT COUNT(*) as c, MIN(rowid) as oldest FROM memory_chunks"
+    ).get() as { c: number; oldest: number | null } | null;
+    return { totalChunks: row?.c ?? 0, oldestDate: null };
+  } catch {
+    return { totalChunks: 0, oldestDate: null };
+  }
 }
 
 /**
