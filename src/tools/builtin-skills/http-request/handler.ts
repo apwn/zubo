@@ -26,7 +26,7 @@ function validateUrl(raw: string): void {
   try {
     parsed = new URL(raw);
   } catch {
-    throw new Error(`Invalid URL: ${raw}`);
+    throw new Error(`Invalid URL: "${raw}". Make sure it starts with http:// or https://`);
   }
 
   if (isBlockedHost(parsed.hostname)) {

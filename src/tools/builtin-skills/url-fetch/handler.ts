@@ -12,7 +12,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
   });
 
   if (!res.ok) {
-    throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
+    throw new Error(`Could not fetch URL (${res.status}). The page may be down or blocking requests.`);
   }
 
   const contentType = res.headers.get("content-type") || "";

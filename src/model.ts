@@ -4,7 +4,7 @@ import { configExists } from "./config/loader";
 
 function readConfig(): any {
   if (!configExists()) {
-    console.log("Config not found. Run 'zubo setup' first.");
+    console.log("No config found. Run 'zubo setup' to get started.");
     process.exit(1);
   }
   return JSON.parse(readFileSync(paths.config, "utf-8"));
@@ -33,7 +33,7 @@ function showCurrent() {
   } else if (config.anthropicApiKey) {
     console.log(`\n  Active: anthropic/${config.model ?? "claude-sonnet-4-5-20250929"} (legacy config)`);
   } else {
-    console.log("\n  No provider configured.");
+    console.log("\n  No provider configured. Run 'zubo setup' to add one.");
   }
   console.log("");
 }
@@ -95,8 +95,7 @@ function switchModel(target: string) {
   }
 
   // Provider not configured — offer quick setup for known providers
-  console.log(`Provider "${providerName}" is not configured.`);
-  console.log(`Run 'zubo setup' to add it, or edit ~/.zubo/config.json directly.`);
+  console.log(`Provider "${providerName}" is not configured. Run 'zubo setup' to add it.`);
   process.exit(1);
 }
 

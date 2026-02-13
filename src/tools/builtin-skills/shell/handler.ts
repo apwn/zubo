@@ -57,7 +57,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
   // Block obviously destructive commands
   for (const pattern of BLOCKED_PATTERNS) {
     if (pattern.test(command)) {
-      throw new Error(`Blocked: command matches dangerous pattern`);
+      throw new Error(`Blocked: this command is not allowed for safety reasons. Destructive system commands (rm -rf /, mkfs, shutdown, etc.) are restricted.`);
     }
   }
 

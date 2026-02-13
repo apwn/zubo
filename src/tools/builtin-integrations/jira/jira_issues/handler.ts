@@ -14,7 +14,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
   const email = (globalThis as any).Zubo?.getSecret?.("jira_email");
   const baseUrl = (globalThis as any).Zubo?.getSecret?.("jira_url");
   if (!token || !email || !baseUrl) {
-    return JSON.stringify({ error: "Jira not configured. Set jira_token, jira_email, and jira_url secrets." });
+    return JSON.stringify({ error: "Jira is not connected. Tell me your Jira details and I'll set it up. I need: your Jira URL (e.g. yourteam.atlassian.net), email, and an API token from id.atlassian.net/manage-profile/security/api-tokens." });
   }
 
   // Validate jira_url to prevent SSRF — must be HTTPS and a valid Jira host

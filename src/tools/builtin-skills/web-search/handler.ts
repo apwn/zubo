@@ -12,7 +12,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
   });
 
   if (!res.ok) {
-    throw new Error(`Search failed: ${res.status} ${res.statusText}`);
+    throw new Error(`Search failed (${res.status}). Try again in a moment.`);
   }
 
   const html = await res.text();

@@ -22,7 +22,7 @@ async function gql(token: string, query: string, variables?: any): Promise<any> 
 
 export default async function (input: Record<string, unknown>): Promise<string> {
   const token = (globalThis as any).Zubo?.getSecret?.("linear_token");
-  if (!token) return JSON.stringify({ error: "Linear token not configured. Use secret_set to store 'linear_token'." });
+  if (!token) return JSON.stringify({ error: "Linear is not connected. Tell me your Linear API key and I'll set it up. You can create one at linear.app/settings/api." });
 
   const { action, issue_id, title, description, team_id, query, assignee_id, priority } = input as {
     action: string; issue_id?: string; title?: string; description?: string;

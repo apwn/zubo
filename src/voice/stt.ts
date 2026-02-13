@@ -48,7 +48,7 @@ export function initStt(config: { provider: string; apiKey: string; model?: stri
       logger.info("STT initialized: Whisper API");
       break;
     default:
-      logger.warn(`Unknown STT provider: ${config.provider}`);
+      logger.warn(`Unknown STT provider: "${config.provider}". Supported: whisper, openai`);
   }
 }
 

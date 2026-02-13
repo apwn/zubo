@@ -14,7 +14,7 @@ const API = "https://slack.com/api";
 export default async function (input: Record<string, unknown>): Promise<string> {
   const token = (globalThis as any).Zubo?.getSecret?.("slack_token");
   if (!token) {
-    return JSON.stringify({ error: "Slack token not configured. Use secret_set to store 'slack_token'." });
+    return JSON.stringify({ error: "Slack is not connected. Tell me your Slack Bot Token (starts with xoxb-) and I'll set it up." });
   }
 
   const { action, channel, text, query, limit } = input as {

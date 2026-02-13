@@ -3,7 +3,7 @@ const API = "https://gmail.googleapis.com/gmail/v1/users/me";
 async function getToken(): Promise<string> {
   const Zubo = (globalThis as any).Zubo;
   if (Zubo?.getGoogleToken) return Zubo.getGoogleToken();
-  throw new Error("Google is NOT connected. Use google_oauth with action 'start' to set up Google.");
+  throw new Error("Google is not connected. Ask me to set up Google and I'll walk you through it.");
 }
 
 async function safeApiErr(res: Response, service: string): Promise<string> {
@@ -28,8 +28,8 @@ export default async function (input: Record<string, unknown>): Promise<string> 
   } catch (err: any) {
     return JSON.stringify({
       error: err.message,
-      action_required: "Google is NOT connected. The user needs to complete the OAuth 2.0 flow. " +
-        "Ask the user for their Google OAuth client_id (ends with .apps.googleusercontent.com) " +
+      action_required: "Google is not connected. The user needs to set up Google OAuth. " +
+        "Ask them for their Google OAuth client_id (ends with .apps.googleusercontent.com) " +
         "and client_secret (starts with GOCSPX-), then use google_oauth tool with action 'start'.",
     });
   }

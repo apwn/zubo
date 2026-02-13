@@ -196,7 +196,7 @@ function getConfigInfo(): {
 function switchModelConfig(provider: string, model: string): { ok: boolean; error?: string } {
   try {
     if (!model) {
-      return { ok: false, error: "Model is required" };
+      return { ok: false, error: "Model name is required. Use the format: provider/model (e.g. anthropic/claude-sonnet-4-5-20250929)" };
     }
 
     const config = JSON.parse(readFileSync(paths.config, "utf-8"));
@@ -297,7 +297,7 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     return (async () => {
       const body = (await req.json()) as { provider?: string; model?: string };
       if (!body.provider) {
-        return Response.json({ ok: false, error: "provider is required" }, { status: 400 });
+        return Response.json({ ok: false, error: "Provider name is required." }, { status: 400 });
       }
       const result = switchModelConfig(body.provider, body.model ?? "");
       return Response.json(result, { status: result.ok ? 200 : 400 });
@@ -1443,7 +1443,7 @@ export function createWebChatAdapter(
             const check = chatLimiter.check(ip);
             if (!check.allowed) {
               return Response.json(
-                { error: "Rate limit exceeded" },
+                { error: "Too many requests. Please wait a moment and try again." },
                 { status: 429, headers: { "Retry-After": String(Math.ceil((check.retryAfterMs ?? 1000) / 1000)) } }
               );
             }
@@ -1455,7 +1455,7 @@ export function createWebChatAdapter(
             const check = uploadLimiter.check(ip);
             if (!check.allowed) {
               return Response.json(
-                { error: "Rate limit exceeded" },
+                { error: "Too many requests. Please wait a moment and try again." },
                 { status: 429, headers: { "Retry-After": String(Math.ceil((check.retryAfterMs ?? 1000) / 1000)) } }
               );
             }

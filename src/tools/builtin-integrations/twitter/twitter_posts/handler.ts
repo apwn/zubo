@@ -14,7 +14,7 @@ const API = "https://api.twitter.com/2";
 export default async function (input: Record<string, unknown>): Promise<string> {
   const bearer = (globalThis as any).Zubo?.getSecret?.("twitter_bearer_token");
   if (!bearer) {
-    return JSON.stringify({ error: "Twitter bearer token not configured. Use secret_set to store 'twitter_bearer_token'." });
+    return JSON.stringify({ error: "Twitter is not connected. Tell me your Twitter Bearer Token and I'll set it up. You can get one from developer.x.com." });
   }
 
   const { action, text, query, tweet_id, max_results } = input as {
@@ -51,7 +51,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         const accessToken = (globalThis as any).Zubo?.getSecret?.("twitter_access_token");
         const accessSecret = (globalThis as any).Zubo?.getSecret?.("twitter_access_secret");
         if (!apiKey || !apiSecret || !accessToken || !accessSecret) {
-          return JSON.stringify({ error: "Twitter OAuth credentials not configured. Need twitter_api_key, twitter_api_secret, twitter_access_token, twitter_access_secret." });
+          return JSON.stringify({ error: "Twitter posting requires OAuth credentials. Tell me your API Key, API Secret, Access Token, and Access Secret from developer.x.com and I'll set them up." });
         }
         // Use OAuth 1.0a -- simplified via fetch with pre-computed header
         const oauthHeader = computeOAuth1Header("POST", `${API}/tweets`, {}, apiKey, apiSecret, accessToken, accessSecret);

@@ -94,7 +94,7 @@ export function initTts(config: { provider: string; apiKey: string; voice?: stri
       logger.info("TTS initialized: ElevenLabs");
       break;
     default:
-      logger.warn(`Unknown TTS provider: ${config.provider}`);
+      logger.warn(`Unknown TTS provider: "${config.provider}". Supported: openai, elevenlabs`);
   }
 }
 
