@@ -1,4 +1,7 @@
-import { safeExceptionError } from "../../api-helpers.js";
+function safeExceptionError(err: any, service: string): string {
+  console.error(`[${service}] Request failed: ${err.message}`);
+  return JSON.stringify({ error: `${service} request failed. Check logs for details.` });
+}
 
 const API = "https://api.linear.app/graphql";
 

@@ -1,4 +1,13 @@
-import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+async function safeApiError(res: Response, service: string): Promise<string> {
+  const body = await res.text().catch(() => "");
+  console.error(`[${service}] API error ${res.status}: ${body.slice(0, 500)}`);
+  return JSON.stringify({ error: `${service} API error: ${res.status} ${res.statusText}` });
+}
+
+function safeExceptionError(err: any, service: string): string {
+  console.error(`[${service}] Request failed: ${err.message}`);
+  return JSON.stringify({ error: `${service} request failed. Check logs for details.` });
+}
 
 const API = "https://api.github.com";
 
