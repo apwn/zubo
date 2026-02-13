@@ -1,11 +1,14 @@
 import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+import { getGoogleAccessToken } from "../../../../util/google-tokens";
 
 const API = "https://www.googleapis.com/calendar/v3";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
-  const token = (globalThis as any).Zubo?.getSecret?.("google_calendar_token");
-  if (!token) {
-    return JSON.stringify({ error: "Google Calendar token not configured. Use secret_set to store 'google_calendar_token'." });
+  let token: string;
+  try {
+    token = await getGoogleAccessToken();
+  } catch (err: any) {
+    return JSON.stringify({ error: err.message });
   }
 
   const { action, event_id, summary, description, start, end, time_min, time_max, calendar_id } = input as {

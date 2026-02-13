@@ -1,11 +1,14 @@
 import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+import { getGoogleAccessToken } from "../../../../util/google-tokens";
 
 const API = "https://gmail.googleapis.com/gmail/v1/users/me";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
-  const token = (globalThis as any).Zubo?.getSecret?.("gmail_token");
-  if (!token) {
-    return JSON.stringify({ error: "Gmail token not configured. Use secret_set to store 'gmail_token'." });
+  let token: string;
+  try {
+    token = await getGoogleAccessToken();
+  } catch (err: any) {
+    return JSON.stringify({ error: err.message });
   }
 
   const { action, message_id, to, subject, body, query, max_results } = input as {

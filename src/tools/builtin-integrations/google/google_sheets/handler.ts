@@ -1,13 +1,14 @@
 import { safeApiError, safeExceptionError } from "../../api-helpers.js";
+import { getGoogleAccessToken } from "../../../../util/google-tokens";
 
 const API = "https://sheets.googleapis.com/v4/spreadsheets";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
-  const token = (globalThis as any).Zubo?.getSecret?.("google_api_key");
-  if (!token) {
-    return JSON.stringify({
-      error: "Google API key not configured. Use secret_set to store a 'google_api_key' or connect_service to set up Google.",
-    });
+  let token: string;
+  try {
+    token = await getGoogleAccessToken();
+  } catch (err: any) {
+    return JSON.stringify({ error: err.message });
   }
 
   const { action, spreadsheet_id, title, range, values } = input as {

@@ -11,7 +11,7 @@ export interface IntegrationInfo {
 
 const SERVICE_SECRETS: Record<string, string> = {
   github: "github_token",
-  google: "google_api_key",
+  google: "google_oauth",  // Google uses OAuth 2.0 — credentials are google_client_id + google_client_secret
   notion: "notion_token",
   slack: "slack_token",
   linear: "linear_token",

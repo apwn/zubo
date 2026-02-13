@@ -16,6 +16,7 @@ import { registerConnectServiceTool } from "./tools/builtin/connect-service";
 import { registerDelegateTool } from "./tools/builtin/delegate";
 import { registerDelegateTaskTool } from "./tools/builtin/delegate-task";
 import { registerDiagnoseTool } from "./tools/builtin/diagnose";
+import { registerGoogleOAuthTool } from "./tools/builtin/google-oauth";
 import { registerManageAgentsTool } from "./tools/builtin/manage-agents";
 import { exposeSecretsRuntime } from "./secrets/store";
 import { loadSkills, watchSkills } from "./tools/skill-loader";
@@ -231,6 +232,9 @@ export async function startZubo(isDaemon = false) {
 
   // Register diagnostics
   registerDiagnoseTool();
+
+  // Register Google OAuth tool
+  registerGoogleOAuthTool();
 
   // Register workflow + team tools
   const { registerManageWorkflowsTool } = await import("./tools/builtin/manage-workflows");
