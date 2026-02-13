@@ -15,7 +15,10 @@ export class ClaudeProvider implements LlmProvider {
   private client: Anthropic;
 
   constructor(apiKey: string, model: string) {
-    this.client = new Anthropic({ apiKey });
+    this.client = new Anthropic({
+      apiKey,
+      defaultHeaders: { "anthropic-beta": "prompt-caching-2024-07-31" },
+    });
     this.model = model;
   }
 
@@ -25,12 +28,26 @@ export class ClaudeProvider implements LlmProvider {
       toolCount: request.tools?.length ?? 0,
     });
 
+    const tools = request.tools?.length
+      ? request.tools.map((t, i, arr) =>
+          i === arr.length - 1
+            ? { ...t, cache_control: { type: "ephemeral" as const } }
+            : t,
+        )
+      : undefined;
+
     const response = await this.client.messages.create({
       model: this.model,
       max_tokens: request.maxTokens ?? 4096,
-      system: request.system,
+      system: [
+        {
+          type: "text" as const,
+          text: request.system,
+          cache_control: { type: "ephemeral" as const },
+        },
+      ],
       messages: request.messages as any,
-      tools: request.tools as any,
+      tools: tools as any,
     });
 
     const content: LlmContentBlock[] = response.content.map((block: any) => {
@@ -48,12 +65,16 @@ export class ClaudeProvider implements LlmProvider {
       return block;
     });
 
+    const apiUsage = response.usage as any;
+
     return {
       content,
       stopReason: response.stop_reason ?? "end_turn",
       usage: {
         inputTokens: response.usage.input_tokens,
         outputTokens: response.usage.output_tokens,
+        cacheCreationTokens: apiUsage.cache_creation_input_tokens ?? undefined,
+        cacheReadTokens: apiUsage.cache_read_input_tokens ?? undefined,
       },
     };
   }
@@ -64,14 +85,28 @@ export class ClaudeProvider implements LlmProvider {
       toolCount: request.tools?.length ?? 0,
     });
 
+    const tools = request.tools?.length
+      ? request.tools.map((t, i, arr) =>
+          i === arr.length - 1
+            ? { ...t, cache_control: { type: "ephemeral" as const } }
+            : t,
+        )
+      : undefined;
+
     const params: any = {
       model: this.model,
       max_tokens: request.maxTokens ?? 4096,
-      system: request.system,
+      system: [
+        {
+          type: "text" as const,
+          text: request.system,
+          cache_control: { type: "ephemeral" as const },
+        },
+      ],
       messages: request.messages as any,
     };
-    if (request.tools?.length) {
-      params.tools = request.tools as any;
+    if (tools) {
+      params.tools = tools as any;
     }
 
     const stream = this.client.messages.stream(params);
@@ -139,6 +174,8 @@ export class ClaudeProvider implements LlmProvider {
       return block;
     });
 
+    const finalUsage = finalMessage.usage as any;
+
     yield {
       type: "message_done",
       response: {
@@ -147,6 +184,8 @@ export class ClaudeProvider implements LlmProvider {
         usage: {
           inputTokens: finalMessage.usage.input_tokens,
           outputTokens: finalMessage.usage.output_tokens,
+          cacheCreationTokens: finalUsage.cache_creation_input_tokens ?? undefined,
+          cacheReadTokens: finalUsage.cache_read_input_tokens ?? undefined,
         },
       },
     };

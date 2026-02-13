@@ -171,6 +171,7 @@ export async function agentLoop(
 
   for (let round = 0; round < maxRounds; round++) {
     const llmStartTime = Date.now();
+    let timeoutHandle: ReturnType<typeof setTimeout>;
     const response = await Promise.race([
       llm.chat({
         system,
@@ -178,10 +179,11 @@ export async function agentLoop(
         tools: tools.length > 0 ? tools : undefined,
         maxTokens: 4096,
       }),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("LLM request timed out after 120s")), CHAT_TIMEOUT_MS)
-      ),
+      new Promise<never>((_, reject) => {
+        timeoutHandle = setTimeout(() => reject(new Error("LLM request timed out after 120s")), CHAT_TIMEOUT_MS);
+      }),
     ]);
+    clearTimeout(timeoutHandle!);
     trackUsage(llm, sessionId, response, Date.now() - llmStartTime);
 
     logger.debug("LLM response", {
@@ -247,6 +249,7 @@ export async function agentLoopStream(
       let roundResponse: LlmResponse | null = null;
       const llmStartTime = Date.now();
 
+      let streamTimeoutHandle: ReturnType<typeof setTimeout>;
       await Promise.race([
         (async () => {
           for await (const event of llm.chatStream!({
@@ -272,10 +275,11 @@ export async function agentLoopStream(
             }
           }
         })(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("LLM request timed out after 120s")), CHAT_TIMEOUT_MS)
-        ),
+        new Promise<never>((_, reject) => {
+          streamTimeoutHandle = setTimeout(() => reject(new Error("LLM request timed out after 120s")), CHAT_TIMEOUT_MS);
+        }),
       ]);
+      clearTimeout(streamTimeoutHandle!);
 
       if (!roundResponse) throw new Error("Stream ended without message_done event");
       const completed = roundResponse as LlmResponse;

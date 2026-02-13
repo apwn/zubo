@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, readdirSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, readdirSync, unlinkSync } from "fs";
 import { join } from "path";
 import type { ChannelAdapter, InboundMessage } from "./adapter";
 import type { MessageRouter } from "./router";
@@ -782,6 +782,130 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     }
   }
 
+  // --- Webhook ingress ---
+
+  // POST /api/dashboard/webhook/:name
+  if (path.startsWith("/webhook/") && req.method === "POST") {
+    const webhookName = path.slice("/webhook/".length);
+    if (!webhookName || !/^[a-z0-9_-]+$/i.test(webhookName)) {
+      return Response.json({ error: "Invalid webhook name" }, { status: 400 });
+    }
+    return (async () => {
+      try {
+        const payload = await req.json();
+        const summary = JSON.stringify(payload).slice(0, 500);
+        const message = `[Webhook: ${webhookName}] ${summary}`;
+        const { loadConfig } = await import("../config/loader");
+        const { createProvider } = await import("../llm/factory");
+        const config = await loadConfig();
+        const webhookLlm = createProvider(config);
+        const { agentLoop } = await import("../agent/loop");
+        const sessionKey = `webhook:${webhookName}`;
+        const result = await agentLoop(webhookLlm, sessionKey, message);
+        return Response.json({ ok: true, reply: result.reply });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // --- Conversation threads CRUD ---
+
+  // GET /api/dashboard/threads — list all threads
+  if (path === "/threads" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const threads = db.query(
+        "SELECT id, title, created_at, updated_at FROM threads ORDER BY updated_at DESC"
+      ).all();
+      return Response.json({ threads });
+    } catch (err: any) {
+      return Response.json({ threads: [], error: err.message });
+    }
+  }
+
+  // POST /api/dashboard/threads — create new thread
+  if (path === "/threads" && req.method === "POST") {
+    return (async () => {
+      const { title } = await req.json().catch(() => ({ title: undefined }));
+      const id = crypto.randomUUID();
+      const db = getDb();
+      db.prepare(
+        "INSERT INTO threads (id, title) VALUES (?, ?)"
+      ).run(id, title || "New conversation");
+      return Response.json({ id, title: title || "New conversation" });
+    })() as any;
+  }
+
+  // PUT /api/dashboard/threads/:id — rename thread
+  if (path.match(/^\/threads\/[a-f0-9-]+$/) && req.method === "PUT") {
+    return (async () => {
+      const threadId = path.split("/").pop()!;
+      const { title } = await req.json();
+      const db = getDb();
+      db.prepare(
+        "UPDATE threads SET title = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(title, threadId);
+      return Response.json({ ok: true });
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/threads/:id — delete thread and session file
+  if (path.match(/^\/threads\/[a-f0-9-]+$/) && req.method === "DELETE") {
+    const threadId = path.split("/").pop()!;
+    try {
+      const db = getDb();
+      db.prepare("DELETE FROM threads WHERE id = ?").run(threadId);
+      const sessionPath = join(paths.sessions, threadId + ".jsonl");
+      if (existsSync(sessionPath)) unlinkSync(sessionPath);
+      return Response.json({ ok: true });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // GET /api/dashboard/threads/:id/messages — get thread messages
+  if (path.match(/^\/threads\/[a-f0-9-]+\/messages$/) && req.method === "GET") {
+    return (async () => {
+      const threadId = path.split("/")[2];
+      const { loadSession } = await import("../agent/session");
+      const messages = loadSession(threadId, 100);
+      return Response.json({ messages });
+    })() as any;
+  }
+
+  // GET /api/dashboard/threads/:id/export — export thread as markdown
+  if (path.match(/^\/threads\/[a-f0-9-]+\/export$/) && req.method === "GET") {
+    return (async () => {
+      const threadId = path.split("/")[2];
+      const { loadSession } = await import("../agent/session");
+      const messages = loadSession(threadId, 1000);
+      const db = getDb();
+      const thread = db.query(
+        "SELECT title FROM threads WHERE id = ?"
+      ).get(threadId) as { title: string } | null;
+
+      let md = "# " + (thread?.title || "Conversation") + "\n\n";
+      for (const m of messages) {
+        const role = m.role === "user" ? "**You**" : "**Zubo**";
+        const text = Array.isArray(m.content)
+          ? m.content
+              .filter((b: any) => b.type === "text")
+              .map((b: any) => b.text)
+              .join("\n")
+          : String(m.content);
+        md += role + ": " + text + "\n\n";
+      }
+
+      return new Response(md, {
+        headers: {
+          "Content-Type": "text/markdown",
+          "Content-Disposition": `attachment; filename="${threadId.slice(0, 8)}.md"`,
+        },
+      });
+    })() as any;
+  }
+
   return null;
 }
 
@@ -853,6 +977,19 @@ export function createWebChatAdapter(
     },
 
     start() {
+      // Ensure threads table exists
+      try {
+        const db = getDb();
+        db.run(`CREATE TABLE IF NOT EXISTS threads (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL DEFAULT 'New conversation',
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )`);
+      } catch (err: any) {
+        logger.warn("Failed to create threads table", { error: (err as Error).message });
+      }
+
       server = Bun.serve({
         port,
         async fetch(req) {
@@ -875,6 +1012,23 @@ export function createWebChatAdapter(
             return new Response(null, {
               status: 302,
               headers: { Location: "/#status" },
+            });
+          }
+
+          // Health check (no auth required)
+          if (url.pathname === "/api/health") {
+            const uptime = process.uptime();
+            let dbOk = false;
+            try {
+              getDb().query("SELECT 1").get();
+              dbOk = true;
+            } catch {}
+            return Response.json({
+              status: dbOk ? "healthy" : "degraded",
+              uptime: Math.round(uptime),
+              version: "0.1.0",
+              db: dbOk ? "connected" : "error",
+              timestamp: new Date().toISOString(),
             });
           }
 
@@ -997,16 +1151,19 @@ export function createWebChatAdapter(
           // Chat API (streaming via SSE)
           if (url.pathname === "/api/chat/stream" && req.method === "POST") {
             try {
-              const body = (await req.json()) as { message?: string };
+              const body = (await req.json()) as { message?: string; threadId?: string };
               const text = body.message?.trim();
               if (!text) {
                 return Response.json({ error: "No message" }, { status: 400 });
               }
 
+              // Use provided threadId as session, falling back to the shared session
+              const effectiveSessionKey = body.threadId ?? sessionKey;
+
               const message: InboundMessage = {
                 channel: "webchat",
                 userId: "local",
-                sessionKey,
+                sessionKey: effectiveSessionKey,
                 text,
               };
 

@@ -14,9 +14,11 @@ import { registerCronTools } from "./tools/builtin/cron";
 import { registerSecretTools } from "./tools/builtin/secrets";
 import { registerConnectServiceTool } from "./tools/builtin/connect-service";
 import { registerDelegateTool } from "./tools/builtin/delegate";
+import { registerDelegateTaskTool } from "./tools/builtin/delegate-task";
+import { registerDiagnoseTool } from "./tools/builtin/diagnose";
 import { registerManageAgentsTool } from "./tools/builtin/manage-agents";
 import { exposeSecretsRuntime } from "./secrets/store";
-import { loadSkills } from "./tools/skill-loader";
+import { loadSkills, watchSkills } from "./tools/skill-loader";
 import { createRouter, type MessageRouter } from "./channels/router";
 import { startHeartbeat } from "./scheduler/heartbeat";
 import { initCronScheduler } from "./scheduler/cron";
@@ -213,6 +215,9 @@ export async function startZubo(isDaemon = false) {
     logger.error(`Failed to load skills: ${err.message}`);
   }
 
+  // Start skill hot-reload watcher
+  const stopSkillWatcher = watchSkills();
+
   // Create message router
   const router = createRouter(llm, db);
 
@@ -221,7 +226,11 @@ export async function startZubo(isDaemon = false) {
 
   // Register delegation tools
   registerDelegateTool(llm);
+  registerDelegateTaskTool(llm);
   registerManageAgentsTool();
+
+  // Register diagnostics
+  registerDiagnoseTool();
 
   // Register workflow + team tools
   const { registerManageWorkflowsTool } = await import("./tools/builtin/manage-workflows");
@@ -284,6 +293,7 @@ export async function startZubo(isDaemon = false) {
   // Graceful shutdown
   const shutdown = () => {
     logger.info("Shutting down...");
+    stopSkillWatcher();
     stopChannels();
     closeDb();
     cleanupPidFile();

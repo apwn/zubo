@@ -532,13 +532,98 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   .skeleton-card { height: 80px; }
   .skeleton-row { height: 16px; margin-bottom: 10px; }
+
+  /* ===== COMMAND PALETTE ===== */
+  .cmd-palette-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 300; align-items: flex-start; justify-content: center; padding-top: 20vh;
+    backdrop-filter: blur(4px);
+  }
+  .cmd-palette-overlay.visible { display: flex; }
+  .cmd-palette {
+    background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    width: 400px; max-width: 90vw; box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  .cmd-palette input {
+    width: 100%; padding: 16px 20px; background: transparent; border: none;
+    border-bottom: 1px solid var(--border); color: var(--text); font-size: 15px;
+    font-family: var(--font); outline: none;
+  }
+  .cmd-palette input::placeholder { color: var(--text-faint); }
+  .cmd-result {
+    padding: 10px 20px; cursor: pointer; font-size: 14px; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 10px; transition: background var(--transition);
+  }
+  .cmd-result:hover, .cmd-result.selected { background: var(--accent-bg); color: var(--text); }
+  .cmd-result .cmd-shortcut { margin-left: auto; font-size: 11px; color: var(--text-faint); }
+
+  /* ===== THREAD BAR ===== */
+  .thread-bar {
+    width: 220px; background: var(--bg-raised); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+  }
+  .thread-bar-header {
+    padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .thread-bar-header span { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .thread-list { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .thread-item {
+    padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    color: var(--text-secondary); transition: all var(--transition); position: relative;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .thread-item:hover { background: var(--bg-hover); color: var(--text); }
+  .thread-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+  .thread-item .thread-delete {
+    display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 14px;
+  }
+  .thread-item:hover .thread-delete { display: block; }
+  .new-thread-btn {
+    padding: 6px 12px; font-size: 12px; background: var(--accent); color: white;
+    border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+  }
+  .new-thread-btn:hover { background: var(--accent-hover); }
+
+  /* ===== MOBILE RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    #sidebar {
+      position: fixed; left: -240px; top: 0; bottom: 0; z-index: 100;
+      transition: left 200ms ease; width: 240px;
+    }
+    #sidebar.open { left: 0; }
+    #sidebar::after { display: none; }
+    .mobile-menu-btn {
+      display: flex; width: 36px; height: 36px; align-items: center; justify-content: center;
+      background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 18px; cursor: pointer; flex-shrink: 0;
+    }
+    .mobile-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99;
+    }
+    .mobile-overlay.visible { display: block; }
+    .cards { grid-template-columns: 1fr; }
+    .perf-grid { grid-template-columns: 1fr; }
+    .quick-actions { grid-template-columns: repeat(2, 1fr); }
+    .panel-body { padding: 16px; }
+    #topbar { padding: 12px 16px; }
+    .chat-msg { max-width: 90%; }
+    #chat-input-bar { padding: 12px 16px 16px; }
+    .settings-section { max-width: 100%; }
+    .thread-bar { display: none; }
+  }
+  @media (min-width: 769px) {
+    .mobile-menu-btn { display: none; }
+    .mobile-overlay { display: none !important; }
+  }
 </style>
 </head>
 <body>
 
 <div id="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-icon">Z</div>
+    <div class="logo-icon"></div>
     <span>Zubo</span>
   </div>
   <nav>
@@ -588,6 +673,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <div id="main">
   <div id="topbar">
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">&#9776;</button>
     <span id="topbar-title"><span class="topbar-breadcrumb">Dashboard &rsaquo; </span><span id="topbar-title-text">Agent</span></span>
     <span id="topbar-badge">Zubo</span>
   </div>
@@ -595,30 +681,44 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
     <!-- AGENT CHAT PANEL -->
     <div id="panel-agent" class="panel active" style="position:relative;">
-      <div class="drop-overlay" id="drop-overlay">Drop file to upload</div>
-      <div id="chat-messages">
-        <div class="chat-empty chat-welcome">
-          <div class="chat-welcome-icon">Z</div>
-          <h3 class="gradient-text">What can I help you with?</h3>
-          <div class="chat-empty-text">Ask me anything, or try a suggestion below</div>
-          <div class="suggestion-chips">
-            <button class="suggestion-chip" onclick="useSuggestion(this)">Summarize my day</button>
-            <button class="suggestion-chip" onclick="useSuggestion(this)">Check the weather</button>
-            <button class="suggestion-chip" onclick="useSuggestion(this)">What can you do?</button>
-            <button class="suggestion-chip" onclick="useSuggestion(this)">Set a reminder</button>
+      <div style="display:flex;height:100%;">
+        <div class="thread-bar" id="thread-bar">
+          <div class="thread-bar-header">
+            <span>Threads</span>
+            <div style="display:flex;gap:6px;">
+              <button class="new-thread-btn" onclick="createThread()">+ New</button>
+              <button class="btn btn-ghost btn-sm" onclick="exportThread()" style="font-size:11px;" data-tooltip="Export as Markdown">Export</button>
+            </div>
           </div>
+          <div class="thread-list" id="thread-list"></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;position:relative;min-width:0;">
+          <div class="drop-overlay" id="drop-overlay">Drop file to upload</div>
+          <div id="chat-messages">
+            <div class="chat-empty chat-welcome">
+              <div class="chat-welcome-icon"></div>
+              <h3 class="gradient-text">What can I help you with?</h3>
+              <div class="chat-empty-text">Ask me anything, or try a suggestion below</div>
+              <div class="suggestion-chips">
+                <button class="suggestion-chip" onclick="useSuggestion(this)">Summarize my day</button>
+                <button class="suggestion-chip" onclick="useSuggestion(this)">Check the weather</button>
+                <button class="suggestion-chip" onclick="useSuggestion(this)">What can you do?</button>
+                <button class="suggestion-chip" onclick="useSuggestion(this)">Set a reminder</button>
+              </div>
+            </div>
+          </div>
+          <div id="file-pill-bar" style="display:none; padding: 4px 24px 0;">
+            <div class="file-pill" id="file-pill"><span id="file-pill-name"></span><span class="remove" onclick="clearAttachedFile()">\u{2715}</span></div>
+          </div>
+          <div id="chat-input-bar">
+            <button class="chat-attach-btn" data-tooltip="Attach file" onclick="triggerFileUpload()">\u{1F4CE}</button>
+            <button class="chat-mic-btn" id="mic-btn" data-tooltip="Voice input" onclick="toggleMic()">\u{1F3A4}</button>
+            <input id="chat-input" type="text" placeholder="Message Zubo..." autocomplete="off">
+            <button id="chat-send">Send</button>
+          </div>
+          <input type="file" id="file-input" style="display:none" accept=".pdf,.docx,.txt,.md,.csv,.json,.html">
         </div>
       </div>
-      <div id="file-pill-bar" style="display:none; padding: 4px 24px 0;">
-        <div class="file-pill" id="file-pill"><span id="file-pill-name"></span><span class="remove" onclick="clearAttachedFile()">\u{2715}</span></div>
-      </div>
-      <div id="chat-input-bar">
-        <button class="chat-attach-btn" data-tooltip="Attach file" onclick="triggerFileUpload()">\u{1F4CE}</button>
-        <button class="chat-mic-btn" id="mic-btn" data-tooltip="Voice input" onclick="toggleMic()">\u{1F3A4}</button>
-        <input id="chat-input" type="text" placeholder="Message Zubo..." autocomplete="off">
-        <button id="chat-send">Send</button>
-      </div>
-      <input type="file" id="file-input" style="display:none" accept=".pdf,.docx,.txt,.md,.csv,.json,.html">
     </div>
 
     <!-- STATUS PANEL -->
@@ -923,7 +1023,16 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   </div>
 </div>
 
+<div class="cmd-palette-overlay" id="cmd-palette">
+  <div class="cmd-palette">
+    <input type="text" id="cmd-input" placeholder="Go to..." autocomplete="off">
+    <div id="cmd-results"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+
+<div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileMenu()"></div>
 
 <script>
 // --- Panel routing ---
@@ -952,6 +1061,7 @@ function showPanel(name) {
   if (name === 'logs') loadLogs();
   if (name === 'settings') loadSettings();
   if (name === 'workflows') loadWorkflows();
+  closeMobileMenu();
 }
 
 function routeFromHash() {
@@ -1057,7 +1167,7 @@ function doStreamChat(text) {
   fetch('/api/chat/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: text }),
+    body: JSON.stringify({ message: text, threadId: activeThreadId || undefined }),
   }).then(function(response) {
     if (!response.ok) throw new Error('Stream request failed');
     var reader = response.body.getReader();
@@ -2132,6 +2242,180 @@ function skipOnboarding() {
   api('/onboarding', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ completed: true, step: onboardingSteps.length }) });
 }
 
+// --- MOBILE MENU ---
+function toggleMobileMenu() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mobile-overlay').classList.toggle('visible');
+}
+function closeMobileMenu() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobile-overlay').classList.remove('visible');
+}
+
+// --- COMMAND PALETTE ---
+// Bind cmd-input listener once (not on every toggle)
+(function() {
+  var input = document.getElementById('cmd-input');
+  if (input) input.addEventListener('input', function() { renderCmdResults(input.value); });
+})();
+
+function toggleCommandPalette() {
+  var pal = document.getElementById('cmd-palette');
+  if (pal.classList.contains('visible')) { closeCommandPalette(); return; }
+  pal.classList.add('visible');
+  var input = document.getElementById('cmd-input');
+  input.value = '';
+  input.focus();
+  renderCmdResults('');
+}
+
+function closeCommandPalette() {
+  document.getElementById('cmd-palette').classList.remove('visible');
+}
+
+function renderCmdResults(query) {
+  var container = document.getElementById('cmd-results');
+  container.replaceChildren();
+  var items = panelNames.map(function(name) {
+    return { name: name, title: panelTitles[name] || name };
+  });
+  if (query) {
+    items = items.filter(function(item) {
+      return item.title.toLowerCase().includes(query.toLowerCase());
+    });
+  }
+  items.forEach(function(item) {
+    var div = document.createElement('div');
+    div.className = 'cmd-result';
+    div.textContent = item.title;
+    div.onclick = function() { showPanel(item.name); closeCommandPalette(); };
+    container.appendChild(div);
+  });
+}
+
+// --- KEYBOARD SHORTCUTS ---
+document.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    toggleCommandPalette();
+  }
+  if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+    e.preventDefault();
+    showPanel('agent');
+    document.getElementById('chat-input').focus();
+  }
+  if (e.key === 'Escape') {
+    closeCommandPalette();
+  }
+});
+
+// --- CONVERSATION THREADS ---
+var activeThreadId = null;
+
+function loadThreads() {
+  api('/threads').then(function(data) {
+    var list = document.getElementById('thread-list');
+    list.replaceChildren();
+    var threads = data.threads || [];
+    threads.forEach(function(t) {
+      var item = document.createElement('div');
+      item.className = 'thread-item' + (t.id === activeThreadId ? ' active' : '');
+      item.textContent = t.title;
+      item.onclick = function() { switchThread(t.id, t.title); };
+      var del = document.createElement('button');
+      del.className = 'thread-delete';
+      del.textContent = '\\u00d7';
+      del.onclick = function(e) { e.stopPropagation(); deleteThread(t.id); };
+      item.appendChild(del);
+      list.appendChild(item);
+    });
+  });
+}
+
+function createThread() {
+  api('/threads', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) }).then(function(data) {
+    activeThreadId = data.id;
+    loadThreads();
+    clearChatMessages();
+    toast('New conversation started');
+  });
+}
+
+function switchThread(id, title) {
+  activeThreadId = id;
+  loadThreads();
+  api('/threads/' + id + '/messages').then(function(data) {
+    var msgs = data.messages || [];
+    clearChatMessages();
+    if (msgs.length === 0) return;
+    msgs.forEach(function(m) {
+      var text = Array.isArray(m.content)
+        ? m.content.filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('\\n')
+        : String(m.content || '');
+      if (text) addChatMsg(text, m.role === 'user' ? 'user' : 'bot');
+    });
+  });
+}
+
+function deleteThread(id) {
+  api('/threads/' + id, { method: 'DELETE' }).then(function() {
+    if (activeThreadId === id) {
+      activeThreadId = null;
+      clearChatMessages();
+    }
+    loadThreads();
+    toast('Conversation deleted');
+  });
+}
+
+function clearChatMessages() {
+  var container = document.getElementById('chat-messages');
+  container.replaceChildren();
+  // Rebuild the static welcome state using DOM methods
+  var welcome = document.createElement('div');
+  welcome.className = 'chat-empty chat-welcome';
+  var icon = document.createElement('div');
+  icon.className = 'chat-welcome-icon';
+  icon.textContent = '';
+  var heading = document.createElement('h3');
+  heading.className = 'gradient-text';
+  heading.textContent = 'What can I help you with?';
+  var subtext = document.createElement('div');
+  subtext.className = 'chat-empty-text';
+  subtext.textContent = 'Ask me anything, or try a suggestion below';
+  var chips = document.createElement('div');
+  chips.className = 'suggestion-chips';
+  ['Summarize my day','Check the weather','What can you do?','Set a reminder'].forEach(function(label) {
+    var chip = document.createElement('button');
+    chip.className = 'suggestion-chip';
+    chip.textContent = label;
+    chip.onclick = function() { useSuggestion(chip); };
+    chips.appendChild(chip);
+  });
+  welcome.appendChild(icon);
+  welcome.appendChild(heading);
+  welcome.appendChild(subtext);
+  welcome.appendChild(chips);
+  container.appendChild(welcome);
+}
+
+// --- EXPORT THREAD ---
+function exportThread() {
+  var id = activeThreadId;
+  if (!id) { toast('No conversation to export'); return; }
+  fetch('/api/dashboard/threads/' + id + '/export').then(function(r) {
+    if (!r.ok) throw new Error('Export failed');
+    return r.blob();
+  }).then(function(blob) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'conversation.md';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Conversation exported');
+  }).catch(function(e) { toast('Export failed: ' + e.message); });
+}
+
 // Auto-refresh channel status every 30s
 setInterval(function() {
   if (document.getElementById('panel-settings').classList.contains('active')) loadChannelStatus();
@@ -2140,6 +2424,7 @@ setInterval(function() {
 // Init
 routeFromHash();
 checkOnboarding();
+loadThreads();
 </script>
 </body>
 </html>`;

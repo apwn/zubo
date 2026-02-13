@@ -30,7 +30,12 @@ export interface LlmRequest {
 export interface LlmResponse {
   content: LlmContentBlock[];
   stopReason: string;
-  usage: { inputTokens: number; outputTokens: number };
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    cacheCreationTokens?: number;
+    cacheReadTokens?: number;
+  };
 }
 
 // --- Streaming types ---

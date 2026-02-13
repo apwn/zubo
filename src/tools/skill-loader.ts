@@ -1,7 +1,11 @@
-import { readdirSync, readFileSync, existsSync } from "fs";
+import { readdirSync, readFileSync, existsSync, watch } from "fs";
 import { join } from "path";
-import { registerTool, getTool } from "./registry";
+import { paths } from "../config/paths";
 import { logger } from "../util/logger";
+import { registerTool, getTool, unregisterTool } from "./registry";
+
+/** Tracks all skill names loaded via loadSkills so hot-reload can unregister them. */
+const loadedSkillNames = new Set<string>();
 
 export interface SkillDef {
   name: string;
@@ -143,7 +147,7 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
         }
       } else {
         // Single-file: read metadata from handler.ts exports
-        const mod = await import(handlerPath);
+        const mod = await import(handlerPath + "?t=" + Date.now());
         if (mod.skill && typeof mod.skill === "object") {
           skill = parseSkillExport(mod.skill, dirPath);
           handler = mod.default;
@@ -167,7 +171,7 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
 
       // Dynamically import handler (if not already loaded from single-file path)
       if (!handler) {
-        const mod = await import(handlerPath);
+        const mod = await import(handlerPath + "?t=" + Date.now());
         handler = mod.default;
       }
       if (typeof handler !== "function") {
@@ -195,6 +199,7 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
         execute: safeHandler,
       }, true);
 
+      loadedSkillNames.add(skill.name);
       loaded.push(skill.name);
     } catch (err: any) {
       logger.error(`Failed to load skill from ${entry}: ${err.message}`);
@@ -202,4 +207,53 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
   }
 
   return loaded;
+}
+
+/**
+ * Unregisters all previously loaded skills, then reloads them from disk.
+ * Used by the hot-reload watcher to pick up file changes.
+ */
+export async function reloadAllSkills(): Promise<string[]> {
+  for (const name of loadedSkillNames) {
+    unregisterTool(name);
+  }
+  loadedSkillNames.clear();
+
+  return loadSkills(paths.skills);
+}
+
+/**
+ * Watches the skills directory for file changes and reloads all skills
+ * after a short debounce. Returns a cleanup function to stop watching.
+ */
+export function watchSkills(): () => void {
+  const skillsDir = paths.skills;
+
+  if (!existsSync(skillsDir)) {
+    logger.warn("Skills directory does not exist, skipping hot-reload watcher");
+    return () => {};
+  }
+
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const watcher = watch(skillsDir, { recursive: true }, (_eventType, filename) => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(async () => {
+      logger.info("Skill file changed, reloading skills", { filename });
+      try {
+        const skillNames = await reloadAllSkills();
+        logger.info("Skills reloaded successfully", { skills: skillNames });
+      } catch (err: any) {
+        logger.error("Failed to reload skills", { error: err.message });
+      }
+    }, 500);
+  });
+
+  logger.info("Skill hot-reload watcher started", { dir: skillsDir });
+
+  return () => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    watcher.close();
+  };
 }

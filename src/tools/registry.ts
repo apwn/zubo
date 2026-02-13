@@ -30,6 +30,7 @@ export function getAllToolDefs(): LlmToolDef[] {
 }
 
 export function unregisterTool(name: string): boolean {
+  userInstalledSkills.delete(name);
   return tools.delete(name);
 }
 
