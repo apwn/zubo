@@ -12,11 +12,14 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
 </head>
 <body>
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" id="scroll-progress"></div>
 
   <!-- Subtle noise overlay -->
   <div class="noise" aria-hidden="true"></div>
@@ -108,14 +111,14 @@
 
       <!-- Terminal Demo -->
       <div class="hero-terminal reveal reveal-delay-1">
-        <div class="terminal">
+        <div class="terminal glow-border">
           <div class="terminal-chrome">
             <div class="terminal-dots">
               <span class="td td-r"></span>
               <span class="td td-y"></span>
               <span class="td td-g"></span>
             </div>
-            <div class="terminal-title">zubo — conversation</div>
+            <div class="terminal-title">zubo &mdash; conversation</div>
           </div>
           <div class="terminal-body" id="terminal-body">
             <div class="terminal-line terminal-prompt">
@@ -145,7 +148,7 @@
             <div class="terminal-line terminal-response" id="response-3" style="display:none">
               <span class="t-agent">zubo</span>
               <span class="t-msg">
-                <span class="t-tool">&#9881; telegram</span> Done! Sent Sarah: "We're going to Osteria Mozza Friday at 7! Thanks for the rec 🍝"
+                <span class="t-tool">&#9881; telegram</span> Done! Sent Sarah: &ldquo;We&rsquo;re going to Osteria Mozza Friday at 7! Thanks for the rec &rdquo;
               </span>
             </div>
             <div class="terminal-cursor" id="terminal-cursor">&#9608;</div>
@@ -155,28 +158,62 @@
     </div>
   </section>
 
-  <!-- ========== TECH STACK ========== -->
+  <!-- ========== TECH STACK (marquee) ========== -->
   <section class="stack">
-    <div class="container">
-      <div class="stack-inner reveal">
-        <span class="stack-label">Built with</span>
-        <div class="stack-items">
-          <div class="stack-item">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            <span>Bun</span>
-          </div>
-          <div class="stack-item">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0H1.125zm17.363 9.75c.612 0 1.154.037 1.677.111a6.38 6.38 0 0 1 1.386.352v3.04c-.42-.258-.858-.45-1.314-.582a5.24 5.24 0 0 0-1.421-.2c-.474 0-.832.066-1.072.198-.24.132-.36.318-.36.558 0 .24.12.42.36.54.24.12.636.24 1.188.36.648.144 1.188.324 1.62.54.432.216.756.492.972.828.216.336.324.762.324 1.278 0 .876-.342 1.542-1.026 2.004-.684.456-1.62.684-2.808.684a9.7 9.7 0 0 1-1.836-.162 6.29 6.29 0 0 1-1.476-.486v-3.198c.516.348 1.05.606 1.602.774a5.6 5.6 0 0 0 1.614.252c.474 0 .822-.06 1.044-.18.222-.12.336-.3.336-.54 0-.252-.12-.438-.36-.558-.24-.12-.648-.24-1.224-.36-.636-.144-1.17-.33-1.602-.558a2.28 2.28 0 0 1-.936-.858c-.216-.372-.324-.834-.324-1.386 0-.84.336-1.494 1.008-1.962.672-.468 1.578-.702 2.718-.702zM8.4 4.8h3.12v6.588c0 1.044-.15 1.884-.45 2.52-.3.636-.774 1.098-1.422 1.386-.648.288-1.5.432-2.556.432-.6 0-1.17-.042-1.71-.126a7.18 7.18 0 0 1-1.422-.36v-3.24c.384.24.792.42 1.224.54.432.12.846.18 1.242.18.552 0 .948-.12 1.188-.36.24-.24.36-.648.36-1.224V4.8z"/></svg>
-            <span>TypeScript</span>
-          </div>
-          <div class="stack-item">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5L1.5 7.5v9L12 22.5l10.5-6v-9L12 1.5zM12 4l7.5 4.5L12 13 4.5 8.5 12 4z"/></svg>
-            <span>SQLite</span>
-          </div>
-          <div class="stack-item">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            <span>Vector Search</span>
-          </div>
+    <div class="stack-fade stack-fade-l" aria-hidden="true"></div>
+    <div class="stack-fade stack-fade-r" aria-hidden="true"></div>
+    <div class="stack-track">
+      <div class="stack-items">
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Bun</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0H1.125zm17.363 9.75c.612 0 1.154.037 1.677.111a6.38 6.38 0 0 1 1.386.352v3.04c-.42-.258-.858-.45-1.314-.582a5.24 5.24 0 0 0-1.421-.2c-.474 0-.832.066-1.072.198-.24.132-.36.318-.36.558 0 .24.12.42.36.54.24.12.636.24 1.188.36.648.144 1.188.324 1.62.54.432.216.756.492.972.828.216.336.324.762.324 1.278 0 .876-.342 1.542-1.026 2.004-.684.456-1.62.684-2.808.684a9.7 9.7 0 0 1-1.836-.162 6.29 6.29 0 0 1-1.476-.486v-3.198c.516.348 1.05.606 1.602.774a5.6 5.6 0 0 0 1.614.252c.474 0 .822-.06 1.044-.18.222-.12.336-.3.336-.54 0-.252-.12-.438-.36-.558-.24-.12-.648-.24-1.224-.36-.636-.144-1.17-.33-1.602-.558a2.28 2.28 0 0 1-.936-.858c-.216-.372-.324-.834-.324-1.386 0-.84.336-1.494 1.008-1.962.672-.468 1.578-.702 2.718-.702zM8.4 4.8h3.12v6.588c0 1.044-.15 1.884-.45 2.52-.3.636-.774 1.098-1.422 1.386-.648.288-1.5.432-2.556.432-.6 0-1.17-.042-1.71-.126a7.18 7.18 0 0 1-1.422-.36v-3.24c.384.24.792.42 1.224.54.432.12.846.18 1.242.18.552 0 .948-.12 1.188-.36.24-.24.36-.648.36-1.224V4.8z"/></svg>
+          <span>TypeScript</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5L1.5 7.5v9L12 22.5l10.5-6v-9L12 1.5zM12 4l7.5 4.5L12 13 4.5 8.5 12 4z"/></svg>
+          <span>SQLite</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <span>Vector Search</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <span>Local-First</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>MIT Licensed</span>
+        </div>
+      </div>
+      <!-- Duplicate for seamless loop -->
+      <div class="stack-items" aria-hidden="true">
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Bun</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0H1.125zm17.363 9.75c.612 0 1.154.037 1.677.111a6.38 6.38 0 0 1 1.386.352v3.04c-.42-.258-.858-.45-1.314-.582a5.24 5.24 0 0 0-1.421-.2c-.474 0-.832.066-1.072.198-.24.132-.36.318-.36.558 0 .24.12.42.36.54.24.12.636.24 1.188.36.648.144 1.188.324 1.62.54.432.216.756.492.972.828.216.336.324.762.324 1.278 0 .876-.342 1.542-1.026 2.004-.684.456-1.62.684-2.808.684a9.7 9.7 0 0 1-1.836-.162 6.29 6.29 0 0 1-1.476-.486v-3.198c.516.348 1.05.606 1.602.774a5.6 5.6 0 0 0 1.614.252c.474 0 .822-.06 1.044-.18.222-.12.336-.3.336-.54 0-.252-.12-.438-.36-.558-.24-.12-.648-.24-1.224-.36-.636-.144-1.17-.33-1.602-.558a2.28 2.28 0 0 1-.936-.858c-.216-.372-.324-.834-.324-1.386 0-.84.336-1.494 1.008-1.962.672-.468 1.578-.702 2.718-.702zM8.4 4.8h3.12v6.588c0 1.044-.15 1.884-.45 2.52-.3.636-.774 1.098-1.422 1.386-.648.288-1.5.432-2.556.432-.6 0-1.17-.042-1.71-.126a7.18 7.18 0 0 1-1.422-.36v-3.24c.384.24.792.42 1.224.54.432.12.846.18 1.242.18.552 0 .948-.12 1.188-.36.24-.24.36-.648.36-1.224V4.8z"/></svg>
+          <span>TypeScript</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5L1.5 7.5v9L12 22.5l10.5-6v-9L12 1.5zM12 4l7.5 4.5L12 13 4.5 8.5 12 4z"/></svg>
+          <span>SQLite</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <span>Vector Search</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <span>Local-First</span>
+        </div>
+        <div class="stack-item">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>MIT Licensed</span>
         </div>
       </div>
     </div>
@@ -188,17 +225,17 @@
       <div class="section-header reveal">
         <span class="section-badge">Capabilities</span>
         <h2 class="section-title">Everything you need.<br><span class="gradient-text">Nothing you don't.</span></h2>
-        <p class="section-subtitle">Zubo ships with powerful features out of the box — memory, tools, scheduling, multi-channel support, and more. No plugins needed to get started.</p>
+        <p class="section-subtitle">Zubo ships with powerful features out of the box &mdash; memory, tools, scheduling, multi-channel support, and more. No plugins needed to get started.</p>
       </div>
 
-      <div class="bento reveal">
+      <div class="bento reveal-stagger">
         <!-- Row 1 -->
-        <div class="bento-card bento-lg" data-feature="memory">
+        <div class="bento-card bento-lg tilt-card" data-feature="memory">
           <div class="bento-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M9 22h6"/><path d="M12 17v5"/><circle cx="12" cy="9" r="1"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 13h10"/></svg>
           </div>
           <h3>Total Recall</h3>
-          <p>Persistent semantic memory powered by vector search. Zubo remembers every conversation, preference, and fact — across sessions, across channels, forever.</p>
+          <p>Persistent semantic memory powered by vector search. Zubo remembers every conversation, preference, and fact &mdash; across sessions, across channels, forever.</p>
           <div class="bento-visual">
             <div class="memory-dots">
               <span class="m-dot" style="--delay:0s; --x:20%; --y:30%"></span>
@@ -215,7 +252,7 @@
           </div>
         </div>
 
-        <div class="bento-card" data-feature="tools">
+        <div class="bento-card tilt-card" data-feature="tools">
           <div class="bento-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
           </div>
@@ -223,7 +260,7 @@
           <p>Web search, file operations, code execution, APIs, and more. With sub-agent delegation for complex multi-step tasks.</p>
         </div>
 
-        <div class="bento-card" data-feature="privacy">
+        <div class="bento-card tilt-card" data-feature="privacy">
           <div class="bento-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
           </div>
@@ -232,15 +269,15 @@
         </div>
 
         <!-- Row 2 -->
-        <div class="bento-card" data-feature="proactive">
+        <div class="bento-card tilt-card" data-feature="proactive">
           <div class="bento-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
           <h3>Always Watching</h3>
-          <p>Scheduled tasks, cron jobs, and proactive triggers. Zubo can monitor, alert, and act on your behalf — even when you're away.</p>
+          <p>Scheduled tasks, cron jobs, and proactive triggers. Zubo can monitor, alert, and act on your behalf &mdash; even when you're away.</p>
         </div>
 
-        <div class="bento-card" data-feature="extensible">
+        <div class="bento-card tilt-card" data-feature="extensible">
           <div class="bento-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
           </div>
@@ -248,12 +285,12 @@
           <p>Build custom skills in TypeScript. Share them on the skill registry. Install community skills with one command.</p>
         </div>
 
-        <div class="bento-card bento-lg" data-feature="llm">
+        <div class="bento-card bento-lg tilt-card" data-feature="llm">
           <div class="bento-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="7.5 4.21 12 6.81 16.5 4.21"/><polyline points="7.5 19.79 7.5 14.6 3 12"/><polyline points="21 12 16.5 14.6 16.5 19.79"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           </div>
           <h3>Any LLM, Your Choice</h3>
-          <p>Works with OpenAI, Anthropic, Google Gemini, Ollama, and any OpenAI-compatible provider. Switch models with a single command. Run fully local with Ollama — no API keys needed.</p>
+          <p>Works with OpenAI, Anthropic, Google Gemini, Ollama, and any OpenAI-compatible provider. Switch models with a single command. Run fully local with Ollama &mdash; no API keys needed.</p>
           <div class="bento-models">
             <span class="model-tag">GPT-4o</span>
             <span class="model-tag">Claude</span>
@@ -273,11 +310,11 @@
       <div class="section-header reveal">
         <span class="section-badge">Integrations</span>
         <h2 class="section-title">Connects to your <span class="gradient-text">entire stack</span>.</h2>
-        <p class="section-subtitle">Zubo plugs into the tools your team already uses. Manage issues, read docs, post updates, and automate workflows — all through natural conversation.</p>
+        <p class="section-subtitle">Zubo plugs into the tools your team already uses. Manage issues, read docs, post updates, and automate workflows &mdash; all through natural conversation.</p>
       </div>
 
-      <div class="integrations-grid reveal">
-        <div class="integration-card">
+      <div class="integrations-grid reveal-stagger">
+        <div class="integration-card tilt-card">
           <div class="integration-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
           </div>
@@ -285,7 +322,7 @@
           <p>Issues, PRs, repos, commits. Full GitHub management through conversation.</p>
         </div>
 
-        <div class="integration-card">
+        <div class="integration-card tilt-card">
           <div class="integration-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
           </div>
@@ -293,7 +330,7 @@
           <p>Calendar, Gmail, Drive. Schedule meetings, send emails, manage files.</p>
         </div>
 
-        <div class="integration-card">
+        <div class="integration-card tilt-card">
           <div class="integration-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2.5 2.5v11h11v-11h-11zm3 3h5v5h-5v-5z"/></svg>
           </div>
@@ -301,7 +338,7 @@
           <p>Read pages, create entries, search databases. Your knowledge base, connected.</p>
         </div>
 
-        <div class="integration-card">
+        <div class="integration-card tilt-card">
           <div class="integration-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h7.5v7.5H3V3zm10.5 0H21v7.5h-7.5V3zM3 13.5h7.5V21H3v-7.5zm10.5 0H21V21h-7.5v-7.5z"/></svg>
           </div>
@@ -309,7 +346,7 @@
           <p>Create issues, track projects, manage sprints. Project management via chat.</p>
         </div>
 
-        <div class="integration-card">
+        <div class="integration-card tilt-card">
           <div class="integration-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.577 24V12.518a1.005 1.005 0 0 0-1.006-1.005zM5.232 9.97h11.554a1.005 1.005 0 0 0 1.006-1.005V0A5.218 5.218 0 0 0 12.578 5.213H10.45V7.27A5.215 5.215 0 0 1 5.232 12.48V9.97z"/></svg>
           </div>
@@ -317,7 +354,7 @@
           <p>Tickets, sprints, boards. Manage your Jira projects without leaving chat.</p>
         </div>
 
-        <div class="integration-card">
+        <div class="integration-card tilt-card">
           <div class="integration-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           </div>
@@ -334,46 +371,46 @@
       <div class="section-header reveal">
         <span class="section-badge">Channels</span>
         <h2 class="section-title">Lives where <span class="gradient-text">you live</span>.</h2>
-        <p class="section-subtitle">Talk to Zubo wherever you already are. Same memory, same personality, same capabilities — across every platform.</p>
+        <p class="section-subtitle">Talk to Zubo wherever you already are. Same memory, same personality, same capabilities &mdash; across every platform.</p>
       </div>
 
-      <div class="channels-grid reveal">
-        <div class="channel-card">
+      <div class="channels-grid reveal-stagger">
+        <div class="channel-card tilt-card">
           <div class="channel-icon channel-telegram">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
           </div>
           <span>Telegram</span>
         </div>
 
-        <div class="channel-card">
+        <div class="channel-card tilt-card">
           <div class="channel-icon channel-discord">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/></svg>
           </div>
           <span>Discord</span>
         </div>
 
-        <div class="channel-card">
+        <div class="channel-card tilt-card">
           <div class="channel-icon channel-slack">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
           </div>
           <span>Slack</span>
         </div>
 
-        <div class="channel-card">
+        <div class="channel-card tilt-card">
           <div class="channel-icon channel-whatsapp">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           </div>
           <span>WhatsApp</span>
         </div>
 
-        <div class="channel-card">
+        <div class="channel-card tilt-card">
           <div class="channel-icon channel-signal">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.917 1.04 5.591 2.772 7.671l-1.544 4.1 4.267-1.452A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 3.6a8.4 8.4 0 110 16.8 8.4 8.4 0 010-16.8z"/></svg>
           </div>
           <span>Signal</span>
         </div>
 
-        <div class="channel-card">
+        <div class="channel-card tilt-card">
           <div class="channel-icon channel-web">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           </div>
@@ -381,7 +418,7 @@
         </div>
       </div>
 
-      <p class="channels-note reveal">Same agent, same memory, same personality — everywhere.</p>
+      <p class="channels-note reveal">Same agent, same memory, same personality &mdash; everywhere.</p>
     </div>
   </section>
 
@@ -393,7 +430,7 @@
         <h2 class="section-title">Running in <span class="gradient-text">60 seconds</span>.</h2>
       </div>
 
-      <div class="qs-terminal reveal">
+      <div class="qs-terminal glow-border reveal">
         <div class="qs-chrome">
           <div class="terminal-dots">
             <span class="td td-r"></span>
@@ -558,7 +595,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2025 Zubo. MIT License. Built with care.</p>
+        <p>&copy; 2026 Zubo. MIT License. Built with care.</p>
       </div>
     </div>
   </footer>

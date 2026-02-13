@@ -260,7 +260,70 @@
   });
 
   /* ------------------------------------------
-     7. Smooth scroll for anchor links
+     8. Scroll progress bar
+     ------------------------------------------ */
+  var progressBar = document.getElementById('scroll-progress');
+  if (progressBar) {
+    window.addEventListener('scroll', function () {
+      var h = document.documentElement;
+      var progress = h.scrollTop / (h.scrollHeight - h.clientHeight);
+      progressBar.style.setProperty('--progress', Math.min(progress, 1));
+    }, { passive: true });
+  }
+
+  /* ------------------------------------------
+     9. Stagger reveal observer
+     ------------------------------------------ */
+  var staggerElements = document.querySelectorAll('.reveal-stagger');
+  var staggerObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        staggerObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  staggerElements.forEach(function (el) {
+    staggerObserver.observe(el);
+  });
+
+  /* ------------------------------------------
+     10. Card tilt effect
+     ------------------------------------------ */
+  document.querySelectorAll('.tilt-card').forEach(function (card) {
+    card.addEventListener('mousemove', function (e) {
+      var rect = card.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var centerX = rect.width / 2;
+      var centerY = rect.height / 2;
+      var tiltX = ((y - centerY) / centerY) * -4;
+      var tiltY = ((x - centerX) / centerX) * 4;
+      card.style.transform = 'perspective(800px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg)';
+    });
+    card.addEventListener('mouseleave', function () {
+      card.style.transform = 'perspective(800px) rotateX(0) rotateY(0)';
+    });
+  });
+
+  /* ------------------------------------------
+     11. Animated gradient border angle
+     ------------------------------------------ */
+  var glowBorders = document.querySelectorAll('.glow-border');
+  if (glowBorders.length > 0 && !CSS.supports('animation-timeline', 'auto')) {
+    var angle = 0;
+    function updateAngle() {
+      angle = (angle + 0.5) % 360;
+      glowBorders.forEach(function (el) {
+        el.style.setProperty('--angle', angle + 'deg');
+      });
+      requestAnimationFrame(updateAngle);
+    }
+    requestAnimationFrame(updateAngle);
+  }
+
+  /* ------------------------------------------
+     12. Smooth scroll for anchor links
      ------------------------------------------ */
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     anchor.addEventListener('click', function (e) {
