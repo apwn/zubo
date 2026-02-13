@@ -41,7 +41,7 @@ export async function vectorSearch(
 
   const rows = db
     .query(
-      "SELECT id, content, source_file, embedding FROM memory_chunks WHERE embedding IS NOT NULL"
+      "SELECT id, content, source_file, embedding FROM memory_chunks WHERE embedding IS NOT NULL ORDER BY id DESC LIMIT 5000"
     )
     .all() as Array<{
     id: number;

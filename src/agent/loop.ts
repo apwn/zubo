@@ -8,6 +8,7 @@ import { getDb } from "../db/connection";
 import { logger } from "../util/logger";
 
 const MAX_TOOL_ROUNDS = 10;
+const CHAT_TIMEOUT_MS = 120_000; // 2 minutes
 
 export interface LoopResult {
   reply: string;
@@ -170,12 +171,17 @@ export async function agentLoop(
 
   for (let round = 0; round < maxRounds; round++) {
     const llmStartTime = Date.now();
-    const response = await llm.chat({
-      system,
-      messages,
-      tools: tools.length > 0 ? tools : undefined,
-      maxTokens: 4096,
-    });
+    const response = await Promise.race([
+      llm.chat({
+        system,
+        messages,
+        tools: tools.length > 0 ? tools : undefined,
+        maxTokens: 4096,
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("LLM request timed out after 120s")), CHAT_TIMEOUT_MS)
+      ),
+    ]);
     trackUsage(llm, sessionId, response, Date.now() - llmStartTime);
 
     logger.debug("LLM response", {
@@ -241,39 +247,47 @@ export async function agentLoopStream(
       let roundResponse: LlmResponse | null = null;
       const llmStartTime = Date.now();
 
-      for await (const event of llm.chatStream!({
-        system,
-        messages,
-        tools: tools.length > 0 ? tools : undefined,
-        maxTokens: 4096,
-      })) {
-        switch (event.type) {
-          case "text_delta":
-            roundText += event.text;
-            callbacks.onTextDelta(event.text);
-            break;
-          case "tool_use_start":
-            callbacks.onToolStart?.(event.name, event.id);
-            break;
-          case "tool_use_end":
-            callbacks.onToolEnd?.("", event.id);
-            break;
-          case "message_done":
-            roundResponse = event.response;
-            break;
-        }
-      }
+      await Promise.race([
+        (async () => {
+          for await (const event of llm.chatStream!({
+            system,
+            messages,
+            tools: tools.length > 0 ? tools : undefined,
+            maxTokens: 4096,
+          })) {
+            switch (event.type) {
+              case "text_delta":
+                roundText += event.text;
+                callbacks.onTextDelta(event.text);
+                break;
+              case "tool_use_start":
+                callbacks.onToolStart?.(event.name, event.id);
+                break;
+              case "tool_use_end":
+                callbacks.onToolEnd?.("", event.id);
+                break;
+              case "message_done":
+                roundResponse = event.response;
+                break;
+            }
+          }
+        })(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("LLM request timed out after 120s")), CHAT_TIMEOUT_MS)
+        ),
+      ]);
 
       if (!roundResponse) throw new Error("Stream ended without message_done event");
-      trackUsage(llm, sessionId, roundResponse, Date.now() - llmStartTime);
+      const completed = roundResponse as LlmResponse;
+      trackUsage(llm, sessionId, completed, Date.now() - llmStartTime);
 
-      const toolUseBlocks = extractToolUseBlocks(roundResponse.content);
+      const toolUseBlocks = extractToolUseBlocks(completed.content);
 
       // No tool calls — done
       if (toolUseBlocks.length === 0) {
-        const reply = roundResponse.content
-          .filter((b) => b.type === "text")
-          .map((b) => b.text ?? "")
+        const reply = completed.content
+          .filter((b: LlmContentBlock) => b.type === "text")
+          .map((b: LlmContentBlock) => (b as any).text ?? "")
           .join("\n") || roundText;
         fullReply += reply;
         finishLoop(sessionId, fullReply);
@@ -287,7 +301,7 @@ export async function agentLoopStream(
         callbacks.onToolStart, callbacks.onToolEnd
       );
       totalToolCalls += count;
-      persistToolRound(sessionId, roundResponse.content, results, messages);
+      persistToolRound(sessionId, completed.content, results, messages);
 
       if (roundText) fullReply += roundText;
     }
