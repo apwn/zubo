@@ -109,6 +109,10 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     font-weight: 600;
   }
   #sidebar nav a.active .nav-icon { opacity: 1; }
+  #sidebar nav a.active::before {
+    content: ''; position: absolute; left: 0; top: 6px; bottom: 6px;
+    width: 3px; border-radius: 2px; background: var(--gradient);
+  }
 
   .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
 
@@ -139,7 +143,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
   /* Panels */
   .panel { display: none; }
-  .panel.active { display: flex; flex-direction: column; height: 100%; }
+  .panel.active { display: flex; flex-direction: column; height: 100%; animation: panelIn 200ms ease-out; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
   .panel-body { padding: 24px; flex: 1; overflow-y: auto; }
 
@@ -190,7 +195,29 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     justify-content: center; gap: 12px; color: var(--text-faint);
   }
   .chat-empty-icon { font-size: 36px; opacity: 0.3; }
-  .chat-empty-text { font-size: 14px; }
+  .chat-empty-text { font-size: 14px; color: var(--text-muted); }
+
+  .chat-welcome { animation: fadeIn 400ms ease-out; gap: 16px; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .chat-welcome-icon {
+    width: 56px; height: 56px; background: var(--gradient); border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display); font-weight: 800; font-size: 22px; color: #fff;
+    box-shadow: 0 0 30px rgba(124,58,237,0.3), 0 0 60px rgba(124,58,237,0.1);
+  }
+  .chat-welcome h3 {
+    font-family: var(--display); font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+  }
+  .suggestion-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; }
+  .suggestion-chip {
+    padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--bg-surface); color: var(--text-secondary); font-size: 13px;
+    font-family: var(--font); cursor: pointer; transition: all var(--transition);
+  }
+  .suggestion-chip:hover {
+    border-color: var(--accent); color: var(--text); background: var(--accent-bg);
+    box-shadow: 0 0 12px rgba(124,58,237,0.15);
+  }
 
   #chat-input-bar {
     padding: 16px 24px 20px; background: var(--bg-raised); border-top: 1px solid var(--border);
@@ -244,16 +271,20 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   }
   .card {
     background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    padding: 18px 20px; transition: border-color var(--transition);
+    padding: 18px 20px; transition: border-color var(--transition); overflow: hidden;
+    border-top: 2px solid var(--accent-border);
   }
+  .card:nth-child(2) { border-top-color: rgba(16,185,129,0.3); }
+  .card:nth-child(3) { border-top-color: rgba(99,102,241,0.3); }
+  .card:nth-child(4) { border-top-color: rgba(217,70,239,0.3); }
   .card:hover { border-color: rgba(124,58,237,0.25); box-shadow: 0 0 20px rgba(124,58,237,0.06); }
   .card .label {
     font-size: 11px; color: var(--text-faint); text-transform: uppercase;
     letter-spacing: 0.6px; font-weight: 600; margin-bottom: 8px;
   }
-  .card .value { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
-  .card .value.ok { color: var(--green); }
-  .card .value.warn { color: var(--yellow); }
+  .card .value { font-size: clamp(18px, 3vw, 22px); font-weight: 700; color: var(--text); letter-spacing: -0.5px; word-break: break-word; }
+  .card .value.ok { color: var(--green); border-left: 3px solid var(--green); padding-left: 8px; }
+  .card .value.warn { color: var(--yellow); border-left: 3px solid var(--yellow); padding-left: 8px; }
 
   /* Quick action cards */
   .quick-actions {
@@ -264,7 +295,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
     padding: 18px; cursor: pointer; transition: all var(--transition); text-align: center;
   }
-  .quick-action:hover { border-color: var(--accent); background: var(--accent-bg); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(124,58,237,0.1); }
+  .quick-action:hover { border-color: var(--accent); background: var(--accent-bg); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(124,58,237,0.1), 0 0 20px rgba(124,58,237,0.08); }
   .quick-action .qa-icon { font-size: 24px; margin-bottom: 8px; }
   .quick-action .qa-label { font-size: 13px; font-weight: 600; color: var(--text); }
   .quick-action .qa-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
@@ -343,12 +374,13 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th {
     text-align: left; padding: 10px 16px; color: var(--text-faint); font-size: 11px;
-    text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
-    border-bottom: 1px solid var(--border); background: var(--bg-surface);
+    text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;
+    border-bottom: 2px solid var(--border); background: var(--bg-surface);
     position: sticky; top: 0;
   }
   td { padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); }
-  tr:hover td { background: var(--bg-hover); }
+  tbody tr:nth-child(odd) td { background: rgba(255,255,255,0.015); }
+  tbody tr:hover td { background: var(--bg-hover); }
 
   .status-dot {
     display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
@@ -384,7 +416,10 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   @keyframes ttIn { from { opacity: 0; transform: translateX(-50%) translateY(2px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
   /* ===== SETTINGS ENHANCED ===== */
-  .settings-section { max-width: 600px; margin-bottom: 32px; }
+  .settings-section {
+    max-width: 600px; margin-bottom: 24px; background: var(--bg-raised);
+    border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px;
+  }
   .settings-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
   .settings-title .conn-dot { width: 8px; height: 8px; border-radius: 50%; }
   .settings-title .conn-dot.on { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
@@ -422,10 +457,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   .cost-pct { font-size: 11px; color: var(--text-faint); white-space: nowrap; }
 
   /* Analytics CSS bar chart */
-  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; }
-  .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; }
-  .bar-col .bar { background: var(--gradient); border-radius: 4px 4px 0 0; width: 100%; min-height: 2px; transition: height 300ms; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; position: relative; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 80px; gap: 4px; }
+  .bar-col .bar { background: var(--gradient); border-radius: 4px 4px 0 0; width: 100%; min-height: 2px; transition: height 300ms, opacity var(--transition); opacity: 0.85; }
+  .bar-col .bar:hover { opacity: 1; }
   .bar-col .bar-label { font-size: 10px; color: var(--text-faint); }
+  .chart-y-label { position: absolute; top: -4px; left: 0; font-size: 10px; color: var(--text-faint); font-family: var(--mono); }
 
   /* Workflow DAG */
   .dag-container { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; min-height: 200px; }
@@ -484,6 +521,17 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   /* Topbar gradient border */
   #topbar { border-bottom: none; position: relative; }
   #topbar::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: linear-gradient(to right, var(--border) 0%, rgba(124,58,237,0.3) 50%, var(--border) 100%); }
+
+  .topbar-breadcrumb { color: var(--text-faint); font-weight: 500; }
+
+  /* Skeleton loading */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-hover) 50%, var(--bg-surface) 75%);
+    background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .skeleton-card { height: 80px; }
+  .skeleton-row { height: 16px; margin-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -540,7 +588,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <div id="main">
   <div id="topbar">
-    <span id="topbar-title">Agent</span>
+    <span id="topbar-title"><span class="topbar-breadcrumb">Dashboard &rsaquo; </span><span id="topbar-title-text">Agent</span></span>
     <span id="topbar-badge">Zubo</span>
   </div>
   <div id="content">
@@ -549,9 +597,16 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <div id="panel-agent" class="panel active" style="position:relative;">
       <div class="drop-overlay" id="drop-overlay">Drop file to upload</div>
       <div id="chat-messages">
-        <div class="chat-empty">
-          <div class="chat-empty-icon">\u{1F4AC}</div>
-          <div class="chat-empty-text">Send a message to start chatting with Zubo</div>
+        <div class="chat-empty chat-welcome">
+          <div class="chat-welcome-icon">Z</div>
+          <h3 class="gradient-text">What can I help you with?</h3>
+          <div class="chat-empty-text">Ask me anything, or try a suggestion below</div>
+          <div class="suggestion-chips">
+            <button class="suggestion-chip" onclick="useSuggestion(this)">Summarize my day</button>
+            <button class="suggestion-chip" onclick="useSuggestion(this)">Check the weather</button>
+            <button class="suggestion-chip" onclick="useSuggestion(this)">What can you do?</button>
+            <button class="suggestion-chip" onclick="useSuggestion(this)">Set a reminder</button>
+          </div>
         </div>
       </div>
       <div id="file-pill-bar" style="display:none; padding: 4px 24px 0;">
@@ -807,6 +862,37 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <span id="data-status" class="status-text" style="display:block;margin-top:10px;"></span>
         </div>
 
+        <div class="settings-section" style="max-width:700px;">
+          <h3 class="settings-title">Secrets &amp; API Keys</h3>
+          <p class="settings-desc">Manage API keys and credentials for integrations. Values are stored encrypted in your local database and never sent to external services by Zubo.</p>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="showAddSecretForm()">Add Secret</button>
+            <button class="btn btn-ghost" onclick="loadSecrets()">Refresh</button>
+          </div>
+          <div id="secret-add-form" style="display:none;margin-bottom:16px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="settings-field">
+                <label class="settings-label" for="secret-name-input">Name</label>
+                <input id="secret-name-input" type="text" class="settings-input" placeholder="e.g. github_token" pattern="[a-z0-9_]+" style="max-width:260px;">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="secret-value-input">Value</label>
+                <input id="secret-value-input" type="password" class="settings-input" placeholder="API key or token">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="secret-service-input">Service (optional)</label>
+                <input id="secret-service-input" type="text" class="settings-input" placeholder="e.g. github, openai" style="max-width:260px;">
+              </div>
+              <div style="display:flex;gap:10px;">
+                <button class="btn btn-primary" onclick="saveSecret()">Save</button>
+                <button class="btn btn-ghost" onclick="hideAddSecretForm()">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div id="secrets-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <p id="secrets-empty" class="empty-state" style="display:none;">No secrets stored. Add one to connect integrations.</p>
+        </div>
+
         <div class="settings-section">
           <h3 class="settings-title">Configuration</h3>
           <p class="settings-desc">Manage your full config by editing <code>~/.zubo/config.json</code> directly, or re-run <code>zubo setup</code>.</p>
@@ -852,7 +938,8 @@ function showPanel(name) {
   if (panel) panel.classList.add('active');
   var link = document.querySelector('#sidebar nav a[href="#' + name + '"]');
   if (link) link.classList.add('active');
-  document.getElementById('topbar-title').textContent = panelTitles[name] || name;
+  var titleText = document.getElementById('topbar-title-text');
+  if (titleText) titleText.textContent = panelTitles[name] || name;
   window.location.hash = name;
 
   if (name === 'agent') { document.getElementById('chat-input').focus(); }
@@ -897,6 +984,11 @@ var attachedFile = null;
 function clearEmptyState() {
   var empty = chatMessages.querySelector('.chat-empty');
   if (empty) empty.remove();
+}
+
+function useSuggestion(btn) {
+  chatInput.value = btn.textContent;
+  chatInput.focus();
 }
 
 function renderMd(text) {
@@ -1126,8 +1218,10 @@ function makeCard(label, value) {
 }
 
 function loadStatus() {
+  var c = document.getElementById('status-cards');
+  c.replaceChildren();
+  for (var i = 0; i < 3; i++) { var sk = document.createElement('div'); sk.className = 'card skeleton skeleton-card'; c.appendChild(sk); }
   api('/status').then(function(data) {
-    var c = document.getElementById('status-cards');
     c.replaceChildren();
     Object.keys(data).forEach(function(label) {
       c.appendChild(makeCard(label, String(data[label])));
@@ -1137,7 +1231,10 @@ function loadStatus() {
 
 // --- ANALYTICS ---
 function loadAnalytics() {
-  // Summary cards
+  // Summary cards — show skeletons while loading
+  var summaryEl = document.getElementById('analytics-summary');
+  summaryEl.replaceChildren();
+  for (var i = 0; i < 4; i++) { var sk = document.createElement('div'); sk.className = 'card skeleton skeleton-card'; summaryEl.appendChild(sk); }
   api('/analytics/summary').then(function(data) {
     var c = document.getElementById('analytics-summary');
     c.replaceChildren();
@@ -1155,6 +1252,10 @@ function loadAnalytics() {
     if (!days.length) { chart.textContent = 'No data yet'; return; }
     var maxVal = 1;
     days.forEach(function(d) { var t = (d.input || 0) + (d.output || 0); if (t > maxVal) maxVal = t; });
+    var yLabel = document.createElement('div');
+    yLabel.className = 'chart-y-label';
+    yLabel.textContent = maxVal.toLocaleString();
+    chart.appendChild(yLabel);
     days.forEach(function(d) {
       var total = (d.input || 0) + (d.output || 0);
       var col = document.createElement('div');
@@ -1216,6 +1317,7 @@ function loadAnalytics() {
   api('/analytics/perf-snapshots').then(function(data) {
     var container = document.getElementById('perf-health');
     var chart = document.getElementById('rss-chart');
+    if (!container || !chart) return;
     container.replaceChildren();
     chart.replaceChildren();
     var snaps = data.snapshots || [];
@@ -1276,6 +1378,7 @@ function loadAnalytics() {
   // Cost breakdown
   api('/analytics/cost-breakdown').then(function(data) {
     var body = document.getElementById('cost-body');
+    if (!body) return;
     body.replaceChildren();
     var rows = data.breakdown || [];
     if (!rows.length) {
@@ -1330,6 +1433,7 @@ function loadAnalytics() {
   // Response time trend
   api('/analytics/response-time-trend').then(function(data) {
     var chart = document.getElementById('response-chart');
+    if (!chart) return;
     chart.replaceChildren();
     var trend = data.trend || [];
     if (!trend.length) { chart.textContent = 'No data yet'; return; }
@@ -1341,7 +1445,7 @@ function loadAnalytics() {
       var bar = document.createElement('div');
       bar.className = 'bar';
       bar.style.height = Math.max(2, ((t.avg_ms || 0) / maxMs) * 100) + 'px';
-      bar.setAttribute('data-tooltip', (t.avg_ms || 0) + 'ms avg (' + (t.min_ms || 0) + '-' + (t.max_ms || 0) + 'ms)');
+      bar.setAttribute('data-tooltip', Math.round(t.avg_ms || 0) + 'ms avg (' + Math.round(t.min_ms || 0) + '-' + Math.round(t.max_ms || 0) + 'ms)');
       var label = document.createElement('div');
       label.className = 'bar-label';
       label.textContent = (t.day || '').slice(5);
@@ -1354,6 +1458,7 @@ function loadAnalytics() {
   // Top models
   api('/analytics/top-models').then(function(data) {
     var body = document.getElementById('top-models-body');
+    if (!body) return;
     body.replaceChildren();
     var models = data.models || [];
     if (!models.length) {
@@ -1373,7 +1478,7 @@ function loadAnalytics() {
         String(m.requests || 0),
         (m.total_tokens || 0).toLocaleString(),
         '$' + (m.total_cost || 0).toFixed(4),
-        (m.avg_response_ms || 0) + 'ms'
+        Math.round(m.avg_response_ms || 0) + 'ms'
       ];
       cells.forEach(function(text) {
         var td = document.createElement('td');
@@ -1658,6 +1763,7 @@ function loadSettings() {
   });
   loadChannelStatus();
   loadDbStats();
+  loadSecrets();
 }
 
 function onProviderChange() {
@@ -1823,6 +1929,153 @@ function importJson(event) {
     });
   };
   reader.readAsText(file);
+}
+
+// --- SECRETS ---
+function loadSecrets() {
+  api('/secrets').then(function(data) {
+    var list = document.getElementById('secrets-list');
+    var empty = document.getElementById('secrets-empty');
+    list.replaceChildren();
+    var secrets = data.secrets || [];
+    if (secrets.length === 0) {
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+    secrets.forEach(function(s) {
+      var isConfig = s.source === 'config';
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;';
+
+      var nameEl = document.createElement('span');
+      nameEl.style.cssText = 'font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);min-width:140px;';
+      nameEl.textContent = s.name;
+
+      var serviceEl = document.createElement('span');
+      serviceEl.style.cssText = 'font-size:11px;color:var(--text-muted);min-width:80px;';
+      if (isConfig) {
+        var badge = document.createElement('span');
+        badge.style.cssText = 'display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(124,58,237,0.15);color:var(--accent);';
+        badge.textContent = 'config.json';
+        serviceEl.textContent = '';
+        serviceEl.appendChild(badge);
+      } else {
+        serviceEl.textContent = s.service || '';
+      }
+
+      var valueEl = document.createElement('span');
+      valueEl.style.cssText = 'font-family:var(--mono);font-size:12px;color:var(--text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      valueEl.textContent = '\\u2022\\u2022\\u2022\\u2022\\u2022\\u2022\\u2022\\u2022';
+      valueEl.dataset.secretName = s.name;
+      valueEl.dataset.revealed = 'false';
+
+      var revealBtn = document.createElement('button');
+      revealBtn.className = 'btn btn-ghost';
+      revealBtn.style.cssText = 'font-size:11px;padding:4px 10px;';
+      revealBtn.textContent = 'Reveal';
+      revealBtn.onclick = function() {
+        if (valueEl.dataset.revealed === 'true') {
+          valueEl.textContent = '\\u2022\\u2022\\u2022\\u2022\\u2022\\u2022\\u2022\\u2022';
+          valueEl.dataset.revealed = 'false';
+          revealBtn.textContent = 'Reveal';
+          return;
+        }
+        revealBtn.textContent = 'Loading...';
+        api('/secrets/' + encodeURIComponent(s.name)).then(function(d) {
+          if (d.value !== undefined) {
+            valueEl.textContent = d.value;
+            valueEl.dataset.revealed = 'true';
+            revealBtn.textContent = 'Hide';
+          } else {
+            revealBtn.textContent = 'Error';
+          }
+        }).catch(function() { revealBtn.textContent = 'Error'; });
+      };
+
+      row.appendChild(nameEl);
+      row.appendChild(serviceEl);
+      row.appendChild(valueEl);
+      row.appendChild(revealBtn);
+
+      if (!isConfig) {
+        var editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-ghost';
+        editBtn.style.cssText = 'font-size:11px;padding:4px 10px;';
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = function() { editSecret(s.name, s.service); };
+
+        var delBtn = document.createElement('button');
+        delBtn.className = 'btn btn-ghost';
+        delBtn.style.cssText = 'font-size:11px;padding:4px 10px;color:var(--red);';
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = function() { deleteSecretUI(s.name); };
+
+        row.appendChild(editBtn);
+        row.appendChild(delBtn);
+      }
+
+      list.appendChild(row);
+    });
+  }).catch(function() {});
+}
+
+function showAddSecretForm() {
+  document.getElementById('secret-add-form').style.display = '';
+  document.getElementById('secret-name-input').value = '';
+  document.getElementById('secret-value-input').value = '';
+  document.getElementById('secret-service-input').value = '';
+  document.getElementById('secret-name-input').disabled = false;
+  document.getElementById('secret-name-input').focus();
+}
+
+function hideAddSecretForm() {
+  document.getElementById('secret-add-form').style.display = 'none';
+}
+
+function editSecret(name, service) {
+  document.getElementById('secret-add-form').style.display = '';
+  document.getElementById('secret-name-input').value = name;
+  document.getElementById('secret-name-input').disabled = true;
+  document.getElementById('secret-value-input').value = '';
+  document.getElementById('secret-value-input').placeholder = 'Enter new value';
+  document.getElementById('secret-service-input').value = service || '';
+  document.getElementById('secret-value-input').focus();
+}
+
+function saveSecret() {
+  var name = document.getElementById('secret-name-input').value.trim();
+  var value = document.getElementById('secret-value-input').value;
+  var service = document.getElementById('secret-service-input').value.trim();
+  if (!name || !/^[a-z0-9_]+$/.test(name)) { toast('Name must be lowercase with underscores only'); return; }
+  if (!value) { toast('Value is required'); return; }
+  api('/secrets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name, value: value, service: service || undefined })
+  }).then(function(data) {
+    if (data.ok) {
+      toast('Secret saved');
+      hideAddSecretForm();
+      loadSecrets();
+    } else {
+      toast(data.error || 'Error saving secret');
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
+}
+
+function deleteSecretUI(name) {
+  if (!confirm('Delete secret "' + name + '"? This cannot be undone.')) return;
+  fetch('/api/dashboard/secrets/' + encodeURIComponent(name), { method: 'DELETE' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.deleted) {
+        toast('Secret deleted');
+        loadSecrets();
+      } else {
+        toast('Secret not found');
+      }
+    }).catch(function(e) { toast('Error: ' + e.message); });
 }
 
 // --- ONBOARDING ---
