@@ -1,147 +1,130 @@
-# Zubo
+<p align="center">
+  <img src="site/logo.svg" width="80" height="80" alt="Zubo">
+</p>
 
-[zubo.bot](https://zubo.bot)
+<h1 align="center">Zubo</h1>
 
-A personal AI agent that remembers you, runs tasks, and connects to your favorite services. Built with Bun, TypeScript, and SQLite.
+<p align="center">
+  <strong>Your AI agent that never forgets.</strong><br>
+  Persistent memory, 20+ tools, 6 channels, 11+ LLM providers — runs entirely on your machine.
+</p>
+
+<p align="center">
+  <a href="https://zubo.bot">Website</a> &nbsp;&middot;&nbsp;
+  <a href="https://zubo.bot/docs/">Documentation</a> &nbsp;&middot;&nbsp;
+  <a href="https://zubo.bot/skills.html">Community Skills</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-7c3aed" alt="MIT License">
+  <img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="Bun">
+  <img src="https://img.shields.io/badge/lang-TypeScript-3178c6" alt="TypeScript">
+  <img src="https://img.shields.io/badge/storage-SQLite-003B57" alt="SQLite">
+</p>
+
+---
 
 ## Features
 
-- **Multi-provider LLM** — Anthropic, OpenAI, Google Gemini, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, and any OpenAI-compatible endpoint. Smart routing sends simple queries to fast models automatically.
-- **Multi-channel** — Telegram, Discord, Slack, WhatsApp, Signal, Web Chat
-- **Persistent memory** — Vector + full-text hybrid search (ONNX embeddings, FTS5)
-- **Tool system** — Built-in tools, extensible skills, skill registry
-- **Integrations** — GitHub, Google (Gmail, Calendar, Docs, Drive, Sheets), Notion, Linear, Jira, Slack, Twitter
+- **11+ LLM providers** — Anthropic, OpenAI, Google Gemini, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, and any OpenAI-compatible endpoint. Smart routing sends simple queries to fast models automatically.
+- **6 channels** — Telegram, Discord, Slack, WhatsApp, Signal, Web Chat
+- **Persistent memory** — Vector + full-text hybrid search with ONNX embeddings and FTS5. Remembers every conversation, preference, and fact — forever.
+- **20+ built-in tools** — Web search, file ops, code execution, APIs, sub-agent delegation, and automatic failover between providers.
+- **Extensible skills** — Build custom skills in TypeScript. Share them on the registry. Install community skills with one command.
+- **7 integrations** — GitHub, Google (Gmail, Calendar, Docs, Drive, Sheets), Notion, Linear, Jira, Slack, Twitter
 - **Workflows** — Multi-agent pipelines with delegation
-- **Scheduling** — Natural language scheduling ('every weekday at 9am'), cron jobs, heartbeat, proactive tasks
+- **Natural language scheduling** — "Every weekday at 9am" just works. Cron jobs, heartbeat, proactive tasks.
 - **Voice** — Speech-to-text (Whisper) and text-to-speech (OpenAI, ElevenLabs)
 - **Dashboard** — Built-in web UI with analytics, memory management, and settings
 - **Document ingestion** — Upload PDF, DOCX, TXT, CSV, JSON, and more
-- **API authentication** — Bearer token auth with key management
-- **Rate limiting** — Per-IP sliding window protection
 - **Budget controls** — Daily/monthly spending limits with per-model cost tracking
-- **Skill sandboxing** — User-installed skills run in isolated subprocesses
-- **Database backup** — Export/import JSON, atomic SQLite backups
+- **100% local** — SQLite database, local vector store. Your data never leaves your machine.
 
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
-bun install
-
-# 2. Run interactive setup
-bun run setup
-
-# 3. Start the agent
-bun run start
+curl -fsSL https://zubo.bot/install.sh | bash
 ```
 
-The web dashboard will be available at `http://localhost:<port>` (shown in terminal output).
+Or manually:
+
+```bash
+bun install
+zubo setup
+zubo start
+```
+
+The web dashboard opens automatically at `http://localhost:<port>`.
 
 ## Architecture
 
 ```
 User Message
-  → Channel Adapter (Telegram/Discord/Slack/WhatsApp/Signal/WebChat)
+  → Channel (Telegram / Discord / Slack / WhatsApp / Signal / WebChat)
     → Message Router
       → Agent Loop (LLM + Tool Execution)
         → Tools (built-in, skills, integrations)
         → Memory (vector search, FTS5, document parsing)
         → Scheduler (cron, heartbeat, proactive tasks)
       → Response
-    → Channel Adapter
+    → Channel
   → User
 ```
 
 ## Configuration
 
-Configuration is stored in `~/.zubo/config.json`. Key fields:
+All config lives in `~/.zubo/config.json`. Run `zubo setup` for interactive configuration, or set values directly:
 
-| Field | Description |
-|---|---|
-| `providers` | LLM provider configs (API key, model, base URL) |
-| `activeProvider` | Which provider to use |
-| `failover` | Provider failover chain |
-| `channels` | Channel-specific settings |
-| `voice` | STT/TTS provider configuration |
-| `maxTurns` | Max agent loop turns (default: 50) |
-| `heartbeatMinutes` | Background heartbeat interval (default: 30) |
-| `auth.enabled` | Enable API key authentication |
-| `rateLimit.chatPerMinute` | Chat rate limit (default: 60) |
-| `rateLimit.uploadPerMinute` | Upload rate limit (default: 10) |
-| `smartRouting.enabled` | Enable smart query routing (default: false) |
-| `budget.dailyLimit` | Daily spending limit in USD |
-| `budget.monthlyLimit` | Monthly spending limit in USD |
-| `sandbox.enabled` | Enable skill sandboxing (default: true) |
-| `sandbox.timeoutMs` | Sandbox timeout (default: 30000) |
+```bash
+zubo config set activeProvider anthropic
+zubo config set smartRouting.enabled true
+zubo config set budget.monthlyLimit 50
+```
 
-## Channel Setup
+See the full [configuration reference](https://zubo.bot/docs/config.html) for all options.
 
-### Web Chat
-Enabled by default. Configure port in `channels.webchat.port`.
+## Channels
 
-### Telegram
-1. Create a bot via [@BotFather](https://t.me/BotFather)
-2. Add `channels.telegram.botToken` to config
-3. Optionally restrict with `channels.telegram.allowedUsers` (user IDs)
-
-### Discord
-1. Create a bot at [Discord Developer Portal](https://discord.com/developers)
-2. Enable Message Content Intent
-3. Add `channels.discord.botToken` to config
-
-### Slack
-1. Create a Slack app with Socket Mode enabled
-2. Add `channels.slack.botToken` and `channels.slack.appToken` to config
-
-### WhatsApp
-1. Add `channels.whatsapp` to config
-2. Authenticate via QR code on first run
-
-### Signal
-1. Install signal-cli
-2. Register a phone number
-3. Add `channels.signal.phoneNumber` to config
+| Channel | Setup |
+|---------|-------|
+| **Web Chat** | Enabled by default |
+| **Telegram** | Add `channels.telegram.botToken` from [@BotFather](https://t.me/BotFather) |
+| **Discord** | Add `channels.discord.botToken` from [Developer Portal](https://discord.com/developers) |
+| **Slack** | Add `channels.slack.botToken` + `appToken` (Socket Mode) |
+| **WhatsApp** | Add `channels.whatsapp`, authenticate via QR |
+| **Signal** | Install signal-cli, add `channels.signal.phoneNumber` |
 
 ## Integrations
 
-Install integrations via the dashboard or CLI:
-
-| Service | Skills | Secret |
-|---|---|---|
+| Service | Capabilities | Secret |
+|---------|-------------|--------|
 | GitHub | Issues, PRs, Repos | `github_token` |
 | Google | Gmail, Calendar, Docs, Drive, Sheets | `google_api_key` |
 | Notion | Pages, Databases, Search | `notion_token` |
 | Linear | Issues, Projects | `linear_token` |
 | Jira | Issues, Boards | `jira_token` |
 | Slack | Messages | `slack_token` |
-| Twitter | Posts | `twitter_bearer_token` |
+| Twitter | Posts, Timeline, Search | `twitter_bearer_token` |
 
-Set secrets via the agent: `"Set my github_token to ghp_..."`
+Set secrets through natural conversation: *"Set my github_token to ghp_..."*
 
-## CLI Reference
+## CLI
 
 ```
-zubo setup              Configure API keys and channels
-zubo start              Start the agent
-zubo start --daemon     Start in background
-zubo stop               Stop the daemon
-zubo status             Show config and runtime status
-zubo logs               Show last 50 log lines
-zubo logs --follow      Stream logs live
-zubo model              Show active LLM provider/model
-zubo model <p/m>        Switch provider/model
-zubo model --list       List configured providers
-zubo skills             Manage skills (interactive)
-zubo skills list        List installed skills
-zubo skills new         Create a new skill
-zubo install <skill>    Install from registry
-zubo search <query>     Search the skill registry
-zubo publish            Publish a skill
-zubo auth create-key    Create an API key
-zubo auth list-keys     List API keys
-zubo export             Export database as JSON
-zubo import <path>      Import database from JSON
+zubo setup                 Interactive configuration wizard
+zubo start [--daemon]      Start the agent
+zubo stop                  Stop the background daemon
+zubo status                Show runtime status
+zubo logs [--follow]       View or stream logs
+zubo model [provider/model] Show or switch LLM
+zubo skills                Manage skills
+zubo install <name>        Install from registry
+zubo search <query>        Search the registry
+zubo auth create-key       Create an API key
+zubo export / import       Backup and restore
 ```
+
+Full reference at [zubo.bot/docs/cli.html](https://zubo.bot/docs/cli.html).
 
 ## Contributing
 

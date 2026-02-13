@@ -1,7 +1,16 @@
 node_modules/
 dist/
 .env
+.env.*
 *.db
 *.db-wal
 *.db-shm
+*.sqlite
+*.sqlite3
+*.pem
+*.key
+*.p12
+*.pfx
 .DS_Store
+.zubo/
+credentials*
