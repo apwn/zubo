@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="site/logo.svg" width="80" height="80" alt="Zubo">
+  <img src="https://raw.githubusercontent.com/apwn/zubo/main/site/logo.svg" width="80" height="80" alt="Zubo">
 </p>
 
 <h1 align="center">Zubo</h1>
