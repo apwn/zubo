@@ -1,6 +1,15 @@
 {
   "name": "zubo",
   "version": "0.1.0",
+  "description": "Your AI agent that never forgets. Persistent memory, 20+ tools, 6 channels, 11+ LLM providers — runs entirely on your machine.",
+  "license": "MIT",
+  "author": "thomaskanze",
+  "homepage": "https://zubo.bot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apwn/zubo.git"
+  },
+  "keywords": ["ai", "agent", "llm", "chatbot", "memory", "tools", "bun", "typescript"],
   "type": "module",
   "bin": {
     "zubo": "src/index.ts"
