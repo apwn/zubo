@@ -56,7 +56,9 @@ export async function checkMemoryTriggers(
           db.prepare(
             "INSERT INTO proactive_log (type, message) VALUES ('trigger', ?)"
           ).run(`[${trigger.pattern}] ${result.reply.slice(0, 2000)}`);
-        } catch {}
+        } catch (err: any) {
+          logger.warn("Failed to log trigger result to database", { error: (err as Error).message });
+        }
       }
 
       // Update last_fired

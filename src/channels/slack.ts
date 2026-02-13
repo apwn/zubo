@@ -86,7 +86,9 @@ export function createSlackAdapter(
 
     stop() {
       if (app) {
-        app.stop().catch(() => {});
+        app.stop().catch((err: any) => {
+          logger.warn("Slack app stop failed", { error: err.message });
+        });
         app = null;
       }
     },

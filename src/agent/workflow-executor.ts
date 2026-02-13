@@ -120,7 +120,9 @@ export async function executeWorkflow(
     db.prepare(
       "UPDATE workflow_executions SET status = ?, result = ?, completed_at = datetime('now') WHERE id = ?"
     ).run(status, summary, executionId);
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to update workflow execution status", { error: (err as Error).message });
+  }
 
   return { workflowName, status, steps: stepResults, summary };
 }
@@ -146,7 +148,9 @@ async function executeStep(
     db.prepare(
       "INSERT INTO workflow_step_logs (execution_id, step_name, agent_name, task, status, started_at) VALUES (?, ?, ?, ?, 'running', datetime('now'))"
     ).run(executionId, step.name, step.agent, task);
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to log workflow step start", { error: (err as Error).message });
+  }
 
   logger.info(`Workflow step "${step.name}" starting`, { agent: step.agent, task: task.slice(0, 100) });
 
@@ -165,7 +169,9 @@ async function executeStep(
       db.prepare(
         "UPDATE workflow_step_logs SET status = 'error', output = ?, completed_at = datetime('now'), duration_ms = ? WHERE execution_id = ? AND step_name = ?"
       ).run(err.message, durationMs, executionId, step.name);
-    } catch {}
+    } catch (logErr: any) {
+      logger.warn("Failed to log workflow step error", { error: (logErr as Error).message });
+    }
     return { step: step.name, status: "error", output: err.message, durationMs };
   }
 
@@ -176,7 +182,9 @@ async function executeStep(
     db.prepare(
       "UPDATE workflow_step_logs SET status = 'success', output = ?, completed_at = datetime('now'), duration_ms = ? WHERE execution_id = ? AND step_name = ?"
     ).run(output.slice(0, 10000), durationMs, executionId, step.name);
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to log workflow step completion", { error: (err as Error).message });
+  }
 
   logger.info(`Workflow step "${step.name}" completed in ${durationMs}ms`);
 

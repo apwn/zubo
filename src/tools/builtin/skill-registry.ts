@@ -3,6 +3,7 @@ import { searchRegistry } from "../../registry/client";
 import { installFromRegistry } from "../../registry/installer";
 import { loadSkills } from "../skill-loader";
 import { paths } from "../../config/paths";
+import { logger } from "../../util/logger";
 
 export function registerSkillRegistryTool() {
   registerTool({
@@ -56,7 +57,9 @@ export function registerSkillRegistryTool() {
           // Reload skills so the new skill is available immediately
           try {
             await loadSkills(paths.skills);
-          } catch {}
+          } catch (err: any) {
+            logger.warn("Failed to reload skills after install", { error: (err as Error).message });
+          }
           return JSON.stringify({
             installed: true,
             name: result.name,

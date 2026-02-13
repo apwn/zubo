@@ -80,7 +80,9 @@ export function loadTeams(): AgentTeam[] {
       const team = parseTeamMd(content);
       if (team) results.push(team);
     }
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to load teams directory", { error: (err as Error).message });
+  }
   return results;
 }
 

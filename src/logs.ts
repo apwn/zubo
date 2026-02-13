@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, watchFile } from "fs";
 import { paths } from "./config/paths";
+import { logger } from "./util/logger";
 
 export async function showLogs(follow = false) {
   if (!existsSync(paths.logFile)) {
@@ -42,7 +43,9 @@ async function tailFollow() {
         process.stdout.write(newData);
         pos = buf.byteLength;
       }
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to read log file update", { error: (err as Error).message });
+    }
   });
 
   // Keep process alive

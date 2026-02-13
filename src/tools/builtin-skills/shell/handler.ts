@@ -63,7 +63,9 @@ export default async function (input: Record<string, unknown>): Promise<string> 
     timedOut = true;
     try {
       proc.kill();
-    } catch {}
+    } catch (err: any) {
+      // Process may have already exited
+    }
   }, timeout);
 
   // Read stdout and stderr in parallel to avoid deadlock

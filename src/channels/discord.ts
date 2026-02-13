@@ -77,7 +77,9 @@ export function createDiscordAdapter(
 
     // Show typing
     if ("sendTyping" in msg.channel) {
-      await msg.channel.sendTyping().catch(() => {});
+      await msg.channel.sendTyping().catch((err) => {
+        logger.warn("Discord sendTyping failed", { error: err.message });
+      });
     }
 
     await router.handleMessage(message, async (replyText: string) => {

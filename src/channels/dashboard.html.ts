@@ -1099,7 +1099,7 @@ function doStreamChat(text) {
                 } else if (evtType === 'error') {
                   streamedText += '\\nError: ' + (evtData.error || 'Unknown error');
                 }
-              } catch(e) {}
+              } catch(e) { console.warn('Failed to parse SSE event', e); }
             }
           }
         }
@@ -1373,7 +1373,7 @@ function loadAnalytics() {
       col.appendChild(label);
       chart.appendChild(col);
     });
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 
   // Cost breakdown
   api('/analytics/cost-breakdown').then(function(data) {
@@ -1428,7 +1428,7 @@ function loadAnalytics() {
       tr.appendChild(td5);
       body.appendChild(tr);
     });
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 
   // Response time trend
   api('/analytics/response-time-trend').then(function(data) {
@@ -1453,7 +1453,7 @@ function loadAnalytics() {
       col.appendChild(label);
       chart.appendChild(col);
     });
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 
   // Top models
   api('/analytics/top-models').then(function(data) {
@@ -1487,7 +1487,7 @@ function loadAnalytics() {
       });
       body.appendChild(tr);
     });
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 }
 
 // --- SYSTEM PROMPT ---
@@ -1556,7 +1556,7 @@ function renderMemoryItems(results, container) {
 function loadRecentMemories() {
   api('/memory/recent').then(function(data) {
     renderMemoryItems(data.results, document.getElementById('memory-results'));
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 }
 
 function searchMemories() {
@@ -1862,7 +1862,7 @@ function loadChannelStatus() {
     });
     document.getElementById('channel-count-badge').textContent = connCount + ' active';
     document.getElementById('sidebar-conn-badge').textContent = connCount + ' channels';
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 }
 
 // --- DATA EXPORT/IMPORT ---
@@ -1874,7 +1874,7 @@ function loadDbStats() {
     Object.keys(tables).forEach(function(k) { totalRows += tables[k]; });
     var sizeMb = ((data.sizeBytes || 0) / 1024 / 1024).toFixed(2);
     el.textContent = 'DB size: ' + sizeMb + ' MB, ' + totalRows + ' total rows';
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 }
 
 function exportJson() {
@@ -2017,7 +2017,7 @@ function loadSecrets() {
 
       list.appendChild(row);
     });
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 }
 
 function showAddSecretForm() {
@@ -2093,7 +2093,7 @@ function checkOnboarding() {
     onboardingStep = data.step || 0;
     showOnboardingStep();
     document.getElementById('onboarding-modal').classList.add('visible');
-  }).catch(function() {});
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 }
 
 function showOnboardingStep() {

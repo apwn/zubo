@@ -41,7 +41,9 @@ async function shouldSandbox(
       const config = JSON.parse(readFileSync(paths.config, "utf-8"));
       if (config.sandbox?.enabled === false) return null;
       if (config.sandbox?.timeoutMs) timeoutMs = config.sandbox.timeoutMs;
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to read sandbox config", { error: (err as Error).message });
+    }
 
     // Resolve the handler path and read SKILL.md for declared secrets
     const skillDir = join(paths.skills, toolName);
@@ -61,7 +63,9 @@ async function shouldSandbox(
           env[`ZUBO_SECRET_${row.name.toUpperCase()}`] = row.value;
         }
       }
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to resolve skill secrets for sandbox", { error: (err as Error).message });
+    }
 
     return { handlerPath, timeoutMs, env };
   } catch {
@@ -162,7 +166,9 @@ export async function executeTool(
       db.prepare(
         "INSERT INTO tool_metrics (tool_name, duration_ms, success) VALUES (?, ?, 1)"
       ).run(name, durationMs);
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to record tool success metrics", { error: (err as Error).message });
+    }
 
     return {
       tool_use_id: toolUseId,
@@ -181,7 +187,9 @@ export async function executeTool(
       db.prepare(
         "INSERT INTO tool_metrics (tool_name, duration_ms, success) VALUES (?, ?, 0)"
       ).run(name, durationMs);
-    } catch {}
+    } catch (metricsErr: any) {
+      logger.warn("Failed to record tool failure metrics", { error: (metricsErr as Error).message });
+    }
 
     return {
       tool_use_id: toolUseId,

@@ -79,7 +79,9 @@ export function createSignalAdapter(
                       }
                     });
                   }
-                } catch {}
+                } catch (err: any) {
+                  logger.warn("Failed to parse Signal message", { error: (err as Error).message });
+                }
               }
             }
           } catch (err: any) {

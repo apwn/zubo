@@ -361,7 +361,7 @@ export class OpenAICompatProvider implements LlmProvider {
     } finally {
       reader.releaseLock();
       // Ensure the response body is fully consumed/cancelled to free resources
-      try { await res.body!.cancel(); } catch {}
+      try { await res.body!.cancel(); } catch (err: any) { logger.warn("Failed to cancel response body stream", { error: (err as Error).message }); }
     }
 
     // Emit tool_use_end for all tool calls

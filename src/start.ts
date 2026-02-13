@@ -32,7 +32,9 @@ function openBrowser(url: string) {
           ? ["cmd", "/c", "start", url]
           : ["xdg-open", url];
     Bun.spawn(cmd, { stdio: ["ignore", "ignore", "ignore"] });
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to open browser", { error: (err as Error).message });
+  }
 }
 
 function getTelegramToken(config: ZuboConfig): string | null {
@@ -294,7 +296,9 @@ export async function startZubo(isDaemon = false) {
 function cleanupPidFile() {
   try {
     if (existsSync(paths.pidFile)) unlinkSync(paths.pidFile);
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to clean up PID file", { error: (err as Error).message });
+  }
 }
 
 function startDaemon() {
@@ -344,5 +348,7 @@ export function stopDaemon() {
 
   try {
     unlinkSync(paths.pidFile);
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to remove PID file", { error: (err as Error).message });
+  }
 }

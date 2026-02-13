@@ -33,7 +33,9 @@ export default async function (input: Record<string, unknown>): Promise<string> 
     try {
       const parsed = new URL(rawUrl, "https://duckduckgo.com");
       finalUrl = parsed.searchParams.get("uddg") || rawUrl;
-    } catch {}
+    } catch (err: any) {
+      // URL parsing is non-critical; fall back to rawUrl
+    }
 
     if (title) {
       results.push({ title, url: finalUrl, snippet });

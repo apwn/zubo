@@ -115,7 +115,7 @@ export class ClaudeProvider implements LlmProvider {
       } else if (event.type === "content_block_stop") {
         if (currentToolId) {
           let input: Record<string, unknown> = {};
-          try { input = JSON.parse(currentToolJson); } catch {}
+          try { input = JSON.parse(currentToolJson); } catch (err: any) { logger.warn("Failed to parse tool input JSON", { error: (err as Error).message }); }
           contentBlocks.push({
             type: "tool_use",
             id: currentToolId,

@@ -34,7 +34,9 @@ export async function generateMorningBriefing(
       db.prepare(
         "INSERT INTO proactive_log (type, message) VALUES ('briefing', ?)"
       ).run(result.reply.slice(0, 5000));
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to log briefing to database", { error: (err as Error).message });
+    }
 
     return result.reply;
   } catch (err: any) {

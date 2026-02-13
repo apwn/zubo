@@ -19,7 +19,9 @@ export function initPerfCollector(): void {
       try {
         const stat = statSync(paths.db);
         dbSizeMb = Math.round((stat.size / 1_048_576) * 100) / 100;
-      } catch {}
+      } catch (err: any) {
+        logger.warn("Failed to stat database file for perf snapshot", { error: (err as Error).message });
+      }
 
       db.prepare(
         "INSERT INTO perf_snapshots (rss_mb, heap_mb, db_size_mb) VALUES (?, ?, ?)"

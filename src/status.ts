@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import { paths } from "./config/paths";
 import { configExists } from "./config/loader";
+import { logger } from "./util/logger";
 
 function isDaemonRunning(): { running: boolean; pid?: number } {
   if (!existsSync(paths.pidFile)) return { running: false };
@@ -105,7 +106,9 @@ export function showStatus() {
       } else if (config.anthropicApiKey) {
         console.log(`  Provider:  anthropic/${config.model ?? "claude-sonnet-4-5-20250929"} (legacy)`);
       }
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to read provider config for status", { error: (err as Error).message });
+    }
   }
 
   // Channels
@@ -124,7 +127,9 @@ export function showStatus() {
         active.push(p ? `webchat(:${p})` : "webchat(auto)");
       }
       console.log(`  Channels:  ${active.length ? active.join(", ") : "none"}`);
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to read channel config for status", { error: (err as Error).message });
+    }
   }
 
   // Skills

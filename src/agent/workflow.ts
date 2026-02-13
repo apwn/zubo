@@ -128,7 +128,9 @@ export function loadWorkflowDefinitions(): WorkflowDefinition[] {
       const def = parseWorkflowMd(content);
       if (def) results.push(def);
     }
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to load workflow definitions", { error: (err as Error).message });
+  }
   return results;
 }
 
