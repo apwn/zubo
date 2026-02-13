@@ -12,7 +12,7 @@ export interface SessionMessage {
 function sessionPath(sessionId: string): string {
   // Validate session ID to prevent path traversal
   // Allow colons for channel:userId format, but block Windows path separators and ..
-  if (!/^[a-zA-Z0-9:._+-]+$/.test(sessionId) || sessionId.includes("..")) {
+  if (!/^[a-zA-Z0-9:_+-]+$/.test(sessionId) || sessionId.includes("..")) {
     throw new Error("Invalid session ID");
   }
   const { resolve } = require("path");

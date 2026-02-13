@@ -162,13 +162,19 @@ switch (command) {
         const config = JSON.parse(readFileSync(cfgPaths.config, "utf-8"));
         if (!key) {
           // Print full config (mask sensitive values)
-          const masked = { ...config };
-          if (masked.anthropicApiKey) masked.anthropicApiKey = "***";
-          if (masked.providers) {
-            for (const p of Object.values(masked.providers) as any[]) {
-              if (p.apiKey) p.apiKey = "***";
+          function maskSecrets(obj: any, depth = 0): any {
+            if (depth > 10 || !obj || typeof obj !== "object") return obj;
+            const result = Array.isArray(obj) ? [...obj] : { ...obj };
+            for (const key of Object.keys(result)) {
+              if (/apiKey|botToken|appToken|secret|password|token$/i.test(key) && typeof result[key] === "string") {
+                result[key] = "***";
+              } else if (typeof result[key] === "object") {
+                result[key] = maskSecrets(result[key], depth + 1);
+              }
             }
+            return result;
           }
+          const masked = maskSecrets(config);
           console.log(JSON.stringify(masked, null, 2));
         } else {
           const keys = key.split(".");

@@ -1319,8 +1319,8 @@ function getClientIp(req: Request, server: any): string {
   } catch (err: any) {
     logger.warn("Failed to get client IP from server", { error: (err as Error).message });
   }
-  // Fallback to x-forwarded-for only if behind a trusted proxy
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1";
+  // No trusted proxy configured — do not trust X-Forwarded-For header
+  return "127.0.0.1";
 }
 
 export function createWebChatAdapter(
@@ -1438,7 +1438,7 @@ export function createWebChatAdapter(
           }
 
           // Rate limiting for chat endpoints
-          if (url.pathname.startsWith("/api/chat")) {
+          if (url.pathname.startsWith("/api/chat") || url.pathname.includes("/webhook/")) {
             const ip = getClientIp(req, server);
             const check = chatLimiter.check(ip);
             if (!check.allowed) {

@@ -56,16 +56,44 @@ async function shouldSandbox(
       return null;
     }
 
-    // Only pass secrets that the skill actually references (grep handler for getSecret calls)
+    // Scope secrets: prefer the explicit `secrets:` field from SKILL.md when available.
+    // Fall back to string-matching as a heuristic (limitation: can be tricked by
+    // obfuscated secret names in handler code — the SKILL.md declaration is the
+    // authoritative source when present).
     const env: Record<string, string> = {};
     try {
       const { getDb } = await import("../db/connection");
       const db = getDb();
+
+      // Try to read declared secrets from SKILL.md
+      let declaredSecrets: Set<string> | null = null;
+      try {
+        const skillMdPath = join(skillDir, "SKILL.md");
+        if (existsSync(skillMdPath)) {
+          const skillMdContent = readFileSync(skillMdPath, "utf-8");
+          const secretsMatch = skillMdContent.match(/^secrets:\s*(.+)/m);
+          if (secretsMatch) {
+            declaredSecrets = new Set(
+              secretsMatch[1].split(",").map((s: string) => s.trim()).filter(Boolean)
+            );
+          }
+        }
+      } catch (err: any) {
+        logger.warn("Failed to parse SKILL.md secrets declaration", { error: (err as Error).message });
+      }
+
       const rows = db.query("SELECT name, value FROM secrets").all() as { name: string; value: string }[];
       for (const row of rows) {
-        // Only pass secrets referenced in the handler code
-        if (handlerCode.includes(`"${row.name}"`) || handlerCode.includes(`'${row.name}'`)) {
-          env[`ZUBO_SECRET_${row.name.toUpperCase()}`] = row.value;
+        if (declaredSecrets) {
+          // Authoritative: only pass secrets explicitly declared in SKILL.md
+          if (declaredSecrets.has(row.name)) {
+            env[`ZUBO_SECRET_${row.name.toUpperCase()}`] = row.value;
+          }
+        } else {
+          // Fallback heuristic: only pass secrets referenced in the handler code
+          if (handlerCode.includes(`"${row.name}"`) || handlerCode.includes(`'${row.name}'`)) {
+            env[`ZUBO_SECRET_${row.name.toUpperCase()}`] = row.value;
+          }
         }
       }
     } catch (err: any) {

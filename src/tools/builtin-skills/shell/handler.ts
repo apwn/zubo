@@ -52,6 +52,9 @@ function sanitizeEnv(): Record<string, string | undefined> {
 
 export default async function (input: Record<string, unknown>): Promise<string> {
   const command = input.command as string;
+  if (command.length > 10000) {
+    throw new Error("Command too long (max 10,000 characters).");
+  }
   const timeout = (input.timeout as number) || 30000;
 
   // Block obviously destructive commands
