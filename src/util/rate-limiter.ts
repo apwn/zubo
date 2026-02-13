@@ -3,6 +3,7 @@
  * Used for HTTP endpoints (per-IP) and channels (per-userId).
  */
 export class RateLimiter {
+  private static readonly MAX_KEYS = 10_000;
   private windows = new Map<string, number[]>();
   private maxRequests: number;
   private windowMs: number;
@@ -21,6 +22,12 @@ export class RateLimiter {
   check(key: string): { allowed: boolean; retryAfterMs?: number } {
     const now = Date.now();
     const cutoff = now - this.windowMs;
+
+    // Evict oldest entry if map is at capacity and this is a new key
+    if (this.windows.size >= RateLimiter.MAX_KEYS && !this.windows.has(key)) {
+      const firstKey = this.windows.keys().next().value;
+      if (firstKey !== undefined) this.windows.delete(firstKey);
+    }
 
     let timestamps = this.windows.get(key);
     if (!timestamps) {

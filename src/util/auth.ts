@@ -106,12 +106,9 @@ export function generateSessionToken(): string {
 export function validateSessionToken(token: string): boolean {
   const expiry = sessionTokens.get(token);
   if (!expiry) return false;
-  if (Date.now() > expiry) {
-    sessionTokens.delete(token);
-    return false;
-  }
-  // Single-use: delete after validation
+  // Delete immediately to prevent race condition
   sessionTokens.delete(token);
+  if (Date.now() > expiry) return false;
   return true;
 }
 

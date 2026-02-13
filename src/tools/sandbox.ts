@@ -29,7 +29,7 @@ export async function executeSandboxed(
         ...options.env,
         // Minimal env — don't pass full parent env to prevent secret leakage
         HOME: process.env.HOME ?? "",
-        PATH: process.env.PATH ?? "",
+        PATH: "/usr/local/bin:/usr/bin:/bin",
         NODE_ENV: process.env.NODE_ENV ?? "production",
       },
     }
@@ -39,7 +39,9 @@ export async function executeSandboxed(
   const timer = setTimeout(() => {
     try {
       proc.kill();
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to kill timed-out sandbox process", { error: (err as Error).message });
+    }
   }, timeoutMs);
 
   try {

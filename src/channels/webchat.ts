@@ -16,7 +16,9 @@ import { exportDatabase, backupDatabase, importDatabase, getDbStats, getDbSizeBy
 function readFileOr(path: string, fallback: string): string {
   try {
     if (existsSync(path)) return readFileSync(path, "utf-8");
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to read file", { path, error: (err as Error).message });
+  }
   return fallback;
 }
 
@@ -38,7 +40,9 @@ function getStatusData(): Record<string, string> {
     if (config.channels?.discord?.botToken) ch.push("discord");
     if (config.channels?.webchat) ch.push("webchat");
     data["Channels"] = ch.join(", ") || "none";
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to read config for status data", { error: (err as Error).message });
+  }
 
   // DB stats
   try {
@@ -47,7 +51,9 @@ function getStatusData(): Record<string, string> {
     const mems = (db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as any)?.c ?? 0;
     data["Messages"] = String(msgs);
     data["Memories"] = String(mems);
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to read DB stats", { error: (err as Error).message });
+  }
 
   // Daemon
   try {
@@ -90,14 +96,16 @@ function getRecentMemoryChunks(): any[] {
 function searchMemoryChunks(query: string): any[] {
   try {
     // Sanitize FTS5 input — strip special operators to prevent query injection
-    const sanitized = query.replace(/["*(){}:^~]/g, "").replace(/\b(AND|OR|NOT|NEAR)\b/gi, "").trim();
-    if (!sanitized) return [];
+    const sanitized = query.replace(/['"*()[\]{}:^~+\-!/\\]/g, " ").replace(/\b(AND|OR|NOT|NEAR)\b/gi, "").trim();
+    const terms = sanitized.split(/\s+/).filter(Boolean);
+    if (!terms.length) return [];
+    const ftsQuery = terms.join(" OR ");
     const db = getDb();
     return db
       .query(
         "SELECT mc.source_file as source, mc.content FROM memory_fts f JOIN memory_chunks mc ON mc.id = f.rowid WHERE memory_fts MATCH ? ORDER BY rank LIMIT 20"
       )
-      .all(sanitized) as any[];
+      .all(ftsQuery) as any[];
   } catch {
     return [];
   }
@@ -131,7 +139,9 @@ function getSkillsData(): { name: string; description: string; status: string; p
           if (nameMatch && descMatch) {
             parsed = { name: nameMatch[1], description: descMatch[1] };
           }
-        } catch {}
+        } catch (err: any) {
+          logger.warn("Failed to parse skill handler", { error: (err as Error).message });
+        }
       }
 
       const status = parsed ? "ok" : "error";
@@ -140,7 +150,9 @@ function getSkillsData(): { name: string; description: string; status: string; p
 
       results.push({ name, description, status, path: dirPath });
     }
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to read skills directory", { error: (err as Error).message });
+  }
 
   return results;
 }
@@ -300,7 +312,9 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     try {
       const config = JSON.parse(readFileSync(paths.config, "utf-8"));
       configMinutes = config.heartbeatMinutes ?? 30;
-    } catch {}
+    } catch (err: any) {
+      logger.warn("Failed to read heartbeat config", { error: (err as Error).message });
+    }
     return Response.json({ minutes, configMinutes });
   }
 
@@ -519,7 +533,7 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
       exportDatabase(db, outputPath);
       const data = readFileSync(outputPath, "utf-8");
       // Clean up temp file
-      try { const { unlinkSync } = require("fs"); unlinkSync(outputPath); } catch {}
+      try { const { unlinkSync } = require("fs"); unlinkSync(outputPath); } catch (err: any) { logger.warn("Failed to clean up export file", { error: (err as Error).message }); }
       return new Response(data, {
         headers: {
           "Content-Type": "application/json",
@@ -561,7 +575,7 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
       } catch (err: any) {
         return Response.json({ error: err.message }, { status: 500 });
       } finally {
-        try { const { unlinkSync } = require("fs"); unlinkSync(tmpPath); } catch {}
+        try { const { unlinkSync } = require("fs"); unlinkSync(tmpPath); } catch (err: any) { logger.warn("Failed to clean up import temp file", { error: (err as Error).message }); }
       }
     })() as any;
   }
@@ -687,7 +701,9 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
             }
           }
         }
-      } catch {}
+      } catch (err: any) {
+        logger.warn("Failed to read provider API keys from config", { error: (err as Error).message });
+      }
 
       const secrets = [
         ...configKeys,
@@ -714,7 +730,9 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
           if (cfg.providers?.[provider]?.apiKey) {
             return Response.json({ name: secretName, value: cfg.providers[provider].apiKey, source: "config" });
           }
-        } catch {}
+        } catch (err: any) {
+          logger.warn("Failed to read provider secret from config", { error: (err as Error).message });
+        }
       }
       const db = getDb();
       const row = db.query("SELECT value FROM secrets WHERE name = ?").get(secretName) as { value: string } | null;
@@ -809,7 +827,9 @@ function getClientIp(req: Request, server: any): string {
   try {
     const addr = server?.requestIP?.(req);
     if (addr?.address) return addr.address;
-  } catch {}
+  } catch (err: any) {
+    logger.warn("Failed to get client IP from server", { error: (err as Error).message });
+  }
   // Fallback to x-forwarded-for only if behind a trusted proxy
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1";
 }
@@ -1104,7 +1124,9 @@ export function createWebChatAdapter(
                 db.prepare(
                   "INSERT INTO uploads (filename, original_name, mime_type, size_bytes, chunk_count) VALUES (?, ?, ?, ?, ?)"
                 ).run(filePath, file.name, mimeType, file.size, chunks.length);
-              } catch {}
+              } catch (err: any) {
+                logger.warn("Failed to record upload in database", { error: (err as Error).message });
+              }
 
               return Response.json({
                 uploaded: true,

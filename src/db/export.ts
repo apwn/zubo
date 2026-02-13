@@ -66,6 +66,7 @@ export function importDatabase(db: Database, inputPath: string): { imported: num
 
   for (const [table, rows] of Object.entries(data.tables)) {
     if (!EXPORT_TABLES.includes(table)) continue;
+    if (!/^[a-z_]+$/.test(table)) { skipped += (rows as any[]).length; continue; }
 
     // Verify table exists
     const tableCheck = db
