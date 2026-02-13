@@ -1598,12 +1598,95 @@ h1, h2, h3, h4,
   margin: 0 auto;
 }
 
+/* AI Prompt Section */
+.ai-prompt-section {
+  padding: 100px 0;
+  position: relative;
+}
+.ai-prompt-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+}
+
+.ai-prompt-block {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #0c0c10;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-glow), 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.ai-prompt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
+}
+
+.ai-prompt-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ai-prompt-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  color: #c4b5fd;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.ai-prompt-copy-btn:hover {
+  background: rgba(124, 58, 237, 0.2);
+  border-color: rgba(124, 58, 237, 0.4);
+  color: #fff;
+}
+
+.ai-prompt-code {
+  display: block;
+  padding: 24px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+  background: transparent;
+  border: none;
+}
+
 @media (max-width: 768px) {
   .skills-grid {
     grid-template-columns: 1fr;
   }
   .skill-guide-steps {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .ai-prompt-code {
+    padding: 16px;
+    font-size: 12px;
   }
 }
 

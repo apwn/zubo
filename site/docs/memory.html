@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory System — Zubo Docs</title>
+  <meta name="description" content="Understand Zubo's persistent semantic memory system: vector embeddings, full-text search, document ingestion, chunking, and memory management.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html" class="active">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="security.html">Security &amp; Auth</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Memory System</div>
+
+      <h1>Memory System</h1>
+      <p>Zubo has a persistent semantic memory system that combines vector embeddings with full-text search. It automatically remembers conversations, ingested documents, and facts you teach it &mdash; and retrieves relevant context for every message. This means your agent gets smarter over time, building up a knowledge base that is always available.</p>
+
+      <h2>How Memory Works</h2>
+      <p>Every piece of content that enters the memory system follows the same pipeline:</p>
+      <ol>
+        <li><strong>Content arrives</strong> &mdash; This can be a conversation message, an uploaded document, or an explicit memory write via the <code>memory_write</code> tool.</li>
+        <li><strong>Text is chunked</strong> &mdash; The content is split into segments of approximately 400 tokens (~1600 characters) with an overlap of approximately 80 tokens (~320 characters) between consecutive chunks.</li>
+        <li><strong>Chunks are embedded</strong> &mdash; Each chunk is converted into a 384-dimensional vector using the all-MiniLM-L6-v2 ONNX model. This captures the semantic meaning of the text.</li>
+        <li><strong>Storage</strong> &mdash; Chunks, their embeddings, and metadata are stored in SQLite. A full-text search index is updated via triggers.</li>
+        <li><strong>Retrieval</strong> &mdash; On every incoming message, Zubo automatically searches memory for relevant context using hybrid search.</li>
+        <li><strong>Context injection</strong> &mdash; The top matching results are injected into the LLM context alongside the user's message, giving the agent access to relevant knowledge.</li>
+      </ol>
+      <p>Here is a simplified view of the data flow:</p>
+<pre><code>Content --&gt; Chunker --&gt; Embedder --&gt; SQLite (chunks + embeddings)
+                                          |
+Query --&gt; Hybrid Search &lt;----------------+
+           (60% Vector + 40% FTS)
+                |
+           Top results --&gt; LLM Context</code></pre>
+
+      <h2>Memory Storage</h2>
+      <p>Zubo stores memory in two complementary layers:</p>
+
+      <h3>1. File-Based Storage</h3>
+      <p>Memory files live at <code>~/.zubo/workspace/memory/</code> and come in two forms:</p>
+      <ul>
+        <li><strong>MEMORY.md</strong> &mdash; This is the always-loaded memory file. Its contents are included in the system prompt on every single message. Use it for core facts that should always be available: your name, preferences, project context, and important rules. You can edit it directly in a text editor or via the dashboard's Memory panel.</li>
+        <li><strong>Dated files</strong> &mdash; Files named with the pattern <code>YYYY-MM-DD.md</code> (for example, <code>2024-01-15.md</code>) are created automatically when the agent writes new memories during conversations. These files are indexed into the database for search but are not loaded into the system prompt by default.</li>
+      </ul>
+
+      <h3>2. Database Storage</h3>
+      <p>The <code>memory_chunks</code> table in SQLite stores all chunked content with their vector embeddings, source file references, timestamps, and full-text search index entries. This is the primary storage layer that powers memory search. It is fully managed by Zubo &mdash; you do not need to interact with it directly.</p>
+
+      <h2>Search</h2>
+      <p>Zubo supports three search modes, each suited to different scenarios:</p>
+
+      <h3>Full-Text Search (FTS)</h3>
+      <ul>
+        <li>Uses SQLite FTS5 with BM25 ranking for relevance scoring.</li>
+        <li>Fast keyword matching &mdash; ideal for exact terms, names, and specific phrases.</li>
+        <li>The FTS index is synchronized automatically via database triggers whenever chunks are inserted or deleted.</li>
+        <li>Used for synchronous lookups during message handling where speed is critical.</li>
+      </ul>
+
+      <h3>Vector Search</h3>
+      <ul>
+        <li>Uses the all-MiniLM-L6-v2 ONNX model to generate 384-dimensional embeddings.</li>
+        <li>Performs cosine similarity matching to find semantically related content.</li>
+        <li>Better for conceptual and semantic queries &mdash; for example, searching for "my programming preferences" will find chunks about Rust even if the word "preferences" does not appear in the stored text.</li>
+        <li>The embedding model (~23MB) is automatically downloaded on first startup and cached at <code>~/.orba/models/all-MiniLM-L6-v2</code>.</li>
+      </ul>
+
+      <h3>Hybrid Search</h3>
+      <ul>
+        <li>Combines both methods: <strong>60% vector score + 40% FTS score</strong>.</li>
+        <li>Provides the best of both worlds &mdash; keyword precision for exact matches plus semantic understanding for conceptual queries.</li>
+        <li>Used for asynchronous operations such as dedicated memory search requests.</li>
+        <li>Falls back to FTS-only mode if the embedder is unavailable (for example, if the model has not been downloaded yet).</li>
+      </ul>
+
+      <h2>Document Ingestion</h2>
+      <p>You can upload documents to populate Zubo's memory with external knowledge. The following file formats are supported:</p>
+      <table>
+        <thead><tr><th>Format</th><th>Extension</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Plain text</td><td><code>.txt</code></td><td>Direct indexing, no preprocessing needed.</td></tr>
+          <tr><td>Markdown</td><td><code>.md</code></td><td>Direct indexing, preserves structure.</td></tr>
+          <tr><td>CSV</td><td><code>.csv</code></td><td>Parsed as text with rows preserved.</td></tr>
+          <tr><td>PDF</td><td><code>.pdf</code></td><td>Requires <code>pdf-parse</code> (auto-installed on first PDF upload).</td></tr>
+          <tr><td>Word</td><td><code>.docx</code></td><td>Requires <code>mammoth</code> (auto-installed on first DOCX upload).</td></tr>
+          <tr><td>JSON</td><td><code>.json</code></td><td>Pretty-printed before indexing.</td></tr>
+          <tr><td>XML</td><td><code>.xml</code></td><td>Tags stripped, text content extracted.</td></tr>
+          <tr><td>YAML</td><td><code>.yaml</code>, <code>.yml</code></td><td>Direct indexing.</td></tr>
+          <tr><td>Code</td><td><code>.ts</code>, <code>.js</code>, <code>.py</code>, <code>.sh</code></td><td>Direct indexing with syntax preserved.</td></tr>
+        </tbody>
+      </table>
+      <p>There are three ways to upload documents:</p>
+      <ul>
+        <li><strong>Dashboard UI</strong> &mdash; Drag and drop files onto the Memory panel or use the file picker. This is the easiest method.</li>
+        <li><strong>API</strong> &mdash; Send a <code>POST</code> request to <code>/api/upload</code> with a multipart form body. Maximum file size is 50MB.</li>
+        <li><strong>memory_write tool</strong> &mdash; For text content that is not in a file, the agent can use the <code>memory_write</code> tool to save it directly to memory.</li>
+      </ul>
+
+      <h2>Chunking Strategy</h2>
+      <p>The chunker is responsible for splitting content into segments that are small enough to embed meaningfully but large enough to preserve context. Here is how it works:</p>
+      <ul>
+        <li><strong>Target chunk size:</strong> ~400 tokens (~1600 characters).</li>
+        <li><strong>Overlap:</strong> ~80 tokens (~320 characters) between consecutive chunks. This ensures that information at chunk boundaries is not lost.</li>
+        <li><strong>Smart boundary detection:</strong> The chunker tries to split at natural boundaries in this priority order: paragraph breaks, newlines, sentence endings, and finally arbitrary character positions as a last resort.</li>
+        <li><strong>Source tracking:</strong> Each chunk records which source file it came from, enabling provenance tracking and targeted deletion.</li>
+      </ul>
+      <p>This strategy ensures that each chunk is a coherent unit of information that can be meaningfully compared via vector similarity, while the overlap prevents important context from falling between the cracks.</p>
+
+      <h2>Memory Pruning</h2>
+      <p>To keep the database fast and the storage footprint reasonable, Zubo automatically prunes old memory chunks when the total count exceeds a configurable limit:</p>
+      <ul>
+        <li><strong>Default limit:</strong> 10,000 chunks.</li>
+        <li><strong>Pruning behavior:</strong> The oldest chunks (by insertion timestamp) are deleted first when the limit is exceeded.</li>
+        <li><strong>Trigger:</strong> Pruning runs automatically after each memory write operation.</li>
+        <li><strong>Configuration:</strong> The limit is adjustable via the <code>pruneOldChunks(db, maxChunks)</code> function in the codebase.</li>
+      </ul>
+      <p>In practice, 10,000 chunks represents a substantial amount of knowledge &mdash; roughly equivalent to several hundred pages of text. For most personal assistant use cases, you will never hit this limit.</p>
+
+      <h2>Using Memory</h2>
+      <p>Memory works automatically in the background, but you can also interact with it directly.</p>
+
+      <h3>Teaching Your Agent</h3>
+      <p>Tell Zubo facts and it will remember them for future conversations:</p>
+<pre><code>You: "Remember that my favorite programming language is Rust"
+Zubo: "Got it — I'll remember that your favorite language is Rust."</code></pre>
+      <p>The agent uses the <code>memory_write</code> tool to save this fact. It will be retrievable in future sessions via semantic search.</p>
+
+      <h3>Searching Memory</h3>
+      <p>You can ask Zubo to recall information it has stored:</p>
+<pre><code>You: "What do you remember about my preferences?"
+Zubo: "Based on my memory, I know that your favorite programming
+       language is Rust. You prefer metric units and Markdown
+       formatting. Your timezone is America/New_York."</code></pre>
+      <p>Memory search also happens automatically on every message. You do not need to explicitly ask the agent to check its memory &mdash; it does so as part of normal message processing.</p>
+
+      <h3>Via the Dashboard</h3>
+      <ul>
+        <li>The <strong>Memory panel</strong> shows recent memory chunks with timestamps and source information.</li>
+        <li>Use the <strong>search bar</strong> to search memory by keyword or phrase.</li>
+        <li>Edit <strong>MEMORY.md</strong> directly in the dashboard to update always-loaded context.</li>
+      </ul>
+
+      <h2>Memory Tools</h2>
+      <p>Zubo provides two built-in tools for memory operations. These are available to the main agent and to any sub-agent that lists them in its <code>## Tools</code> section:</p>
+      <table>
+        <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>memory_write</code></td><td>Save a fact, note, or piece of content to persistent memory. The content is chunked, embedded, and indexed automatically.</td></tr>
+          <tr><td><code>memory_search</code></td><td>Search memory for relevant information using hybrid search. Returns the top matching chunks with their source and relevance score.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li><strong>Use MEMORY.md for core facts</strong> &mdash; Put information that should always be available in <code>MEMORY.md</code>: your name, key preferences, project context, and important rules. This file is loaded into the system prompt on every message.</li>
+        <li><strong>Let dated memory files manage themselves</strong> &mdash; The agent creates and populates dated memory files (e.g., <code>2024-01-15.md</code>) automatically. Avoid editing them manually unless you need to correct something specific.</li>
+        <li><strong>Upload important documents early</strong> &mdash; The sooner your agent has context about your projects, preferences, and domain knowledge, the more useful it will be. Upload key documents during initial setup.</li>
+        <li><strong>Memory search is automatic</strong> &mdash; You do not need to say "check your memory" before every question. Zubo searches memory on every message as part of its standard processing pipeline.</li>
+        <li><strong>Use document upload for large knowledge bases</strong> &mdash; For substantial amounts of information (documentation, reference materials, project specs), use the file upload feature rather than trying to teach the agent through conversation.</li>
+        <li><strong>The 10k chunk limit keeps things fast</strong> &mdash; Old, less-relevant memories are pruned automatically. If you find important information being lost, consider adding it to <code>MEMORY.md</code> where it will always be available.</li>
+        <li><strong>CPU inference works well</strong> &mdash; If you are running Zubo without a GPU, the embedding model still works via CPU inference. The all-MiniLM-L6-v2 model is small and fast enough that embedding latency is not noticeable in practice.</li>
+      </ul>
+
+      <div class="docs-page-nav">
+        <a href="agents.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Agents &amp; Workflows</span></a>
+        <a href="skills.html"><span class="nav-dir">Next</span><span class="nav-label">Skills &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+</body>
+</html>

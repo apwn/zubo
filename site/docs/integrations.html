@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Integrations — Zubo Docs</title>
-  <meta name="description" content="Set up integrations for Zubo: GitHub, Google, Notion, Linear, Jira, Slack, and Twitter.">
+  <meta name="description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, and Twitter with pre-built skill packs and API keys.">
   <meta name="theme-color" content="#060608">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,10 @@
 
   <header class="nav scrolled" id="nav">
     <div class="nav-inner">
-      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-mark">Z</div>
+        <span class="logo-wordmark">zubo</span>
+      </a>
       <nav class="nav-links" id="nav-links">
         <a href="../index.html#features">Features</a>
         <a href="index.html" style="color:#fff;">Docs</a>
@@ -25,9 +28,13 @@
         <a href="../index.html#get-started">Get Started</a>
       </nav>
       <div class="nav-right">
-        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
         <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
-        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
       </div>
     </div>
   </header>
@@ -36,162 +43,317 @@
     <aside class="docs-sidebar" id="docs-sidebar">
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Getting Started</div>
-        <div class="docs-sidebar-links"><a href="index.html">Overview</a><a href="config.html">Configuration</a></div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
-        <div class="docs-sidebar-links"><a href="channels.html">Channel Setup</a><a href="integrations.html" class="active">Integrations</a><a href="skills.html">Skill Development</a></div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html" class="active">Integrations</a>
+          <a href="security.html">Security &amp; Auth</a>
+        </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Reference</div>
-        <div class="docs-sidebar-links"><a href="api.html">API Reference</a><a href="cli.html">CLI Commands</a></div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
       </div>
     </aside>
 
     <main class="docs-content">
-      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Integrations</div>
+      <div class="docs-breadcrumb">
+        <a href="../index.html">Home</a>
+        <span>/</span>
+        <a href="index.html">Docs</a>
+        <span>/</span>
+        Integrations
+      </div>
 
       <h1>Integrations</h1>
-      <p>Zubo integrates with popular services through built-in skills. Each integration requires a secret (API key or token) that you set through the agent or config.</p>
+      <p>Zubo integrates with popular services via pre-built skill packs. Each integration installs one or more skills and requires an API key stored as a secret. You can connect integrations via chat, the dashboard, or the <code>connect_service</code> tool.</p>
 
-      <h2>Setting Secrets</h2>
-      <p>Tell Zubo your secret in chat:</p>
-<pre><code>"Set my github_token to ghp_abc123..."</code></pre>
-      <p>Secrets are stored encrypted in your local database and are never sent to any third party.</p>
-
-      <h2>GitHub</h2>
-      <table>
-        <thead><tr><th>Field</th><th>Value</th></tr></thead>
-        <tbody>
-          <tr><td>Secret</td><td><code>github_token</code></td></tr>
-          <tr><td>Type</td><td>Personal Access Token (classic)</td></tr>
-          <tr><td>Scopes</td><td><code>repo</code>, <code>read:user</code></td></tr>
-          <tr><td>Capabilities</td><td>Issues, PRs, repos, commits, code search</td></tr>
-        </tbody>
-      </table>
-      <h3>Setup</h3>
+      <h2 id="connecting-an-integration">Connecting an Integration</h2>
+      <p>There are three ways to connect a service:</p>
       <ol>
-        <li>Go to <a href="https://github.com/settings/tokens">GitHub Settings &rarr; Tokens</a></li>
-        <li>Generate a classic token with <code>repo</code> scope</li>
-        <li>Tell Zubo: <code>"Set my github_token to ghp_..."</code></li>
+        <li><strong>Chat:</strong> Tell Zubo directly &mdash; for example, <code>"Connect GitHub with token ghp_abc123"</code>. Zubo will store the secret and install the skill pack automatically.</li>
+        <li><strong>Dashboard:</strong> Navigate to Settings &rarr; Secrets &rarr; Add Secret. Enter the secret name and value, then Zubo detects the associated integration and installs the skills.</li>
+        <li><strong>CLI:</strong> Run <code>zubo start</code>, then use the <code>connect_service</code> tool programmatically to provide the credentials.</li>
+      </ol>
+      <p>When you connect a service, Zubo performs the following steps:</p>
+      <ol>
+        <li>Stores the API key as a secret in the local database</li>
+        <li>Installs the relevant skill pack for that service</li>
+        <li>Makes all integration tools available immediately (hot-loaded &mdash; no restart required)</li>
       </ol>
 
-      <h2>Google</h2>
+      <h2 id="github">GitHub</h2>
       <table>
-        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <thead><tr><th>Field</th><th>Details</th></tr></thead>
         <tbody>
-          <tr><td>Secret</td><td><code>google_api_key</code></td></tr>
-          <tr><td>Type</td><td>Google API Key or OAuth credentials</td></tr>
-          <tr><td>Capabilities</td><td>Gmail, Calendar, Docs, Drive, Sheets</td></tr>
+          <tr><td>Secret Name</td><td><code>github_token</code></td></tr>
+          <tr><td>Token Type</td><td>Personal Access Token (classic)</td></tr>
+          <tr><td>Required Scopes</td><td><code>repo</code>, <code>read:user</code></td></tr>
         </tbody>
       </table>
-      <h3>Setup</h3>
+      <h3>Getting a Token</h3>
       <ol>
-        <li>Go to <a href="https://console.cloud.google.com/">Google Cloud Console</a></li>
-        <li>Create a project and enable Gmail, Calendar, Drive, and Sheets APIs</li>
-        <li>Create an API key or OAuth 2.0 credentials</li>
-        <li>Tell Zubo: <code>"Set my google_api_key to AIza..."</code></li>
+        <li>Go to <a href="https://github.com/settings/tokens">github.com/settings/tokens</a></li>
+        <li>Click &ldquo;Generate new token (classic)&rdquo;</li>
+        <li>Select the <code>repo</code> and <code>read:user</code> scopes</li>
+        <li>Copy the generated token</li>
       </ol>
+      <h3>Skills Installed</h3>
+      <ul>
+        <li><code>github_repos</code> &mdash; List and search repositories, view repository details</li>
+        <li><code>github_issues</code> &mdash; List, search, and create issues on any accessible repository</li>
+        <li><code>github_prs</code> &mdash; List and search pull requests, view PR details and diffs</li>
+      </ul>
+      <h3>Example</h3>
+<pre><code>"Connect GitHub with token ghp_abc123xyz"</code></pre>
+      <p>After connecting, try: <code>"List my GitHub repos"</code> or <code>"Show open issues on myorg/myrepo"</code></p>
 
-      <h2>Notion</h2>
+      <h2 id="google">Google</h2>
       <table>
-        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <thead><tr><th>Field</th><th>Details</th></tr></thead>
         <tbody>
-          <tr><td>Secret</td><td><code>notion_token</code></td></tr>
-          <tr><td>Type</td><td>Internal Integration Token</td></tr>
-          <tr><td>Capabilities</td><td>Read pages, create entries, search databases</td></tr>
+          <tr><td>Secret Name</td><td><code>google_api_key</code></td></tr>
+          <tr><td>Token Type</td><td>API Key or OAuth credentials</td></tr>
+          <tr><td>Required APIs</td><td>Gmail API, Calendar API, Sheets API, Docs API, Drive API</td></tr>
         </tbody>
       </table>
-      <h3>Setup</h3>
+      <h3>Getting a Key</h3>
       <ol>
-        <li>Go to <a href="https://www.notion.so/my-integrations">Notion Integrations</a></li>
-        <li>Create a new integration</li>
-        <li>Share the relevant pages/databases with your integration</li>
-        <li>Tell Zubo: <code>"Set my notion_token to ntn_..."</code></li>
+        <li>Go to <a href="https://console.cloud.google.com">console.cloud.google.com</a></li>
+        <li>Create a new project (or select an existing one)</li>
+        <li>Navigate to APIs &amp; Services &rarr; Library and enable the Gmail, Calendar, Sheets, Docs, and Drive APIs</li>
+        <li>Go to APIs &amp; Services &rarr; Credentials</li>
+        <li>Create an API key or OAuth 2.0 client credentials</li>
       </ol>
+      <h3>Skills Installed</h3>
+      <ul>
+        <li><code>gmail</code> &mdash; Read and list emails, search by query</li>
+        <li><code>google_calendar</code> &mdash; List upcoming events, get event details</li>
+        <li><code>google_sheets</code> &mdash; Read from and write to spreadsheets</li>
+        <li><code>google_docs</code> &mdash; Read document content</li>
+        <li><code>google_drive</code> &mdash; List and search files across your Drive</li>
+      </ul>
 
-      <h2>Linear</h2>
+      <h2 id="notion">Notion</h2>
       <table>
-        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <thead><tr><th>Field</th><th>Details</th></tr></thead>
         <tbody>
-          <tr><td>Secret</td><td><code>linear_token</code></td></tr>
-          <tr><td>Type</td><td>Personal API Key</td></tr>
-          <tr><td>Capabilities</td><td>Issues, projects, sprints, teams</td></tr>
+          <tr><td>Secret Name</td><td><code>notion_token</code></td></tr>
+          <tr><td>Token Type</td><td>Internal Integration Token</td></tr>
         </tbody>
       </table>
-      <h3>Setup</h3>
+      <h3>Getting a Token</h3>
       <ol>
-        <li>Go to Linear Settings &rarr; API &rarr; Personal API Keys</li>
-        <li>Create a new key</li>
-        <li>Tell Zubo: <code>"Set my linear_token to lin_api_..."</code></li>
+        <li>Go to <a href="https://www.notion.so/my-integrations">notion.so/my-integrations</a></li>
+        <li>Click &ldquo;New integration&rdquo;</li>
+        <li>Give it a name and select the workspace</li>
+        <li>Copy the Internal Integration Token</li>
+        <li><strong>Important:</strong> Share the databases and pages you want Zubo to access with the integration inside Notion (click &ldquo;Share&rdquo; on the page and add the integration)</li>
       </ol>
+      <h3>Skills Installed</h3>
+      <ul>
+        <li><code>notion_databases</code> &mdash; List and search databases in your workspace</li>
+        <li><code>notion_pages</code> &mdash; Read and search pages by title or content</li>
+        <li><code>notion_search</code> &mdash; Full-text search across the entire connected workspace</li>
+      </ul>
 
-      <h2>Jira</h2>
+      <h2 id="linear">Linear</h2>
       <table>
-        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <thead><tr><th>Field</th><th>Details</th></tr></thead>
         <tbody>
-          <tr><td>Secret</td><td><code>jira_token</code></td></tr>
-          <tr><td>Type</td><td>API Token</td></tr>
-          <tr><td>Capabilities</td><td>Issues, boards, sprints</td></tr>
+          <tr><td>Secret Name</td><td><code>linear_api_key</code></td></tr>
+          <tr><td>Token Type</td><td>Personal API Key</td></tr>
         </tbody>
       </table>
-      <h3>Setup</h3>
+      <h3>Getting a Key</h3>
       <ol>
-        <li>Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens">Atlassian API Tokens</a></li>
-        <li>Create a new API token</li>
-        <li>Tell Zubo: <code>"Set my jira_token to ..."</code></li>
+        <li>Open Linear and go to Settings &rarr; API &rarr; Personal API Keys</li>
+        <li>Click &ldquo;Create key&rdquo;</li>
+        <li>Copy the generated key</li>
       </ol>
+      <h3>Skills Installed</h3>
+      <ul>
+        <li><code>linear_issues</code> &mdash; List, search, and create issues across your teams</li>
+        <li><code>linear_projects</code> &mdash; List projects and their statuses</li>
+      </ul>
 
-      <h2>Slack (Integration)</h2>
+      <h2 id="jira">Jira</h2>
       <table>
-        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <thead><tr><th>Field</th><th>Details</th></tr></thead>
         <tbody>
-          <tr><td>Secret</td><td><code>slack_token</code></td></tr>
-          <tr><td>Type</td><td>Bot User OAuth Token</td></tr>
-          <tr><td>Capabilities</td><td>Send messages to channels and users</td></tr>
+          <tr><td>Secret Names</td><td><code>jira_token</code>, <code>jira_email</code>, <code>jira_domain</code></td></tr>
+          <tr><td>Token Type</td><td>Atlassian API Token</td></tr>
         </tbody>
       </table>
-      <blockquote><p>This is separate from the Slack <em>channel</em> (which receives messages). The integration token lets Zubo <em>send</em> messages proactively.</p></blockquote>
-
-      <h2>Twitter / X</h2>
-      <table>
-        <thead><tr><th>Field</th><th>Value</th></tr></thead>
-        <tbody>
-          <tr><td>Secret</td><td><code>twitter_bearer_token</code></td></tr>
-          <tr><td>Type</td><td>Bearer Token (v2 API)</td></tr>
-          <tr><td>Capabilities</td><td>Post tweets, read timelines, track mentions</td></tr>
-        </tbody>
-      </table>
-      <h3>Setup</h3>
+      <p>Jira requires three secrets: your API token, the email address associated with your Atlassian account, and your Jira domain (e.g., <code>yourcompany.atlassian.net</code>).</p>
+      <h3>Getting a Token</h3>
       <ol>
-        <li>Apply for a <a href="https://developer.twitter.com/">Twitter Developer account</a></li>
+        <li>Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens">id.atlassian.com/manage-profile/security/api-tokens</a></li>
+        <li>Click &ldquo;Create API token&rdquo;</li>
+        <li>Copy the token</li>
+        <li>Store all three secrets:
+<pre><code>"Store my jira_token: atl_abc123..."
+"Store my jira_email: you@company.com"
+"Store my jira_domain: yourcompany.atlassian.net"</code></pre>
+        </li>
+      </ol>
+      <h3>Skills Installed</h3>
+      <ul>
+        <li><code>jira_issues</code> &mdash; List and search issues using JQL, view issue details</li>
+        <li><code>jira_boards</code> &mdash; List boards and their configurations</li>
+      </ul>
+
+      <h2 id="slack-integration">Slack (Integration)</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Details</th></tr></thead>
+        <tbody>
+          <tr><td>Secret Name</td><td><code>slack_bot_token</code></td></tr>
+          <tr><td>Token Type</td><td>Bot User OAuth Token</td></tr>
+        </tbody>
+      </table>
+      <p>The Slack integration allows Zubo to proactively send messages to Slack channels and read channel history. This is used for the agent to interact with Slack on your behalf.</p>
+      <blockquote><p><strong>Note:</strong> This is different from the Slack <em>channel</em> (configured in <a href="channels.html">Channel Setup</a>), which lets users send messages <em>to</em> Zubo via Slack. The integration allows the agent to proactively interact with Slack channels &mdash; sending messages, reading history, and responding to events.</p></blockquote>
+      <h3>Skills Installed</h3>
+      <ul>
+        <li><code>slack_messages</code> &mdash; Send messages to channels and users, read channel message history</li>
+      </ul>
+
+      <h2 id="twitter">Twitter / X</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Details</th></tr></thead>
+        <tbody>
+          <tr><td>Secret Name</td><td><code>twitter_bearer_token</code></td></tr>
+          <tr><td>Token Type</td><td>API v2 Bearer Token</td></tr>
+        </tbody>
+      </table>
+      <h3>Getting a Token</h3>
+      <ol>
+        <li>Go to <a href="https://developer.twitter.com">developer.twitter.com</a></li>
         <li>Create a project and app</li>
+        <li>Navigate to Keys and Tokens</li>
         <li>Generate a Bearer Token</li>
-        <li>Tell Zubo: <code>"Set my twitter_bearer_token to ..."</code></li>
       </ol>
+      <h3>Skills Installed</h3>
+      <ul>
+        <li><code>twitter_posts</code> &mdash; Compose and post tweets</li>
+      </ul>
+      <blockquote><p><strong>Note:</strong> The <code>twitter_posts</code> tool has <code>confirm</code> permission level &mdash; the agent will always describe the tweet and ask for your explicit approval before posting. This cannot be bypassed.</p></blockquote>
 
-      <h2>Summary</h2>
+      <h2 id="integration-summary">Integration Summary</h2>
       <table>
-        <thead><tr><th>Service</th><th>Secret Key</th><th>Skills</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Secret Name</th>
+            <th>Skills</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>GitHub</td><td><code>github_token</code></td><td>Issues, PRs, Repos</td></tr>
-          <tr><td>Google</td><td><code>google_api_key</code></td><td>Gmail, Calendar, Docs, Drive, Sheets</td></tr>
-          <tr><td>Notion</td><td><code>notion_token</code></td><td>Pages, Databases, Search</td></tr>
-          <tr><td>Linear</td><td><code>linear_token</code></td><td>Issues, Projects</td></tr>
-          <tr><td>Jira</td><td><code>jira_token</code></td><td>Issues, Boards</td></tr>
-          <tr><td>Slack</td><td><code>slack_token</code></td><td>Messages</td></tr>
-          <tr><td>Twitter</td><td><code>twitter_bearer_token</code></td><td>Posts</td></tr>
+          <tr>
+            <td>GitHub</td>
+            <td><code>github_token</code></td>
+            <td>repos, issues, prs</td>
+            <td>PAT with <code>repo</code> scope</td>
+          </tr>
+          <tr>
+            <td>Google</td>
+            <td><code>google_api_key</code></td>
+            <td>gmail, calendar, sheets, docs, drive</td>
+            <td>Enable APIs in Cloud Console</td>
+          </tr>
+          <tr>
+            <td>Notion</td>
+            <td><code>notion_token</code></td>
+            <td>databases, pages, search</td>
+            <td>Share pages with integration</td>
+          </tr>
+          <tr>
+            <td>Linear</td>
+            <td><code>linear_api_key</code></td>
+            <td>issues, projects</td>
+            <td>Personal API key</td>
+          </tr>
+          <tr>
+            <td>Jira</td>
+            <td><code>jira_token</code> + <code>jira_email</code> + <code>jira_domain</code></td>
+            <td>issues, boards</td>
+            <td>Atlassian API token</td>
+          </tr>
+          <tr>
+            <td>Slack</td>
+            <td><code>slack_bot_token</code></td>
+            <td>messages</td>
+            <td>For proactive messages</td>
+          </tr>
+          <tr>
+            <td>Twitter</td>
+            <td><code>twitter_bearer_token</code></td>
+            <td>posts</td>
+            <td>Requires confirmation</td>
+          </tr>
         </tbody>
       </table>
+
+      <h2 id="managing-secrets">Managing Secrets</h2>
+      <p>All integration secrets are managed through the same unified secret system.</p>
+      <h3>Dashboard</h3>
+      <ul>
+        <li>Navigate to Settings &rarr; Secrets &amp; API Keys</li>
+        <li>Values are displayed as <code>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</code> by default</li>
+        <li>Click <strong>&ldquo;Reveal&rdquo;</strong> to show the actual secret value</li>
+        <li>Click <strong>&ldquo;Edit&rdquo;</strong> to update a secret with a new value</li>
+        <li>Click <strong>&ldquo;Delete&rdquo;</strong> to remove a secret entirely (this disables the associated integration)</li>
+      </ul>
+      <h3>Chat</h3>
+      <p>You can also manage secrets conversationally:</p>
+<pre><code>"List my secrets"
+"Delete the github_token secret"
+"Update my notion_token to ntn_newvalue123"</code></pre>
+
+      <h2 id="best-practices">Best Practices</h2>
+      <ul>
+        <li><strong>Use minimum required scopes:</strong> When creating API tokens, only grant the permissions each service needs. For GitHub, <code>repo</code> and <code>read:user</code> are sufficient &mdash; avoid granting <code>admin</code> or <code>delete</code> scopes.</li>
+        <li><strong>Rotate API keys periodically:</strong> Update your tokens every few months by editing the secret in the dashboard or telling Zubo to update it.</li>
+        <li><strong>Check requirements first:</strong> Before connecting an integration, review which secrets it needs (see the summary table above) so you can prepare all required credentials.</li>
+        <li><strong>Test after connecting:</strong> After storing a secret, verify the integration works by asking Zubo to perform a simple action &mdash; for example, <code>"List my GitHub repos"</code> or <code>"Show my upcoming calendar events"</code>.</li>
+        <li><strong>Secrets are excluded from exports:</strong> When you run <code>zubo export</code>, secrets and API keys are automatically excluded to prevent accidental credential leakage.</li>
+        <li><strong>Store secrets via Zubo:</strong> Always use the agent, dashboard, or <code>secret_set</code> tool to store credentials. Never put them in environment variables, configuration files, or skill source code.</li>
+        <li><strong>Share Notion pages explicitly:</strong> The Notion integration can only access pages and databases that have been explicitly shared with the integration &mdash; it does not have access to your entire workspace by default.</li>
+      </ul>
 
       <div class="docs-page-nav">
-        <a href="channels.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Channel Setup</span></a>
-        <a href="skills.html"><span class="nav-dir">Next</span><span class="nav-label">Skill Development &rarr;</span></a>
+        <a href="channels.html">
+          <span class="nav-dir">Previous</span>
+          <span class="nav-label">&larr; Channel Setup</span>
+        </a>
+        <a href="security.html">
+          <span class="nav-dir">Next</span>
+          <span class="nav-label">Security &amp; Auth &rarr;</span>
+        </a>
       </div>
     </main>
   </div>
 
   <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+
   <script src="../script.js"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Getting Started — Zubo Docs</title>
-  <meta name="description" content="Get started with Zubo — your self-hosted AI agent with persistent memory, multi-channel presence, and 20+ smart tools.">
+  <meta name="description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 35+ tools, sub-agent delegation, and workflow automation.">
   <meta name="theme-color" content="#060608">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,13 +14,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
 </head>
 <body>
-
   <header class="nav scrolled" id="nav">
     <div class="nav-inner">
-      <a href="../index.html" class="nav-logo">
-        <div class="logo-mark">Z</div>
-        <span class="logo-wordmark">zubo</span>
-      </a>
+      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
       <nav class="nav-links" id="nav-links">
         <a href="../index.html#features">Features</a>
         <a href="index.html" style="color:#fff;">Docs</a>
@@ -32,9 +28,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
         </a>
         <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
-        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
-          <span></span><span></span><span></span>
-        </button>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
       </div>
     </div>
   </header>
@@ -49,11 +43,19 @@
         </div>
       </div>
       <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
           <a href="channels.html">Channel Setup</a>
           <a href="integrations.html">Integrations</a>
-          <a href="skills.html">Skill Development</a>
+          <a href="security.html">Security &amp; Auth</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
@@ -64,103 +66,336 @@
         </div>
       </div>
     </aside>
-
     <main class="docs-content">
+
       <div class="docs-breadcrumb">
-        <a href="../index.html">Home</a>
-        <span>/</span>
-        <a href="index.html">Docs</a>
+        <a href="../index.html">Home</a> <span>/</span> <span>Docs</span>
       </div>
 
       <h1>Getting Started with Zubo</h1>
-      <p>Zubo is a self-hosted AI agent with persistent semantic memory, multi-channel presence, 20+ smart tools, and sub-agent delegation. It runs entirely on your machine &mdash; no cloud required.</p>
 
-      <h2>Features</h2>
+      <p>
+        Zubo is a self-hosted AI agent with persistent semantic memory, multi-channel presence across Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat, over 35 smart built-in tools, sub-agent delegation, and workflow automation. It runs entirely on your machine &mdash; your data never leaves your infrastructure. Whether you need a personal assistant that remembers everything, an automation hub that connects your services, or an AI copilot embedded in every chat platform you use, Zubo handles it from a single process with a single configuration file.
+      </p>
+
+      <!-- ================================================================ -->
+      <h2 id="features">Features</h2>
+
+      <h3>AI Engine</h3>
       <ul>
-        <li><strong>Multi-provider LLM</strong> &mdash; Claude, OpenAI-compatible, Ollama, with automatic failover</li>
-        <li><strong>Multi-channel</strong> &mdash; Telegram, Discord, Slack, WhatsApp, Signal, Web Chat</li>
-        <li><strong>Persistent memory</strong> &mdash; Vector + full-text hybrid search (ONNX embeddings, FTS5)</li>
-        <li><strong>Tool system</strong> &mdash; Built-in tools, extensible skills, skill registry</li>
-        <li><strong>Integrations</strong> &mdash; GitHub, Google, Notion, Linear, Jira, Slack, Twitter</li>
-        <li><strong>Workflows</strong> &mdash; Multi-agent pipelines with delegation</li>
-        <li><strong>Scheduling</strong> &mdash; Cron jobs, heartbeat, proactive tasks</li>
-        <li><strong>Voice</strong> &mdash; Speech-to-text (Whisper) and text-to-speech (OpenAI, ElevenLabs)</li>
-        <li><strong>Dashboard</strong> &mdash; Built-in web UI with analytics, memory management, and settings</li>
-        <li><strong>Document ingestion</strong> &mdash; Upload PDF, DOCX, TXT, CSV, JSON, and more</li>
-        <li><strong>API authentication</strong> &mdash; Bearer token auth with key management</li>
-        <li><strong>Skill sandboxing</strong> &mdash; User-installed skills run in isolated subprocesses</li>
+        <li><strong>Multi-provider LLM support</strong> &mdash; Claude (Anthropic), OpenAI (GPT-4o, GPT-4-turbo), Ollama (local models), Groq (fast inference), Together (open models), OpenRouter (multi-model gateway), and LM Studio (local GUI). Switch providers with a single config change.</li>
+        <li><strong>Automatic failover</strong> &mdash; define an ordered list of backup providers. If the primary is down or rate-limited, Zubo seamlessly falls through to the next provider in the chain with no user-facing interruption.</li>
+        <li><strong>Streaming responses</strong> &mdash; token-by-token streaming for all providers that support it. Messages appear in real time across every channel.</li>
+        <li><strong>Context compaction</strong> &mdash; when the conversation approaches the context window limit, Zubo automatically summarizes older turns to free space while preserving critical details.</li>
+        <li><strong>200k token context</strong> &mdash; supports the full 200,000 token context window on Claude models, with configurable context windows per provider.</li>
       </ul>
 
-      <h2>Installation</h2>
-      <p>Zubo requires <a href="https://bun.sh">Bun</a> (v1.0+). Install it in three steps:</p>
+      <h3>Channels</h3>
+      <ul>
+        <li><strong>Telegram</strong> &mdash; full bot API integration with user allow-listing by numeric Telegram ID.</li>
+        <li><strong>Discord</strong> &mdash; bot presence in servers and DMs, with user allow-listing by Discord user ID.</li>
+        <li><strong>Slack</strong> &mdash; app-level integration using Bot Token and App Token, with user allow-listing by Slack member ID.</li>
+        <li><strong>WhatsApp</strong> &mdash; via the WhatsApp Web multi-device API, with phone number allow-listing.</li>
+        <li><strong>Signal</strong> &mdash; via signal-cli, with phone number allow-listing.</li>
+        <li><strong>Web Chat</strong> &mdash; built-in web dashboard with real-time chat, served on a configurable port.</li>
+        <li>All channels share the same memory, personality, tools, and conversation history. A fact learned in Telegram is immediately available in Discord.</li>
+      </ul>
 
-      <h3>Step 1: Install</h3>
-<pre><code>bun add -g zubo
-# or: npm i -g zubo</code></pre>
+      <h3>Memory</h3>
+      <ul>
+        <li><strong>Persistent semantic memory</strong> with vector embeddings powered by all-MiniLM-L6-v2 (384 dimensions), running locally via ONNX Runtime with zero external API calls.</li>
+        <li><strong>Full-text search</strong> using SQLite FTS5 with BM25 ranking for keyword-based retrieval.</li>
+        <li><strong>Hybrid search</strong> that combines 60% vector similarity (cosine) with 40% FTS5 BM25 scoring for best-of-both-worlds recall.</li>
+        <li><strong>Automatic chunking with overlap</strong> for long documents, ensuring context is preserved across chunk boundaries.</li>
+        <li><strong>Document ingestion</strong> supporting PDF, DOCX, TXT, CSV, JSON, YAML, and common code file formats. Upload a document and Zubo indexes it into searchable memory automatically.</li>
+      </ul>
 
-      <h3>Step 2: Setup</h3>
+      <h3>Tools</h3>
+      <ul>
+        <li><strong>35+ built-in tools</strong> including shell command execution, file I/O (read, write, list, search), web search (DuckDuckGo, Brave, Google), HTTP requests, memory read/write/search, secrets management, and cron job scheduling.</li>
+        <li>Tools are permission-gated with three levels: <code>safe</code>, <code>sensitive</code>, and <code>dangerous</code>. Dangerous operations require explicit confirmation tokens.</li>
+      </ul>
+
+      <h3>Skills</h3>
+      <ul>
+        <li><strong>Extensible single-file TypeScript skills</strong> that you can write, install, or share. Each skill is a self-contained <code>.ts</code> file with a manifest header.</li>
+        <li><strong>Hot-reload without restart</strong> &mdash; drop a skill file into <code>~/.zubo/workspace/skills/</code> and it becomes available immediately.</li>
+        <li><strong>Community skill registry</strong> for discovering and installing skills built by others.</li>
+        <li><strong>Skill sandboxing</strong> &mdash; user-installed skills run in isolated subprocesses with configurable timeouts, preventing runaway code from affecting the main process.</li>
+      </ul>
+
+      <h3>Agents</h3>
+      <ul>
+        <li><strong>Custom sub-agents</strong> with focused system prompts, restricted tool access, and specialized behavior. Define a &ldquo;code-reviewer&rdquo; agent that only has access to file and git tools, or a &ldquo;researcher&rdquo; agent that only has web search.</li>
+        <li><strong>2-level delegation</strong> &mdash; the main agent can delegate tasks to sub-agents, which can in turn delegate to their own sub-agents, up to two levels deep.</li>
+      </ul>
+
+      <h3>Workflows</h3>
+      <ul>
+        <li><strong>Multi-agent pipelines</strong> with dependency resolution, parallel execution of independent steps, and variable passing between stages.</li>
+        <li>Define workflows as JSON or YAML in <code>~/.zubo/workspace/workflows/</code> and trigger them by name or on a schedule.</li>
+      </ul>
+
+      <h3>Integrations</h3>
+      <ul>
+        <li><strong>GitHub</strong> &mdash; repositories, issues, pull requests, code search, commit history.</li>
+        <li><strong>Google</strong> &mdash; Calendar (read/write events), Gmail (read/send), Sheets (read/write), Docs (read), Drive (list/search/download).</li>
+        <li><strong>Notion</strong> &mdash; pages, databases, blocks.</li>
+        <li><strong>Linear</strong> &mdash; issues, projects, teams.</li>
+        <li><strong>Jira</strong> &mdash; issues, projects, sprints.</li>
+        <li><strong>Slack</strong> &mdash; channels, messages, users (beyond the chat channel).</li>
+        <li><strong>Twitter</strong> &mdash; post tweets, read timelines.</li>
+      </ul>
+
+      <h3>Scheduling</h3>
+      <ul>
+        <li><strong>Cron jobs</strong> supporting any standard cron expression (e.g., <code>0 9 * * 1-5</code> for weekday mornings).</li>
+        <li><strong>Configurable heartbeat</strong> from 1 to 1440 minutes (default 30), where Zubo wakes up, checks for pending tasks, processes scheduled jobs, and optionally sends proactive messages.</li>
+        <li><strong>Proactive memory-based triggers</strong> &mdash; Zubo can surface reminders and follow-ups based on things it has remembered.</li>
+        <li><strong>Morning briefing</strong> &mdash; a built-in scheduled task that summarizes your calendar, pending tasks, and unread messages each morning.</li>
+      </ul>
+
+      <h3>Voice</h3>
+      <ul>
+        <li><strong>Speech-to-text</strong> via OpenAI Whisper for transcribing voice messages received on any channel.</li>
+        <li><strong>Text-to-speech</strong> via OpenAI (voices: alloy, echo, fable, onyx, nova, shimmer) or ElevenLabs for generating spoken responses.</li>
+      </ul>
+
+      <h3>Dashboard</h3>
+      <ul>
+        <li><strong>Built-in web UI</strong> served as zero-dependency inline HTML on the configured port. No build step, no npm dependencies, no CDN calls.</li>
+        <li>Includes real-time chat, analytics (token usage, tool calls, response times), memory browser with search, skill manager (install, enable, disable, delete), settings editor, and full data export/import.</li>
+      </ul>
+
+      <h3>Security</h3>
+      <ul>
+        <li><strong>API key authentication</strong> with Bearer tokens for all HTTP endpoints.</li>
+        <li><strong>Tool permission levels</strong> (safe, sensitive, dangerous) with confirmation tokens for destructive operations.</li>
+        <li><strong>Rate limiting</strong> per IP with configurable thresholds for chat and upload endpoints.</li>
+        <li><strong>File access restrictions</strong> preventing traversal outside the workspace directory.</li>
+        <li><strong>Shell command filtering</strong> blocking known-dangerous commands and patterns.</li>
+        <li><strong>Private IP blocking</strong> preventing SSRF attacks by blocking requests to internal network addresses.</li>
+      </ul>
+
+      <!-- ================================================================ -->
+      <h2 id="installation">Installation</h2>
+
+      <p>Zubo requires <strong>Bun v1.0+</strong> as its runtime. If you do not have Bun installed, visit <a href="https://bun.sh" target="_blank" rel="noopener">bun.sh</a> and run the one-line installer.</p>
+
+      <h3>Step 1: Install Zubo</h3>
+
+      <p>Install Zubo globally using Bun (recommended) or npm:</p>
+
+<pre><code># Using Bun (recommended)
+bun add -g zubo
+
+# Or using npm
+npm i -g zubo</code></pre>
+
+      <p>This places the <code>zubo</code> binary on your PATH, making it available from any terminal session.</p>
+
+      <h3>Step 2: Run the Setup Wizard</h3>
+
 <pre><code>zubo setup</code></pre>
-      <p>The interactive setup wizard walks you through:</p>
+
+      <p>The interactive setup wizard walks you through initial configuration. It will:</p>
       <ul>
-        <li>Choosing an LLM provider (Anthropic, OpenAI, Ollama, etc.)</li>
-        <li>Entering your API key</li>
-        <li>Selecting a model</li>
-        <li>Optionally configuring channels (Telegram, Discord, etc.)</li>
+        <li>Create the <code>~/.zubo</code> directory and all required subdirectories.</li>
+        <li>Prompt you to select a primary LLM provider and enter your API key.</li>
+        <li>Optionally configure one or more chat channels (Telegram, Discord, etc.).</li>
+        <li>Generate the <code>~/.zubo/config.json</code> file with your choices.</li>
+        <li>Download the all-MiniLM-L6-v2 embedding model (~80 MB) for local semantic memory.</li>
+        <li>Create a default <code>SYSTEM.md</code> system prompt that you can customize later.</li>
       </ul>
 
-      <h3>Step 3: Start</h3>
-<pre><code>zubo start</code></pre>
-      <p>The web dashboard will be available at <code>http://localhost:&lt;port&gt;</code> (shown in terminal output). Use <code>zubo start --daemon</code> to run in the background.</p>
+      <h3>Step 3: Start Zubo</h3>
 
-      <h2>Architecture</h2>
-      <div class="docs-arch">User Message
-  &rarr; Channel Adapter (Telegram/Discord/Slack/WhatsApp/Signal/WebChat)
-    &rarr; Message Router
-      &rarr; Agent Loop (LLM + Tool Execution)
-        &rarr; Tools (built-in, skills, integrations)
-        &rarr; Memory (vector search, FTS5, document parsing)
-        &rarr; Scheduler (cron, heartbeat, proactive tasks)
-      &rarr; Response
-    &rarr; Channel Adapter
-  &rarr; User</div>
+<pre><code># Start in foreground (logs to stdout)
+zubo start
 
-      <h2>Tech Stack</h2>
+# Start as a background daemon
+zubo start --daemon</code></pre>
+
+      <p>When started, Zubo initializes the SQLite database, loads the embedding model, connects to all enabled channels, and starts the heartbeat scheduler. The web dashboard opens automatically in your default browser at <code>http://localhost:3000</code> (or your configured port). When running with <code>--daemon</code>, Zubo writes its PID to <code>~/.zubo/zubo.pid</code> and logs to <code>~/.zubo/logs/zubo.log</code>.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="architecture">Architecture</h2>
+
+      <p>Zubo is a single-process application built around an event-driven agent loop. Here is a simplified view of how a message flows through the system:</p>
+
+<pre><code>                        +---------------------+
+                        |    User Message      |
+                        +----------+----------+
+                                   |
+                        +----------v----------+
+                        |  Channel Adapter     |
+                        |  (Telegram, Discord, |
+                        |   Slack, WhatsApp,   |
+                        |   Signal, Web Chat)  |
+                        +----------+----------+
+                                   |
+                        +----------v----------+
+                        |      Router          |
+                        |  (auth, rate limit,  |
+                        |   session lookup)    |
+                        +----------+----------+
+                                   |
+                        +----------v----------+
+                        |    Agent Loop        |
+                        |                      |
+                        |  +------+ +-------+  |
+                        |  |Tools | |Memory |  |
+                        |  +------+ +-------+  |
+                        |  +------+ +-------+  |
+                        |  |Skills| |Agents |  |
+                        |  +------+ +-------+  |
+                        |  +-----------+       |
+                        |  |Scheduler  |       |
+                        |  +-----------+       |
+                        +----------+----------+
+                                   |
+                        +----------v----------+
+                        |     LLM Provider     |
+                        | (Claude / OpenAI /   |
+                        |  Ollama / Groq ...)  |
+                        +----------+----------+
+                                   |
+                        +----------v----------+
+                        |      Response        |
+                        +----------+----------+
+                                   |
+                        +----------v----------+
+                        |  Channel Adapter     |
+                        +----------+----------+
+                                   |
+                        +----------v----------+
+                        |       User           |
+                        +---------------------+</code></pre>
+
+      <p>The <strong>Channel Adapter</strong> normalizes incoming messages from any platform into a unified internal format. The <strong>Router</strong> handles authentication, rate limiting, and session management. The <strong>Agent Loop</strong> is the core: it sends the conversation to the LLM, processes any tool calls the LLM requests, stores results in memory, and iterates until the LLM produces a final text response or the maximum turn count is reached. The response is then sent back through the Channel Adapter to the originating platform.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="directory-structure">Directory Structure</h2>
+
+      <p>All Zubo data lives under a single home directory, defaulting to <code>~/.zubo</code>. You can override this with the <code>ZUBO_HOME</code> environment variable.</p>
+
+<pre><code>~/.zubo/
+├── config.json          # Main configuration file
+├── zubo.db              # SQLite database (WAL mode)
+├── zubo.pid             # Daemon PID file (created on --daemon)
+├── logs/
+│   └── zubo.log         # Application logs (rotated daily)
+├── sessions/
+│   └── owner.jsonl      # Conversation history (JSON Lines)
+├── models/
+│   └── all-MiniLM-L6-v2/ # Embedding model (auto-downloaded on setup)
+│       ├── model.onnx
+│       ├── tokenizer.json
+│       └── config.json
+└── workspace/
+    ├── SYSTEM.md         # Custom system prompt (editable)
+    ├── MEMORY.md         # Persistent memory file
+    ├── memory/           # Dated memory files (YYYY-MM-DD.md)
+    ├── skills/           # User-installed skill files (.ts)
+    ├── agents/           # Custom agent definitions (.json)
+    ├── workflows/        # Workflow definitions (.json / .yaml)
+    ├── teams/            # Team definitions (.json)
+    ├── uploads/          # Uploaded and ingested documents
+    └── backups/          # Daily SQLite backups (zubo-YYYY-MM-DD.db)</code></pre>
+
+      <p>The <code>config.json</code> file is the single source of truth for all runtime configuration. The <code>zubo.db</code> SQLite database stores memory entries, embeddings, scheduled jobs, API keys, and analytics. Conversation history is stored as JSON Lines in the <code>sessions/</code> directory for easy inspection and export.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="tech-stack">Tech Stack</h2>
+
       <table>
         <thead>
-          <tr><th>Component</th><th>Technology</th></tr>
+          <tr>
+            <th>Component</th>
+            <th>Technology</th>
+          </tr>
         </thead>
         <tbody>
-          <tr><td>Runtime</td><td>Bun</td></tr>
-          <tr><td>Language</td><td>TypeScript</td></tr>
-          <tr><td>Database</td><td>SQLite (via bun:sqlite)</td></tr>
-          <tr><td>Embeddings</td><td>ONNX Runtime (all-MiniLM-L6-v2)</td></tr>
-          <tr><td>Search</td><td>FTS5 + cosine similarity vector search</td></tr>
-          <tr><td>Dashboard</td><td>Zero-dependency inline HTML</td></tr>
+          <tr>
+            <td>Runtime</td>
+            <td>Bun</td>
+          </tr>
+          <tr>
+            <td>Language</td>
+            <td>TypeScript</td>
+          </tr>
+          <tr>
+            <td>Database</td>
+            <td>SQLite via <code>bun:sqlite</code> (WAL mode for concurrent reads)</td>
+          </tr>
+          <tr>
+            <td>Embeddings</td>
+            <td>ONNX Runtime with all-MiniLM-L6-v2 (384 dimensions, ~80 MB)</td>
+          </tr>
+          <tr>
+            <td>Search</td>
+            <td>Hybrid: FTS5 BM25 (40%) + cosine vector similarity (60%)</td>
+          </tr>
+          <tr>
+            <td>Dashboard</td>
+            <td>Zero-dependency inline HTML (no build step, no CDN)</td>
+          </tr>
+          <tr>
+            <td>LLM SDK</td>
+            <td><code>@anthropic-ai/sdk</code> for Claude + OpenAI-compatible REST for all others</td>
+          </tr>
+          <tr>
+            <td>Channels</td>
+            <td>Native API clients per platform (grammy, discord.js, @slack/bolt, whatsapp-web.js, signal-cli)</td>
+          </tr>
+          <tr>
+            <td>Voice</td>
+            <td>OpenAI Whisper (STT), OpenAI TTS / ElevenLabs (TTS)</td>
+          </tr>
         </tbody>
       </table>
 
-      <h2>Next Steps</h2>
+      <!-- ================================================================ -->
+      <h2 id="best-practices">Best Practices</h2>
+
       <ul>
-        <li><a href="config.html">Configuration Reference</a> &mdash; All config fields explained</li>
-        <li><a href="channels.html">Channel Setup</a> &mdash; Connect Telegram, Discord, Slack, and more</li>
-        <li><a href="integrations.html">Integrations</a> &mdash; Set up GitHub, Google, Notion, and others</li>
-        <li><a href="skills.html">Skill Development</a> &mdash; Build custom skills</li>
-        <li><a href="api.html">API Reference</a> &mdash; All endpoints documented</li>
-        <li><a href="cli.html">CLI Commands</a> &mdash; Every command with examples</li>
+        <li><strong>Start with <code>zubo setup</code></strong> &mdash; let the interactive wizard configure everything. It handles directory creation, model downloading, and initial config generation so you do not have to do it manually.</li>
+        <li><strong>Write a custom system prompt</strong> in <code>~/.zubo/workspace/SYSTEM.md</code> to give your agent a distinct personality and context about you, your work, your preferences, and your tools. The more specific you are, the better Zubo serves you.</li>
+        <li><strong>Use the dashboard for day-to-day management</strong> (chatting, browsing memory, managing skills) and <strong>the CLI for automation</strong> (scripting, cron, CI/CD pipelines).</li>
+        <li><strong>Enable API authentication</strong> if you are exposing the web port beyond localhost: <code>zubo config set auth.enabled true</code>, then create an API key via the dashboard or <code>zubo auth create</code>.</li>
+        <li><strong>Set rate limits for production</strong> to prevent abuse: <code>zubo config set rateLimit.chatPerMinute 30</code>.</li>
+        <li><strong>Use <code>zubo start --daemon</code></strong> for always-on operation. Zubo writes a PID file and rotates logs automatically.</li>
+        <li><strong>Check <code>zubo status</code> and <code>zubo logs</code></strong> for troubleshooting. The status command shows uptime, memory usage, connected channels, and pending scheduled jobs.</li>
+        <li><strong>Back up your data</strong> with <code>zubo export</code> for a full JSON export, or rely on the automatic daily SQLite backups in <code>~/.zubo/workspace/backups/</code>.</li>
+        <li><strong>Configure failover providers</strong> so your agent stays available even if your primary LLM provider has an outage. For example, set Anthropic as primary and Ollama as failover for fully offline operation when the cloud is down.</li>
+        <li><strong>Keep skills small and focused</strong> &mdash; one skill per task. This makes them easier to test, share, and debug.</li>
+      </ul>
+
+      <!-- ================================================================ -->
+      <h2 id="next-steps">Next Steps</h2>
+
+      <p>Now that you have Zubo installed and running, explore the rest of the documentation to unlock its full potential:</p>
+
+      <ul>
+        <li><a href="config.html"><strong>Configuration</strong></a> &mdash; deep dive into every configuration option: LLM providers, channels, voice, rate limiting, authentication, sandbox settings, and a complete annotated example.</li>
+        <li><a href="agents.html"><strong>Agents &amp; Workflows</strong></a> &mdash; learn how to create custom sub-agents with focused system prompts and restricted tools, and build multi-agent pipelines with dependency resolution and parallel execution.</li>
+        <li><a href="memory.html"><strong>Memory System</strong></a> &mdash; understand how semantic memory works, how to ingest documents, search your knowledge base, and tune the hybrid search weights.</li>
+        <li><a href="skills.html"><strong>Skills</strong></a> &mdash; write, install, and share single-file TypeScript skills. Learn the skill manifest format, the sandbox environment, and the community registry.</li>
+        <li><a href="channels.html"><strong>Channel Setup</strong></a> &mdash; step-by-step guides for configuring each channel: creating bots, obtaining tokens, setting up webhooks, and configuring allow-lists.</li>
+        <li><a href="integrations.html"><strong>Integrations</strong></a> &mdash; connect Zubo to GitHub, Google Workspace, Notion, Linear, Jira, and more. OAuth flows, API key setup, and usage examples.</li>
+        <li><a href="security.html"><strong>Security &amp; Auth</strong></a> &mdash; harden your Zubo instance: API key management, tool permission levels, confirmation tokens, rate limiting, file access restrictions, and network security.</li>
+        <li><a href="api.html"><strong>API Reference</strong></a> &mdash; complete HTTP API documentation for programmatic access: endpoints, request/response formats, authentication, and WebSocket streaming.</li>
+        <li><a href="cli.html"><strong>CLI Commands</strong></a> &mdash; full reference for every <code>zubo</code> CLI command: start, stop, status, config, auth, export, import, logs, and more.</li>
       </ul>
 
       <div class="docs-page-nav">
         <div></div>
-        <a href="config.html">
-          <span class="nav-dir">Next</span>
-          <span class="nav-label">Configuration &rarr;</span>
-        </a>
+        <a href="config.html"><span class="nav-dir">Next</span><span class="nav-label">Configuration &rarr;</span></a>
       </div>
+
     </main>
   </div>
-
   <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
-
   <script src="../script.js"></script>
 </body>
 </html>

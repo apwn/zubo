@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Configuration — Zubo Docs</title>
-  <meta name="description" content="Complete configuration reference for Zubo. All config.json fields documented with examples.">
+  <meta name="description" content="Complete configuration reference for Zubo: LLM providers, channels, voice, rate limiting, authentication, sandbox settings, and full annotated example.">
   <meta name="theme-color" content="#060608">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,13 +14,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
 </head>
 <body>
-
   <header class="nav scrolled" id="nav">
     <div class="nav-inner">
-      <a href="../index.html" class="nav-logo">
-        <div class="logo-mark">Z</div>
-        <span class="logo-wordmark">zubo</span>
-      </a>
+      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
       <nav class="nav-links" id="nav-links">
         <a href="../index.html#features">Features</a>
         <a href="index.html" style="color:#fff;">Docs</a>
@@ -32,9 +28,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
         </a>
         <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
-        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
-          <span></span><span></span><span></span>
-        </button>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
       </div>
     </div>
   </header>
@@ -49,11 +43,19 @@
         </div>
       </div>
       <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
           <a href="channels.html">Channel Setup</a>
           <a href="integrations.html">Integrations</a>
-          <a href="skills.html">Skill Development</a>
+          <a href="security.html">Security &amp; Auth</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
@@ -64,56 +66,698 @@
         </div>
       </div>
     </aside>
-
     <main class="docs-content">
+
       <div class="docs-breadcrumb">
-        <a href="../index.html">Home</a>
-        <span>/</span>
-        <a href="index.html">Docs</a>
-        <span>/</span>
-        Configuration
+        <a href="../index.html">Home</a> <span>/</span> <a href="index.html">Docs</a> <span>/</span> <span>Configuration</span>
       </div>
 
-      <h1>Configuration Reference</h1>
-      <p>Zubo stores its configuration at <code>~/.zubo/config.json</code>. You can edit it directly or use <code>zubo setup</code> for interactive configuration.</p>
+      <h1>Configuration</h1>
 
-      <h2>Provider Configuration</h2>
-      <p>Configure one or more LLM providers in the <code>providers</code> object:</p>
-<pre><code>{
-  "providers": {
-    "anthropic": {
-      "apiKey": "sk-ant-...",
-      "model": "claude-sonnet-4-5-20250929"
-    },
-    "openai": {
-      "apiKey": "sk-...",
-      "model": "gpt-4o",
-      "baseUrl": "https://api.openai.com/v1"
-    },
-    "ollama": {
-      "model": "llama3",
-      "baseUrl": "http://localhost:11434/v1"
-    }
-  },
-  "activeProvider": "anthropic",
-  "failover": ["anthropic", "openai", "ollama"]
-}</code></pre>
+      <p>
+        All Zubo configuration lives in a single file: <code>~/.zubo/config.json</code>. You can edit this file directly with any text editor, or use the <code>zubo config</code> CLI commands for quick changes without opening a file. Changes to the configuration file are picked up on the next restart, while CLI changes via <code>zubo config set</code> take effect immediately if Zubo is running.
+      </p>
 
-      <h3>Provider Fields</h3>
+      <!-- ================================================================ -->
+      <h2 id="quick-config-via-cli">Quick Config via CLI</h2>
+
+      <p>The <code>zubo config</code> command provides a convenient way to read and write configuration values from the terminal:</p>
+
+<pre><code># Set values
+zubo config set activeProvider ollama
+zubo config set model llama3.3
+zubo config set heartbeatMinutes 60
+zubo config set auth.enabled true
+zubo config set rateLimit.chatPerMinute 30
+zubo config set channels.webchat.port 8080
+zubo config set providers.anthropic.model claude-sonnet-4-5-20250929
+
+# Get values
+zubo config get                    # Show entire configuration (pretty-printed)
+zubo config get activeProvider     # Show a single value
+zubo config get channels.telegram  # Show a nested object
+zubo config get rateLimit          # Show all rate limit settings</code></pre>
+
+      <p><strong>Notes on the CLI:</strong></p>
+      <ul>
+        <li>Supports <strong>dotted keys</strong> for nested values. <code>zubo config set channels.webchat.port 8080</code> writes to <code>{"channels": {"webchat": {"port": 8080}}}</code>.</li>
+        <li>Types are <strong>auto-detected</strong>: <code>true</code> and <code>false</code> become booleans, strings of digits become numbers, everything else stays a string.</li>
+        <li>To explicitly set a string that looks like a number, wrap it in quotes: <code>zubo config set someField '"12345"'</code>.</li>
+        <li>The <code>set</code> command writes the file atomically, so there is no risk of corruption from concurrent writes.</li>
+      </ul>
+
+      <!-- ================================================================ -->
+      <h2 id="llm-providers">LLM Providers</h2>
+
+      <p>
+        Zubo supports a multi-provider architecture. You configure one or more LLM providers under the <code>providers</code> object, set one as <code>activeProvider</code>, and optionally define a <code>failover</code> chain. If the active provider fails (network error, rate limit, authentication error), Zubo automatically tries each failover provider in order until one succeeds.
+      </p>
+
+      <h3>Supported Providers</h3>
+
       <table>
-        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Provider Key</th>
+            <th>Default Base URL</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><code>apiKey</code></td><td>string</td><td>API key for the provider (optional for Ollama)</td></tr>
-          <tr><td><code>baseUrl</code></td><td>string</td><td>Custom API endpoint URL</td></tr>
-          <tr><td><code>model</code></td><td>string</td><td><strong>Required.</strong> Model identifier</td></tr>
-          <tr><td><code>streaming</code></td><td>boolean</td><td>Enable streaming responses (default: auto)</td></tr>
-          <tr><td><code>contextWindow</code></td><td>number</td><td>Override context window size</td></tr>
+          <tr>
+            <td><code>anthropic</code></td>
+            <td><em>(uses Anthropic SDK directly)</em></td>
+            <td>Claude models. Supports up to 200k token context. Native streaming. Recommended primary provider.</td>
+          </tr>
+          <tr>
+            <td><code>openai</code></td>
+            <td><code>https://api.openai.com/v1</code></td>
+            <td>GPT-4o, GPT-4-turbo, and other OpenAI models. Streaming supported.</td>
+          </tr>
+          <tr>
+            <td><code>ollama</code></td>
+            <td><code>http://localhost:11434/v1</code></td>
+            <td>Run models locally. No API key required. Great as a failover for offline operation.</td>
+          </tr>
+          <tr>
+            <td><code>groq</code></td>
+            <td><code>https://api.groq.com/openai/v1</code></td>
+            <td>Extremely fast inference. Supports Llama, Mixtral, and other open models.</td>
+          </tr>
+          <tr>
+            <td><code>together</code></td>
+            <td><code>https://api.together.xyz/v1</code></td>
+            <td>Wide selection of open-source models. Competitive pricing.</td>
+          </tr>
+          <tr>
+            <td><code>openrouter</code></td>
+            <td><code>https://openrouter.ai/api/v1</code></td>
+            <td>Multi-model gateway. Access Claude, GPT-4, Llama, and more through a single API key.</td>
+          </tr>
+          <tr>
+            <td><code>lmstudio</code></td>
+            <td><code>http://localhost:1234/v1</code></td>
+            <td>Local model GUI. Download and run models with a graphical interface. No API key required.</td>
+          </tr>
         </tbody>
       </table>
 
-      <h2>Channel Configuration</h2>
-      <p>Configure messaging channels in the <code>channels</code> object. See the <a href="channels.html">Channel Setup</a> guide for detailed instructions.</p>
+      <h3>Provider Configuration Fields</h3>
+
+      <p>Each provider object under <code>providers</code> accepts the following fields:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>apiKey</code></td>
+            <td>string</td>
+            <td>Yes*</td>
+            <td>API key for the provider. Not required for local providers (Ollama, LM Studio).</td>
+          </tr>
+          <tr>
+            <td><code>baseUrl</code></td>
+            <td>string</td>
+            <td>No</td>
+            <td>Override the default base URL. Useful for proxies or self-hosted endpoints.</td>
+          </tr>
+          <tr>
+            <td><code>model</code></td>
+            <td>string</td>
+            <td>No</td>
+            <td>Model name to use. Defaults vary by provider (e.g., <code>claude-sonnet-4-5-20250929</code> for Anthropic).</td>
+          </tr>
+          <tr>
+            <td><code>streaming</code></td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Enable or disable streaming responses. Defaults to <code>true</code>.</td>
+          </tr>
+          <tr>
+            <td><code>contextWindow</code></td>
+            <td>number</td>
+            <td>No</td>
+            <td>Maximum context window size in tokens. Zubo uses this for context compaction decisions. Defaults to the provider's known maximum.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Multi-Provider Example with Failover</h3>
+
 <pre><code>{
+  "providers": {
+    "anthropic": {
+      "apiKey": "sk-ant-api03-...",
+      "model": "claude-sonnet-4-5-20250929",
+      "streaming": true,
+      "contextWindow": 200000
+    },
+    "openai": {
+      "apiKey": "sk-proj-...",
+      "model": "gpt-4o",
+      "streaming": true
+    },
+    "ollama": {
+      "baseUrl": "http://localhost:11434/v1",
+      "model": "llama3.3",
+      "streaming": true
+    }
+  },
+  "activeProvider": "anthropic",
+  "failover": ["openai", "ollama"]
+}</code></pre>
+
+      <p>In this configuration, Zubo uses Claude as the primary model. If Anthropic returns an error (rate limit, network issue, etc.), it automatically tries OpenAI next, and finally Ollama as a local fallback. The failover is transparent to the user &mdash; they receive a response regardless of which provider handled it.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="channel-configuration">Channel Configuration</h2>
+
+      <p>
+        Channels define how users interact with Zubo. Each channel is independently configured under the <code>channels</code> object. All enabled channels share the same memory, personality, tools, and conversation history &mdash; a fact learned via Telegram is immediately available in Discord or the web dashboard.
+      </p>
+
+      <h3>Web Chat</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>enabled</code></td>
+            <td>boolean</td>
+            <td><code>true</code></td>
+            <td>Enable the built-in web chat dashboard.</td>
+          </tr>
+          <tr>
+            <td><code>port</code></td>
+            <td>number</td>
+            <td><code>3000</code></td>
+            <td>HTTP port for the web dashboard and API.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"webchat": {
+  "enabled": true,
+  "port": 3000
+}</code></pre>
+
+      <h3>Telegram</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>enabled</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>Enable the Telegram channel.</td>
+          </tr>
+          <tr>
+            <td><code>botToken</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>Bot token from <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>.</td>
+          </tr>
+          <tr>
+            <td><code>allowedUsers</code></td>
+            <td>number[]</td>
+            <td><code>[]</code></td>
+            <td>Array of numeric Telegram user IDs allowed to interact. Empty array means no restriction.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"telegram": {
+  "enabled": true,
+  "botToken": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+  "allowedUsers": [12345678, 87654321]
+}</code></pre>
+
+      <h3>Discord</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>enabled</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>Enable the Discord channel.</td>
+          </tr>
+          <tr>
+            <td><code>botToken</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>Bot token from the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">Discord Developer Portal</a>.</td>
+          </tr>
+          <tr>
+            <td><code>allowedUsers</code></td>
+            <td>string[]</td>
+            <td><code>[]</code></td>
+            <td>Array of Discord user ID strings allowed to interact. Empty array means no restriction.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"discord": {
+  "enabled": true,
+  "botToken": "MTk4NjIyNDgzNDcxOTI1...",
+  "allowedUsers": ["198622483471925248"]
+}</code></pre>
+
+      <h3>Slack</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>enabled</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>Enable the Slack channel.</td>
+          </tr>
+          <tr>
+            <td><code>botToken</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>Bot User OAuth Token (starts with <code>xoxb-</code>).</td>
+          </tr>
+          <tr>
+            <td><code>appToken</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>App-Level Token (starts with <code>xapp-</code>). Required for Socket Mode.</td>
+          </tr>
+          <tr>
+            <td><code>allowedUsers</code></td>
+            <td>string[]</td>
+            <td><code>[]</code></td>
+            <td>Array of Slack member ID strings allowed to interact. Empty array means no restriction.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"slack": {
+  "enabled": true,
+  "botToken": "xoxb-1234567890-abcdefghij",
+  "appToken": "xapp-1-A0123456789-1234567890123-abcdef",
+  "allowedUsers": ["U01ABCDEF"]
+}</code></pre>
+
+      <h3>WhatsApp</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>enabled</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>Enable the WhatsApp channel.</td>
+          </tr>
+          <tr>
+            <td><code>authDir</code></td>
+            <td>string</td>
+            <td><code>~/.zubo/whatsapp-auth</code></td>
+            <td>Directory to store WhatsApp Web authentication data. On first run, a QR code is displayed for pairing.</td>
+          </tr>
+          <tr>
+            <td><code>allowedNumbers</code></td>
+            <td>string[]</td>
+            <td><code>[]</code></td>
+            <td>Array of phone numbers (with country code, e.g., <code>"14155551234"</code>) allowed to interact. Empty array means no restriction.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"whatsapp": {
+  "enabled": true,
+  "authDir": "/Users/you/.zubo/whatsapp-auth",
+  "allowedNumbers": ["14155551234", "447700900000"]
+}</code></pre>
+
+      <h3>Signal</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>enabled</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>Enable the Signal channel.</td>
+          </tr>
+          <tr>
+            <td><code>phoneNumber</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>The phone number registered with Signal for the bot (with country code, e.g., <code>"+14155551234"</code>).</td>
+          </tr>
+          <tr>
+            <td><code>signalCliPath</code></td>
+            <td>string</td>
+            <td><code>signal-cli</code></td>
+            <td>Path to the <code>signal-cli</code> binary. Defaults to looking on the system PATH.</td>
+          </tr>
+          <tr>
+            <td><code>allowedNumbers</code></td>
+            <td>string[]</td>
+            <td><code>[]</code></td>
+            <td>Array of phone numbers allowed to interact. Empty array means no restriction.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"signal": {
+  "enabled": true,
+  "phoneNumber": "+14155551234",
+  "signalCliPath": "/usr/local/bin/signal-cli",
+  "allowedNumbers": ["+447700900000"]
+}</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="voice-configuration">Voice Configuration</h2>
+
+      <p>
+        Zubo supports speech-to-text (STT) for transcribing voice messages received on any channel, and text-to-speech (TTS) for generating spoken audio responses. Voice is configured under the <code>voice</code> object.
+      </p>
+
+      <h3>Speech-to-Text (STT)</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>provider</code></td>
+            <td>string</td>
+            <td><code>"whisper"</code></td>
+            <td>STT provider. Currently supported: <code>whisper</code> (OpenAI Whisper API).</td>
+          </tr>
+          <tr>
+            <td><code>apiKey</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>API key for the STT provider. For Whisper, this is your OpenAI API key.</td>
+          </tr>
+          <tr>
+            <td><code>model</code></td>
+            <td>string</td>
+            <td><code>"whisper-1"</code></td>
+            <td>Model to use for transcription.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Text-to-Speech (TTS)</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>provider</code></td>
+            <td>string</td>
+            <td><code>"openai"</code></td>
+            <td>TTS provider. Supported: <code>openai</code>, <code>elevenlabs</code>.</td>
+          </tr>
+          <tr>
+            <td><code>apiKey</code></td>
+            <td>string</td>
+            <td>&mdash;</td>
+            <td>API key for the TTS provider.</td>
+          </tr>
+          <tr>
+            <td><code>voice</code></td>
+            <td>string</td>
+            <td><code>"nova"</code></td>
+            <td>Voice to use for speech generation. OpenAI voices: <code>alloy</code>, <code>echo</code>, <code>fable</code>, <code>onyx</code>, <code>nova</code>, <code>shimmer</code>. ElevenLabs voices depend on your account.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"voice": {
+  "stt": {
+    "provider": "whisper",
+    "apiKey": "sk-proj-...",
+    "model": "whisper-1"
+  },
+  "tts": {
+    "provider": "openai",
+    "apiKey": "sk-proj-...",
+    "voice": "nova"
+  }
+}</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="agent-settings">Agent Settings</h2>
+
+      <p>These top-level settings control the core agent behavior.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>maxTurns</code></td>
+            <td>number</td>
+            <td><code>50</code></td>
+            <td>Maximum number of tool-call rounds per conversation turn. When the agent reaches this limit, it stops calling tools and produces a text response with whatever information it has gathered. This prevents runaway tool loops. Reasonable values range from 10 (tightly constrained) to 100 (complex multi-step tasks).</td>
+          </tr>
+          <tr>
+            <td><code>heartbeatMinutes</code></td>
+            <td>number</td>
+            <td><code>30</code></td>
+            <td>Interval in minutes (1&ndash;1440) between heartbeat cycles. During each heartbeat, Zubo wakes up, checks for pending cron jobs, processes scheduled tasks, evaluates proactive memory triggers, and optionally sends notifications. Set to a low value (1&ndash;5) for near-real-time scheduling, or a high value (60&ndash;1440) to conserve resources.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>{
+  "maxTurns": 50,
+  "heartbeatMinutes": 30
+}</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="rate-limiting">Rate Limiting</h2>
+
+      <p>
+        Zubo includes built-in per-IP rate limiting to protect against abuse. Rate limits use a sliding window algorithm &mdash; each IP address gets an independent counter that resets on a rolling 60-second basis.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>rateLimit.chatPerMinute</code></td>
+            <td>number</td>
+            <td><code>60</code></td>
+            <td>Maximum chat messages per minute per IP address. Applies to the <code>/api/chat</code> endpoint and WebSocket messages. When exceeded, the client receives a <code>429 Too Many Requests</code> response.</td>
+          </tr>
+          <tr>
+            <td><code>rateLimit.uploadPerMinute</code></td>
+            <td>number</td>
+            <td><code>10</code></td>
+            <td>Maximum file uploads per minute per IP address. Applies to the <code>/api/upload</code> endpoint. Uploads are more resource-intensive (document parsing, chunking, embedding), so the default is lower.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"rateLimit": {
+  "chatPerMinute": 60,
+  "uploadPerMinute": 10
+}</code></pre>
+
+      <p>For personal use on localhost, the defaults are generous. If you are exposing Zubo on a public network or sharing it with others, consider lowering these values (e.g., <code>chatPerMinute: 30</code>, <code>uploadPerMinute: 5</code>).</p>
+
+      <!-- ================================================================ -->
+      <h2 id="authentication">Authentication</h2>
+
+      <p>
+        When <code>auth.enabled</code> is <code>true</code>, all HTTP API endpoints and WebSocket connections require a valid API key. This is strongly recommended if you are exposing Zubo's port beyond localhost.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>auth.enabled</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>Enable API key authentication for all HTTP and WebSocket endpoints.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Managing API Keys</h3>
+
+      <p>API keys can be created and managed via the CLI or the web dashboard:</p>
+
+<pre><code># Create a new API key
+zubo auth create --name "my-app"
+# Output: API key created: zb_k1_a1b2c3d4e5f6...
+
+# List all API keys
+zubo auth list
+
+# Revoke an API key
+zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
+
+      <h3>Using API Keys</h3>
+
+      <p>Include the API key in the <code>Authorization</code> header as a Bearer token:</p>
+
+<pre><code>curl -X POST http://localhost:3000/api/chat \
+  -H "Authorization: Bearer zb_k1_a1b2c3d4e5f6..." \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello, Zubo!"}'</code></pre>
+
+      <p>For WebSocket connections, pass the key as a query parameter:</p>
+
+<pre><code>ws://localhost:3000/ws?token=zb_k1_a1b2c3d4e5f6...</code></pre>
+
+      <p>API keys are stored as hashed values in the SQLite database. The plain-text key is only shown once at creation time and cannot be retrieved later. If you lose a key, revoke it and create a new one.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="sandbox">Sandbox</h2>
+
+      <p>
+        The sandbox controls how user-installed skills (from <code>~/.zubo/workspace/skills/</code>) are executed. Built-in tools always run in the main process, but user skills run in isolated subprocesses for safety.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>sandbox.enabled</code></td>
+            <td>boolean</td>
+            <td><code>true</code></td>
+            <td>Enable subprocess sandboxing for user-installed skills. When enabled, each skill invocation runs in a separate Bun subprocess with restricted access. Disabling this is not recommended but may be necessary for skills that require direct main-process access.</td>
+          </tr>
+          <tr>
+            <td><code>sandbox.timeoutMs</code></td>
+            <td>number</td>
+            <td><code>30000</code></td>
+            <td>Maximum execution time in milliseconds for a single skill invocation. If a skill exceeds this timeout, its subprocess is terminated and an error is returned to the agent. Set higher for skills that perform long-running operations (e.g., large file processing, slow API calls).</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"sandbox": {
+  "enabled": true,
+  "timeoutMs": 30000
+}</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="full-example">Full Example</h2>
+
+      <p>Here is a complete <code>~/.zubo/config.json</code> showing all configuration sections together. This represents a fully configured instance with Anthropic as the primary provider, Ollama as a local failover, three channels enabled, voice support, and production-ready security settings:</p>
+
+<pre><code>{
+  "providers": {
+    "anthropic": {
+      "apiKey": "sk-ant-api03-...",
+      "model": "claude-sonnet-4-5-20250929",
+      "streaming": true,
+      "contextWindow": 200000
+    },
+    "ollama": {
+      "baseUrl": "http://localhost:11434/v1",
+      "model": "llama3.3",
+      "streaming": true
+    }
+  },
+  "activeProvider": "anthropic",
+  "failover": ["ollama"],
+
   "channels": {
     "webchat": {
       "enabled": true,
@@ -121,117 +765,118 @@
     },
     "telegram": {
       "enabled": true,
-      "botToken": "123456:ABC...",
+      "botToken": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
       "allowedUsers": [12345678]
     },
     "discord": {
       "enabled": true,
-      "botToken": "MTIz...",
+      "botToken": "MTk4NjIyNDgzNDcxOTI1...",
       "allowedUsers": []
     },
     "slack": {
-      "enabled": true,
-      "botToken": "xoxb-...",
-      "appToken": "xapp-..."
+      "enabled": false,
+      "botToken": "",
+      "appToken": "",
+      "allowedUsers": []
     },
     "whatsapp": {
-      "enabled": true,
-      "allowedNumbers": ["+1234567890"]
+      "enabled": false,
+      "authDir": "",
+      "allowedNumbers": []
     },
     "signal": {
-      "enabled": true,
-      "phoneNumber": "+1234567890"
+      "enabled": false,
+      "phoneNumber": "",
+      "signalCliPath": "signal-cli",
+      "allowedNumbers": []
     }
-  }
-}</code></pre>
+  },
 
-      <h2>Voice Configuration</h2>
-      <p>Configure speech-to-text and text-to-speech providers:</p>
-<pre><code>{
   "voice": {
     "stt": {
       "provider": "whisper",
-      "apiKey": "sk-...",
+      "apiKey": "sk-proj-...",
       "model": "whisper-1"
     },
     "tts": {
       "provider": "openai",
-      "apiKey": "sk-...",
-      "voice": "alloy"
-    }
-  }
-}</code></pre>
-
-      <h2>Agent Settings</h2>
-      <table>
-        <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><code>maxTurns</code></td><td>number</td><td>50</td><td>Maximum agent loop turns per message</td></tr>
-          <tr><td><code>heartbeatMinutes</code></td><td>number</td><td>30</td><td>Background heartbeat interval (1&ndash;1440 minutes)</td></tr>
-        </tbody>
-      </table>
-
-      <h2>Authentication</h2>
-      <p>Enable API key authentication to protect your endpoints:</p>
-<pre><code>{
-  "auth": {
-    "enabled": true
-  }
-}</code></pre>
-      <p>When enabled, all <code>/api/*</code> endpoints require a <code>Authorization: Bearer &lt;key&gt;</code> header. Create keys with <code>zubo auth create-key</code>.</p>
-
-      <h2>Rate Limiting</h2>
-      <table>
-        <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><code>rateLimit.chatPerMinute</code></td><td>number</td><td>60</td><td>Max chat requests per IP per minute</td></tr>
-          <tr><td><code>rateLimit.uploadPerMinute</code></td><td>number</td><td>10</td><td>Max upload requests per IP per minute</td></tr>
-        </tbody>
-      </table>
-
-      <h2>Sandbox</h2>
-      <p>User-installed skills run in isolated subprocesses by default:</p>
-      <table>
-        <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><code>sandbox.enabled</code></td><td>boolean</td><td>true</td><td>Enable skill sandboxing</td></tr>
-          <tr><td><code>sandbox.timeoutMs</code></td><td>number</td><td>30000</td><td>Maximum skill execution time in ms</td></tr>
-        </tbody>
-      </table>
-
-      <h2>Full Example</h2>
-<pre><code>{
-  "providers": {
-    "anthropic": {
-      "apiKey": "sk-ant-...",
-      "model": "claude-sonnet-4-5-20250929"
+      "apiKey": "sk-proj-...",
+      "voice": "nova"
     }
   },
-  "activeProvider": "anthropic",
-  "channels": {
-    "webchat": { "enabled": true, "port": 3000 },
-    "telegram": { "enabled": true, "botToken": "..." }
-  },
+
   "maxTurns": 50,
   "heartbeatMinutes": 30,
-  "auth": { "enabled": false },
-  "rateLimit": { "chatPerMinute": 60, "uploadPerMinute": 10 },
-  "sandbox": { "enabled": true, "timeoutMs": 30000 }
+
+  "rateLimit": {
+    "chatPerMinute": 60,
+    "uploadPerMinute": 10
+  },
+
+  "auth": {
+    "enabled": false
+  },
+
+  "sandbox": {
+    "enabled": true,
+    "timeoutMs": 30000
+  }
 }</code></pre>
 
+      <p><strong>Tip:</strong> You do not need to include every field. Zubo applies sensible defaults for any omitted values. A minimal config only needs <code>activeProvider</code> and the corresponding provider entry with an API key.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="environment">Environment</h2>
+
+      <p>
+        By default, Zubo stores all data and configuration under <code>~/.zubo</code>. You can override this by setting the <code>ZUBO_HOME</code> environment variable to an absolute path:
+      </p>
+
+<pre><code># Use a custom home directory
+export ZUBO_HOME=/opt/zubo-data
+zubo start
+
+# Or inline for a single invocation
+ZUBO_HOME=/opt/zubo-data zubo start --daemon</code></pre>
+
+      <p>When <code>ZUBO_HOME</code> is set, all paths &mdash; config file, database, logs, sessions, models, and workspace &mdash; are resolved relative to that directory instead of <code>~/.zubo</code>. This is useful for running multiple isolated Zubo instances on the same machine, or for placing the data directory on a specific volume or mount point.</p>
+
+      <p>Other environment variables recognized by Zubo:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Variable</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ZUBO_HOME</code></td>
+            <td>Override the default <code>~/.zubo</code> data directory.</td>
+          </tr>
+          <tr>
+            <td><code>ZUBO_LOG_LEVEL</code></td>
+            <td>Set the log level: <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code>. Defaults to <code>info</code>.</td>
+          </tr>
+          <tr>
+            <td><code>ZUBO_PORT</code></td>
+            <td>Override the web dashboard port (takes precedence over config file).</td>
+          </tr>
+          <tr>
+            <td><code>NODE_ENV</code></td>
+            <td>When set to <code>production</code>, Zubo disables verbose logging and enables additional security hardening.</td>
+          </tr>
+        </tbody>
+      </table>
+
       <div class="docs-page-nav">
-        <a href="index.html">
-          <span class="nav-dir">Previous</span>
-          <span class="nav-label">&larr; Getting Started</span>
-        </a>
-        <a href="channels.html">
-          <span class="nav-dir">Next</span>
-          <span class="nav-label">Channel Setup &rarr;</span>
-        </a>
+        <a href="index.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Overview</span></a>
+        <a href="agents.html"><span class="nav-dir">Next</span><span class="nav-label">Agents &amp; Workflows &rarr;</span></a>
       </div>
+
     </main>
   </div>
-
   <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
   <script src="../script.js"></script>
 </body>

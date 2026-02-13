@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>API Reference — Zubo Docs</title>
-  <meta name="description" content="Complete API reference for Zubo. All endpoints with request/response formats.">
+  <meta name="description" content="Complete API reference for Zubo. All REST endpoints with request/response formats, authentication, rate limits, and examples.">
   <meta name="theme-color" content="#060608">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +14,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
 </head>
 <body>
+
   <header class="nav scrolled" id="nav">
     <div class="nav-inner">
       <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
@@ -35,15 +36,33 @@
     <aside class="docs-sidebar" id="docs-sidebar">
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Getting Started</div>
-        <div class="docs-sidebar-links"><a href="index.html">Overview</a><a href="config.html">Configuration</a></div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
-        <div class="docs-sidebar-links"><a href="channels.html">Channel Setup</a><a href="integrations.html">Integrations</a><a href="skills.html">Skill Development</a></div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="security.html">Security &amp; Auth</a>
+        </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Reference</div>
-        <div class="docs-sidebar-links"><a href="api.html" class="active">API Reference</a><a href="cli.html">CLI Commands</a></div>
+        <div class="docs-sidebar-links">
+          <a href="api.html" class="active">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
       </div>
     </aside>
 
@@ -51,146 +70,348 @@
       <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>API Reference</div>
 
       <h1>API Reference</h1>
-      <p>All endpoints are served on the same port as the web dashboard. When <code>auth.enabled</code> is <code>true</code>, all <code>/api/*</code> endpoints require a <code>Authorization: Bearer &lt;key&gt;</code> header.</p>
+      <p>Zubo exposes a REST API on the webchat port. All endpoints are available at <code>http://localhost:&lt;port&gt;</code>. If authentication is enabled, include <code>Authorization: Bearer &lt;key&gt;</code> on all <code>/api/*</code> requests.</p>
+
+      <h2>Health Check</h2>
+<pre><code>GET /health</code></pre>
+      <p>Returns the current health status and uptime of the Zubo agent. This endpoint does not require authentication, even when <code>auth.enabled</code> is <code>true</code>.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "status": "ok",
+  "uptime": 3600
+}</code></pre>
 
       <h2>Chat</h2>
 
-      <h3>POST /api/chat</h3>
-      <p>Send a message and receive a complete response.</p>
-<pre><code>// Request
-POST /api/chat
+      <h3>Send Message</h3>
+<pre><code>POST /api/chat
 Content-Type: application/json
 
-{ "message": "What's the weather in Tokyo?" }
+{
+  "message": "Hello, how are you?"
+}</code></pre>
+      <p>Sends a message to the agent and returns a complete response once the agent has finished processing.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "reply": "I'm doing well! How can I help?"
+}</code></pre>
 
-// Response
-{ "reply": "The weather in Tokyo is currently 22°C and sunny." }</code></pre>
-
-      <h3>POST /api/chat/stream</h3>
-      <p>Send a message and receive a streaming SSE response.</p>
-<pre><code>// Request
-POST /api/chat/stream
+      <h3>Stream Message (SSE)</h3>
+<pre><code>POST /api/chat/stream
 Content-Type: application/json
 
-{ "message": "Tell me about Zubo" }
+{
+  "message": "Tell me about AI"
+}</code></pre>
+      <p>Sends a message and receives the response as a Server-Sent Events stream. This allows the UI to display partial responses as they are generated. The stream emits the following event types:</p>
+      <table>
+        <thead><tr><th>Event</th><th>Data</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>delta</code></td><td><code>{ "text": "partial text" }</code></td><td>A chunk of the response text as it is generated.</td></tr>
+          <tr><td><code>tool</code></td><td><code>{ "name": "web_search", "status": "start" }</code></td><td>Indicates a tool call has started. Status is <code>"start"</code> or <code>"end"</code>.</td></tr>
+          <tr><td><code>done</code></td><td><code>{ "reply": "full response text" }</code></td><td>The complete response. Sent once at the end of the stream.</td></tr>
+          <tr><td><code>error</code></td><td><code>{ "error": "error message" }</code></td><td>An error occurred during processing.</td></tr>
+        </tbody>
+      </table>
 
-// Response (SSE stream)
-event: delta
-data: {"text":"Zubo is"}
+      <h3>Chat History</h3>
+<pre><code>GET /api/chat/history?limit=50</code></pre>
+      <p>Returns the recent conversation history. Tool calls are filtered out &mdash; only user and assistant text messages are returned.</p>
+      <p><strong>Query parameters:</strong></p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>limit</code></td><td>50</td><td>Number of messages to return. Maximum 200.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "messages": [
+    { "role": "user", "content": "Hello" },
+    { "role": "assistant", "content": "Hi! How can I help?" }
+  ]
+}</code></pre>
 
-event: tool
-data: {"name":"web_search","status":"start"}
-
-event: tool
-data: {"name":"web_search","status":"end"}
-
-event: delta
-data: {"text":" a self-hosted AI agent..."}
-
-event: done
-data: {"reply":"Zubo is a self-hosted AI agent..."}</code></pre>
-
-      <h3>POST /api/chat/voice</h3>
-      <p>Send audio for transcription and get a response.</p>
-<pre><code>// Request
-POST /api/chat/voice
+      <h3>Voice Chat</h3>
+<pre><code>POST /api/chat/voice
 Content-Type: multipart/form-data
 
-audio: (binary audio file)
-tts: "true"  // optional
-
-// Response
-{
+audio: &lt;audio file&gt;
+tts: "true" (optional)</code></pre>
+      <p>Send an audio file for speech-to-text transcription, then process the transcribed text through the agent. Requires an STT provider to be configured. If <code>tts=true</code> is included and a TTS provider is configured, the response will include base64-encoded audio of the agent's reply.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
   "transcript": "What's the weather?",
-  "reply": "Currently 22°C in your area.",
-  "audio": "base64-encoded-audio...",
+  "reply": "Currently 72&deg;F and sunny.",
+  "audio": "&lt;base64 audio&gt;",
   "audioFormat": "mp3"
 }</code></pre>
 
       <h2>File Upload</h2>
-
-      <h3>POST /api/upload</h3>
-      <p>Upload a document for memory indexing. Max 50MB. Supported: PDF, DOCX, TXT, MD, CSV, JSON, HTML, XML, YAML, TS, JS, PY, SH.</p>
-<pre><code>// Request
-POST /api/upload
+<pre><code>POST /api/upload
 Content-Type: multipart/form-data
 
-file: (binary file)
-
-// Response
-{
+file: &lt;document&gt;</code></pre>
+      <p>Upload a document for memory indexing. The file is parsed, chunked, embedded, and stored in the memory database. The agent will be able to recall information from uploaded documents in future conversations.</p>
+      <p><strong>Limits:</strong> 50MB maximum file size.</p>
+      <p><strong>Allowed extensions:</strong> <code>.pdf</code>, <code>.docx</code>, <code>.txt</code>, <code>.md</code>, <code>.csv</code>, <code>.json</code>, <code>.html</code>, <code>.xml</code>, <code>.yaml</code>, <code>.yml</code>, <code>.ts</code>, <code>.js</code>, <code>.py</code>, <code>.sh</code></p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
   "uploaded": true,
   "filename": "report.pdf",
-  "size": 102400,
-  "chunks": 15,
-  "wordCount": 4200
+  "size": 245760,
+  "chunks": 12,
+  "wordCount": 5430
 }</code></pre>
 
-      <h2>Dashboard</h2>
+      <h2>Dashboard API</h2>
+      <p>All dashboard endpoints are under <code>/api/dashboard/</code>. These power the built-in web UI and can also be used by external tools and integrations.</p>
 
-      <h3>GET /api/dashboard/status</h3>
-      <p>Agent status overview.</p>
-<pre><code>{ "Provider": "anthropic/claude-sonnet-4-5", "Channels": "webchat, telegram", "Messages": "1234", "Memories": "567", "Status": "running" }</code></pre>
+      <h3>Status</h3>
+<pre><code>GET /api/dashboard/status</code></pre>
+      <p>Returns an overview of the agent's current state, including the active provider, connected channels, message count, memory count, and running status.</p>
+<pre><code>{
+  "Provider": "anthropic/claude-sonnet-4-5",
+  "Channels": "webchat, telegram",
+  "Messages": "1234",
+  "Memories": "567",
+  "Status": "running"
+}</code></pre>
 
-      <h3>GET /api/dashboard/analytics/summary</h3>
-      <p>Usage analytics summary.</p>
-<pre><code>{ "totalTokens": 50000, "estimatedCostUsd": 1.23, "avgResponseTimeMs": 450, "sessionCount": 12 }</code></pre>
+      <h3>System Prompt</h3>
+<pre><code>GET /api/dashboard/system</code></pre>
+      <p>Retrieve the current system prompt.</p>
+<pre><code>PUT /api/dashboard/system
+Content-Type: application/json
 
-      <h3>GET /api/dashboard/analytics/usage-over-time</h3>
-      <p>Token usage by day (last 7 days).</p>
+{
+  "content": "You are a helpful assistant named Zubo."
+}</code></pre>
+      <p>Update the system prompt. The new prompt takes effect on the next message.</p>
 
-      <h3>GET /api/dashboard/analytics/tools</h3>
-      <p>Tool usage statistics.</p>
+      <h3>Memory</h3>
+<pre><code>GET /api/dashboard/memory</code></pre>
+      <p>Get the current contents of <code>MEMORY.md</code>, the always-loaded memory file.</p>
+<pre><code>PUT /api/dashboard/memory
+Content-Type: application/json
 
-      <h3>GET /api/dashboard/analytics/sessions</h3>
-      <p>Session breakdown by provider/model.</p>
+{
+  "content": "User's name is Thomas. Prefers concise answers."
+}</code></pre>
+      <p>Update the contents of <code>MEMORY.md</code>. Changes take effect on the next message.</p>
+<pre><code>GET /api/dashboard/memory/recent</code></pre>
+      <p>Returns the last 20 memory chunks with their source, timestamp, and content.</p>
+<pre><code>GET /api/dashboard/memory/search?q=programming</code></pre>
+      <p>Search memory chunks using full-text search. Returns matching chunks ranked by relevance.</p>
 
-      <h3>GET /api/dashboard/analytics/perf-snapshots</h3>
-      <p>System performance snapshots (RSS, heap, DB size) over 7 days.</p>
-<pre><code>{ "snapshots": [{ "rss_mb": 120.5, "heap_mb": 85.2, "db_size_mb": 12.3, "created_at": "2026-02-10T12:00:00Z" }] }</code></pre>
+      <h3>Skills</h3>
+<pre><code>GET /api/dashboard/skills</code></pre>
+      <p>List all installed skills with their metadata.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "skills": [
+    {
+      "name": "weather",
+      "description": "Get current weather for a location",
+      "status": "active",
+      "path": "~/.zubo/skills/weather"
+    }
+  ]
+}</code></pre>
 
-      <h3>GET /api/dashboard/analytics/cost-breakdown</h3>
-      <p>Cost aggregated by provider and model.</p>
-<pre><code>{ "breakdown": [{ "provider": "anthropic", "model": "claude-sonnet-4-5", "total_tokens": 50000, "total_cost": 1.23, "requests": 42 }] }</code></pre>
+      <h3>Cron Jobs</h3>
+<pre><code>GET /api/dashboard/cron</code></pre>
+      <p>List all configured cron jobs and their status.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "jobs": [
+    {
+      "name": "daily-summary",
+      "schedule": "0 9 * * *",
+      "task": "Send a daily briefing",
+      "enabled": true,
+      "last_run": "2026-02-12T09:00:00Z"
+    }
+  ]
+}</code></pre>
 
-      <h3>GET /api/dashboard/analytics/response-time-trend</h3>
-      <p>Daily avg/min/max response times over 7 days.</p>
+      <h3>Logs</h3>
+<pre><code>GET /api/dashboard/logs</code></pre>
+      <p>Returns the last 100 log lines from the agent's log output.</p>
 
-      <h3>GET /api/dashboard/analytics/top-models</h3>
-      <p>Top 10 models by total tokens.</p>
+      <h3>Config</h3>
+<pre><code>GET /api/dashboard/config</code></pre>
+      <p>Returns the current configuration (sensitive values are masked).</p>
+<pre><code>PUT /api/dashboard/config/model
+Content-Type: application/json
 
-      <h2>Memory</h2>
-      <h3>GET /api/dashboard/memory</h3>
-      <p>Read MEMORY.md contents.</p>
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-5-20250929"
+}</code></pre>
+      <p>Update the active LLM provider and model. The change takes effect on the next message.</p>
 
-      <h3>PUT /api/dashboard/memory</h3>
-      <p>Update MEMORY.md contents. Body: <code>{ "content": "..." }</code></p>
+      <h3>Settings</h3>
+<pre><code>GET /api/dashboard/settings/heartbeat</code></pre>
+      <p>Get the current heartbeat interval.</p>
+<pre><code>PUT /api/dashboard/settings/heartbeat
+Content-Type: application/json
 
-      <h3>GET /api/dashboard/memory/recent</h3>
-      <p>Last 20 memory chunks.</p>
+{
+  "minutes": 60
+}</code></pre>
+      <p>Update the heartbeat interval. Set to <code>0</code> to disable.</p>
 
-      <h3>GET /api/dashboard/memory/search?q=...</h3>
-      <p>Full-text search over memory chunks.</p>
+      <h3>Channel Status</h3>
+<pre><code>GET /api/dashboard/channel-status</code></pre>
+      <p>Returns the configuration and connection status for each channel (webchat, Telegram, Discord, Slack, WhatsApp, Signal). Each channel reports whether it is configured and whether it is currently enabled.</p>
+
+      <h3>Secrets Management</h3>
+<pre><code>GET /api/dashboard/secrets</code></pre>
+      <p>List all stored secrets. Values are masked in the response for security.</p>
+<pre><code>GET /api/dashboard/secrets/:name</code></pre>
+      <p>Reveal the full value of a single secret by name.</p>
+<pre><code>POST /api/dashboard/secrets
+Content-Type: application/json
+
+{
+  "name": "OPENWEATHER_API_KEY",
+  "value": "abc123...",
+  "service": "weather"
+}</code></pre>
+      <p>Create or update a secret. The optional <code>service</code> field associates the secret with a specific integration or skill.</p>
+<pre><code>DELETE /api/dashboard/secrets/:name</code></pre>
+      <p>Delete a secret by name.</p>
+
+      <h2>Analytics API</h2>
+      <p>Analytics endpoints provide insight into usage, cost, performance, and tool activity.</p>
+<pre><code>GET /api/dashboard/analytics/summary</code></pre>
+      <p>Returns aggregate statistics: total tokens used, estimated cost in USD, average response time in milliseconds, and total session count.</p>
+<pre><code>GET /api/dashboard/analytics/usage-over-time</code></pre>
+      <p>Token usage broken down by day for the last 7 days.</p>
+<pre><code>GET /api/dashboard/analytics/tools</code></pre>
+      <p>Tool call counts and average duration for each tool.</p>
+<pre><code>GET /api/dashboard/analytics/sessions</code></pre>
+      <p>Top 20 sessions ranked by token usage, with provider and model information.</p>
+<pre><code>GET /api/dashboard/analytics/perf-snapshots</code></pre>
+      <p>System performance snapshots over time, including RSS memory, heap usage, and database file size.</p>
+<pre><code>GET /api/dashboard/analytics/cost-breakdown</code></pre>
+      <p>Cost aggregated by provider and model, including total tokens, total cost, and request count for each.</p>
+<pre><code>GET /api/dashboard/analytics/response-time-trend</code></pre>
+      <p>Average, minimum, and maximum response times by day over the last 7 days.</p>
+<pre><code>GET /api/dashboard/analytics/top-models</code></pre>
+      <p>Top 10 models ranked by total token usage.</p>
+
+      <h2>Data Management</h2>
+<pre><code>POST /api/dashboard/export</code></pre>
+      <p>Download a full JSON export of the database, including conversations, memory, settings, and analytics.</p>
+<pre><code>POST /api/dashboard/backup</code></pre>
+      <p>Create a SQLite backup file of the database.</p>
+<pre><code>POST /api/dashboard/import
+Content-Type: multipart/form-data</code></pre>
+      <p>Upload a JSON export file to import data. Maximum file size is 100MB.</p>
+<pre><code>GET /api/dashboard/db-stats</code></pre>
+      <p>Returns row counts for each table in the database and the total database file size.</p>
+
+      <h2>Workflows &amp; Agents</h2>
+<pre><code>GET /api/dashboard/workflows</code></pre>
+      <p>List all configured workflows with their steps and status.</p>
+<pre><code>GET /api/dashboard/agents</code></pre>
+      <p>List all configured agents (sub-agents) with their names, descriptions, and tool assignments.</p>
+
+      <h2>Uploads</h2>
+<pre><code>GET /api/dashboard/uploads</code></pre>
+      <p>List all uploaded files with their filenames, sizes, chunk counts, and upload timestamps.</p>
+
+      <h2>Skill Registry</h2>
+<pre><code>GET /api/dashboard/registry/search?q=weather</code></pre>
+      <p>Search the community skill registry by name or keyword. Returns matching skills with their names, descriptions, and install commands.</p>
+<pre><code>POST /api/dashboard/registry/install
+Content-Type: application/json
+
+{
+  "name": "weather"
+}</code></pre>
+      <p>Install a skill from the registry by name. The skill is downloaded and placed in <code>~/.zubo/skills/</code>.</p>
 
       <h2>API Keys</h2>
-      <h3>POST /api/keys</h3>
-      <p>Create a new API key. Body: <code>{ "label": "my-key" }</code></p>
+<pre><code>POST /api/keys
+Content-Type: application/json
 
-      <h3>GET /api/keys</h3>
-      <p>List all API keys.</p>
+{
+  "label": "my-integration"
+}</code></pre>
+      <p>Create a new API key. The <code>label</code> field is optional. The full key is returned once at creation time and cannot be retrieved again.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "id": "k_abc123",
+  "key": "zb_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}</code></pre>
+<pre><code>GET /api/keys</code></pre>
+      <p>List all API keys. Keys are shown with their IDs, labels, creation dates, and last-used timestamps. The full key value is not included.</p>
+<pre><code>DELETE /api/keys/:id</code></pre>
+      <p>Delete an API key by its ID. The key is immediately revoked and can no longer be used for authentication.</p>
 
-      <h3>DELETE /api/keys/:id</h3>
-      <p>Delete an API key by ID.</p>
+      <h2>Server-Sent Events</h2>
+<pre><code>GET /api/events</code></pre>
+      <p>Opens a long-lived SSE connection for receiving real-time events from the agent. The connection emits the following event types:</p>
+      <table>
+        <thead><tr><th>Event</th><th>Data</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>connected</code></td><td><code>{ "timestamp": "2026-02-12T10:00:00Z" }</code></td><td>Sent once when the connection is established.</td></tr>
+          <tr><td><code>ping</code></td><td><code>{ "timestamp": "2026-02-12T10:00:30Z" }</code></td><td>Sent every 30 seconds to keep the connection alive.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Onboarding</h2>
+<pre><code>GET /api/dashboard/onboarding</code></pre>
+      <p>Returns the current onboarding state, including whether setup has been completed and the last completed step.</p>
+<pre><code>PUT /api/dashboard/onboarding
+Content-Type: application/json
+
+{
+  "completed": true,
+  "step": 4
+}</code></pre>
+      <p>Update the onboarding state. Used by the dashboard to track setup progress.</p>
+
+      <h2>Test LLM</h2>
+<pre><code>POST /api/dashboard/test-llm</code></pre>
+      <p>Send a test request to the configured LLM provider to verify connectivity and credentials. Returns a simple confirmation with the model name.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "ok": true,
+  "response": "OK",
+  "model": "claude-sonnet-4-5-20250929"
+}</code></pre>
 
       <h2>Rate Limits</h2>
-      <p>When rate limited, endpoints return <code>429 Too Many Requests</code> with a <code>Retry-After</code> header (seconds). Default limits:</p>
+      <p>Rate limiting is applied per IP address. When a client exceeds the limit, the endpoint returns <code>429 Too Many Requests</code> with a <code>Retry-After</code> header indicating how many seconds to wait before retrying.</p>
+      <table>
+        <thead><tr><th>Endpoint</th><th>Default Limit</th><th>Config Key</th></tr></thead>
+        <tbody>
+          <tr><td>All <code>/api/chat*</code> endpoints</td><td>60 requests/min per IP</td><td><code>rateLimit.chatPerMinute</code></td></tr>
+          <tr><td><code>/api/upload</code></td><td>10 requests/min per IP</td><td><code>rateLimit.uploadPerMinute</code></td></tr>
+        </tbody>
+      </table>
+      <p>Rate limits are configurable via <code>zubo config set</code> or the config file.</p>
+
+      <h2>Authentication</h2>
+      <p>When <code>auth.enabled</code> is <code>true</code> in your configuration:</p>
       <ul>
-        <li><strong>Chat:</strong> 60 requests/minute per IP</li>
-        <li><strong>Upload:</strong> 10 requests/minute per IP</li>
+        <li>All <code>/api/*</code> endpoints require an <code>Authorization: Bearer &lt;key&gt;</code> header.</li>
+        <li>Create keys using the CLI: <code>zubo auth create-key [label]</code></li>
+        <li>Keys can also be created via the <code>POST /api/keys</code> endpoint (requires an existing valid key).</li>
+        <li>The <code>/health</code> endpoint does <strong>not</strong> require authentication, even when auth is enabled.</li>
       </ul>
+      <p>Requests without a valid key receive a <code>401 Unauthorized</code> response:</p>
+<pre><code>{
+  "error": "Unauthorized",
+  "message": "Valid API key required"
+}</code></pre>
 
       <div class="docs-page-nav">
-        <a href="skills.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Skill Development</span></a>
+        <a href="security.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Security &amp; Auth</span></a>
         <a href="cli.html"><span class="nav-dir">Next</span><span class="nav-label">CLI Commands &rarr;</span></a>
       </div>
     </main>

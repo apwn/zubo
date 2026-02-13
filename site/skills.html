@@ -88,17 +88,17 @@
         <div class="skill-guide-step">
           <div class="step-number">1</div>
           <h3>Scaffold</h3>
-          <p>Run <code>zubo skills new</code> to generate a skill directory with SKILL.md and handler.ts templates.</p>
+          <p>Run <code>zubo skills new</code> to generate a skill directory with a <code>handler.ts</code> template.</p>
         </div>
         <div class="skill-guide-step">
           <div class="step-number">2</div>
           <h3>Define</h3>
-          <p>Edit <code>SKILL.md</code> to declare the skill name, description, input schema, and required secrets.</p>
+          <p>Export a <code>skill</code> config object with your tool's name, description, and parameters.</p>
         </div>
         <div class="skill-guide-step">
           <div class="step-number">3</div>
           <h3>Implement</h3>
-          <p>Write your logic in <code>handler.ts</code>. Access inputs, secrets, and return structured results.</p>
+          <p>Write your logic as the default export function. Access inputs and return a JSON string.</p>
         </div>
         <div class="skill-guide-step">
           <div class="step-number">4</div>
@@ -107,7 +107,7 @@
         </div>
       </div>
 
-      <!-- SKILL.md format example -->
+      <!-- Single-file format example -->
       <div class="skill-format-block reveal">
         <div class="terminal" style="border-radius:var(--radius-lg);overflow:hidden;">
           <div class="terminal-chrome">
@@ -116,28 +116,95 @@
               <span class="td td-y"></span>
               <span class="td td-g"></span>
             </div>
-            <div class="terminal-title">SKILL.md</div>
+            <div class="terminal-title">handler.ts</div>
           </div>
           <div class="terminal-body" style="padding:20px 24px;font-size:13px;line-height:1.8;">
-<span style="color:#c4b5fd;"># my-skill</span>
+<span style="color:#c4b5fd;">export const</span> <span style="color:#fff;">skill</span> <span style="color:#5f5f73;">=</span> <span style="color:#9595a8;">{</span>
+  <span style="color:#fbbf24;">name:</span> <span style="color:#34d399;">"my_skill"</span>,
+  <span style="color:#fbbf24;">description:</span> <span style="color:#34d399;">"A brief description of what this skill does"</span>,
+  <span style="color:#fbbf24;">params:</span> <span style="color:#9595a8;">{</span>
+    <span style="color:#fbbf24;">query:</span> <span style="color:#9595a8;">{ type: </span><span style="color:#34d399;">"string"</span><span style="color:#9595a8;">, required: true },</span>
+    <span style="color:#fbbf24;">limit:</span> <span style="color:#9595a8;">{ type: </span><span style="color:#34d399;">"number"</span><span style="color:#9595a8;"> }</span>
+  <span style="color:#9595a8;">}</span>
+<span style="color:#9595a8;">};</span>
 
-<span style="color:#9595a8;">A brief description of what this skill does.</span>
-
-<span style="color:#c4b5fd;">## Input</span>
-<span style="color:#5f5f73;">```json</span>
-<span style="color:#9595a8;">{
-  "query": { "type": "string", "required": true },
-  "limit": { "type": "number", "default": 10 }
-}</span>
-<span style="color:#5f5f73;">```</span>
-
-<span style="color:#c4b5fd;">## Secrets</span>
-<span style="color:#9595a8;">- `MY_API_KEY` — Required for authentication</span>
-
-<span style="color:#c4b5fd;">## Tags</span>
-<span style="color:#9595a8;">api, search, data</span>
+<span style="color:#c4b5fd;">export default async function</span> <span style="color:#9595a8;">(input): Promise&lt;string&gt; {</span>
+  <span style="color:#5f5f73;">// your logic here</span>
+  <span style="color:#c4b5fd;">return</span> <span style="color:#9595a8;">JSON.stringify({ result: </span><span style="color:#34d399;">"..."</span><span style="color:#9595a8;"> });</span>
+<span style="color:#9595a8;">}</span>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Build with AI -->
+  <section class="ai-prompt-section" id="ai-prompt">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">AI-Powered</span>
+        <h2 class="section-title">Build with <span class="gradient-text">AI</span></h2>
+        <p class="section-subtitle">Copy this prompt and send it to your Zubo agent to build a new skill on the fly.</p>
+      </div>
+
+      <div class="ai-prompt-block reveal">
+        <div class="ai-prompt-header">
+          <span class="ai-prompt-label">Skill Builder Prompt</span>
+          <button class="ai-prompt-copy-btn" id="ai-prompt-copy" aria-label="Copy prompt to clipboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <pre class="ai-prompt-code" id="ai-prompt-text">I want to build a Zubo skill. A skill is a single TypeScript file (handler.ts)
+that lives in its own directory under ~/.zubo/skills/.
+
+The file must:
+1. Export a `skill` config object with name, description, and params
+2. Export a default async function that takes input and returns a string
+
+Format:
+
+  export const skill = {
+    name: "tool_name",           // lowercase + underscores only, [a-z0-9_]+
+    description: "What it does", // shown to the AI to decide when to use it
+    params: {
+      param_name: { type: "string", description: "...", required: true },
+      optional_param: { type: "number", description: "..." }
+    }
+  };
+
+  export default async function (input: Record&lt;string, unknown&gt;): Promise&lt;string&gt; {
+    const param_name = input.param_name as string;
+    // your logic here
+    return JSON.stringify({ result: "..." });
+  }
+
+Example — a complete working skill:
+
+  export const skill = {
+    name: "word_count",
+    description: "Count words, characters, and sentences in text",
+    params: {
+      text: { type: "string", description: "The text to analyze", required: true }
+    }
+  };
+
+  export default async function (input: Record&lt;string, unknown&gt;): Promise&lt;string&gt; {
+    const text = input.text as string;
+    const words = text.split(/\s+/).filter(Boolean).length;
+    const chars = text.length;
+    const sentences = text.split(/[.!?]+/).filter(Boolean).length;
+    return JSON.stringify({ words, characters: chars, sentences });
+  }
+
+Rules:
+- name must match [a-z0-9_]+ (no hyphens, no uppercase)
+- The function must return a JSON string
+- You can use fetch(), Bun APIs, and any built-in Node/Bun modules
+- For API keys, read from process.env (e.g., process.env.MY_API_KEY)
+- Keep it focused — one tool, one purpose
+
+Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
       </div>
     </div>
   </section>
@@ -272,7 +339,8 @@
       var installEl = document.createElement('div');
       installEl.className = 'skill-card-install';
       var installCode = document.createElement('code');
-      var installCmd = 'zubo install ' + skill.name;
+      var safeName = (skill.name || '').replace(/[^a-zA-Z0-9_\-\.]/g, '');
+      var installCmd = 'zubo install ' + safeName;
       installCode.textContent = installCmd;
       installEl.appendChild(installCode);
 
@@ -288,7 +356,7 @@
             copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
             copyBtn.style.color = '';
           }, 2000);
-        });
+        }).catch(function() {});
       });
       installEl.appendChild(copyBtn);
       card.appendChild(installEl);
@@ -386,6 +454,68 @@
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(filterAndRender, 200);
     });
+
+    // AI Prompt copy button
+    var aiCopyBtn = document.getElementById('ai-prompt-copy');
+    var aiPromptText = document.getElementById('ai-prompt-text');
+    if (aiCopyBtn && aiPromptText) {
+      aiCopyBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(aiPromptText.textContent).then(function() {
+          var svgCheck = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svgCheck.setAttribute('width', '16');
+          svgCheck.setAttribute('height', '16');
+          svgCheck.setAttribute('viewBox', '0 0 24 24');
+          svgCheck.setAttribute('fill', 'none');
+          svgCheck.setAttribute('stroke', 'currentColor');
+          svgCheck.setAttribute('stroke-width', '2');
+          svgCheck.setAttribute('stroke-linecap', 'round');
+          svgCheck.setAttribute('stroke-linejoin', 'round');
+          var polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+          polyline.setAttribute('points', '20 6 9 17 4 12');
+          svgCheck.appendChild(polyline);
+
+          var label = document.createElement('span');
+          label.textContent = 'Copied!';
+
+          aiCopyBtn.textContent = '';
+          aiCopyBtn.appendChild(svgCheck);
+          aiCopyBtn.appendChild(label);
+          aiCopyBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          aiCopyBtn.style.color = '#10b981';
+
+          setTimeout(function() {
+            var svgCopy = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgCopy.setAttribute('width', '16');
+            svgCopy.setAttribute('height', '16');
+            svgCopy.setAttribute('viewBox', '0 0 24 24');
+            svgCopy.setAttribute('fill', 'none');
+            svgCopy.setAttribute('stroke', 'currentColor');
+            svgCopy.setAttribute('stroke-width', '2');
+            svgCopy.setAttribute('stroke-linecap', 'round');
+            svgCopy.setAttribute('stroke-linejoin', 'round');
+            var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', '9');
+            rect.setAttribute('y', '9');
+            rect.setAttribute('width', '13');
+            rect.setAttribute('height', '13');
+            rect.setAttribute('rx', '2');
+            svgCopy.appendChild(rect);
+            var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1');
+            svgCopy.appendChild(path);
+
+            var resetLabel = document.createElement('span');
+            resetLabel.textContent = 'Copy';
+
+            aiCopyBtn.textContent = '';
+            aiCopyBtn.appendChild(svgCopy);
+            aiCopyBtn.appendChild(resetLabel);
+            aiCopyBtn.style.borderColor = '';
+            aiCopyBtn.style.color = '';
+          }, 2500);
+        }).catch(function() {});
+      });
+    }
   })();
   </script>
 </body>

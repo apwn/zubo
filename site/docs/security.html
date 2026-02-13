@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security &amp; Auth — Zubo Docs</title>
+  <meta name="description" content="Security and authentication in Zubo — API auth, tool permissions, secret management, sandboxing, rate limiting, and access control.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-mark">Z</div>
+        <span class="logo-wordmark">zubo</span>
+      </a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="security.html" class="active">Security &amp; Auth</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb">
+        <a href="../index.html">Home</a>
+        <span>/</span>
+        <a href="index.html">Docs</a>
+        <span>/</span>
+        Security &amp; Auth
+      </div>
+
+      <h1>Security &amp; Authentication</h1>
+      <p>Zubo is designed for single-owner, self-hosted operation. All data stays on your machine, and no external services are contacted unless you explicitly configure them. This page covers every security feature in the system: API authentication, tool permissions, secret management, sandboxing, rate limiting, and access control.</p>
+
+      <h2 id="api-authentication">API Authentication</h2>
+      <p>By default, API authentication is <strong>disabled</strong>. This is appropriate when Zubo is running on localhost for a single user. If you expose the web chat port to a network or the internet, you should enable authentication.</p>
+      <h3>Enabling Authentication</h3>
+<pre><code>zubo config set auth.enabled true</code></pre>
+      <p>Once enabled, all <code>/api/*</code> endpoints require a valid API key in the <code>Authorization</code> header.</p>
+      <h3>Creating API Keys</h3>
+<pre><code>zubo auth create-key [label]</code></pre>
+      <p>This generates a cryptographically random 64-character key. The raw key is displayed <strong>only once</strong> &mdash; copy it immediately. Before storage, the key is hashed with SHA-256, so the plaintext value cannot be recovered from the database.</p>
+      <h3>Using API Keys</h3>
+      <p>Include the key in the <code>Authorization</code> header on every request:</p>
+<pre><code>curl -H "Authorization: Bearer &lt;your-key&gt;" http://localhost:3000/api/chat</code></pre>
+      <h3>Managing Keys</h3>
+      <ul>
+        <li><strong>List keys:</strong> <code>zubo auth list-keys</code> &mdash; shows label, creation date, and last-used timestamp (never the raw key)</li>
+        <li><strong>Delete a key:</strong> <code>zubo auth delete-key &lt;id&gt;</code> &mdash; immediately revokes the key</li>
+        <li><strong>Dashboard:</strong> Keys can also be managed in Settings &rarr; Data section of the web dashboard</li>
+        <li><strong>API:</strong> Programmatic management is available via the <code>/api/keys</code> endpoints</li>
+      </ul>
+
+      <h2 id="session-tokens">Session Tokens</h2>
+      <p>Session tokens provide short-lived authentication for the web dashboard when API authentication is enabled.</p>
+      <ul>
+        <li><strong>TTL:</strong> 1 hour</li>
+        <li><strong>Usage:</strong> Single-use &mdash; each token can only be used once</li>
+        <li><strong>Generation:</strong> <code>POST /api/auth/session</code> (requires a valid API key)</li>
+        <li><strong>Purpose:</strong> After authenticating with your API key, the dashboard receives a session token for subsequent requests, avoiding repeated API key transmission over the wire</li>
+      </ul>
+
+      <h2 id="tool-permissions">Tool Permissions</h2>
+      <p>Every tool in Zubo has a permission level that controls how it executes. There are three levels:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Behavior</th>
+            <th>Example Tools</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>auto</code></td>
+            <td>Executes immediately with no user confirmation</td>
+            <td><code>datetime</code>, <code>memory_write</code>, <code>memory_search</code>, <code>web_search</code>, <code>url_fetch</code></td>
+          </tr>
+          <tr>
+            <td><code>confirm</code></td>
+            <td>Requires explicit user approval before execution</td>
+            <td><code>shell</code>, <code>file_write</code>, <code>secret_delete</code>, <code>twitter_posts</code></td>
+          </tr>
+          <tr>
+            <td><code>deny</code></td>
+            <td>Blocked entirely &mdash; the tool cannot be used</td>
+            <td>(custom blocked tools configured by the user)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Confirmation Flow</h3>
+      <p>When the agent calls a tool with <code>confirm</code> permission, the following flow occurs:</p>
+      <ol>
+        <li>The agent invokes a <code>confirm</code>-level tool (e.g., <code>shell</code>)</li>
+        <li>The executor generates a random UUID confirmation token with a <strong>10-minute TTL</strong></li>
+        <li>The tool returns a <code>CONFIRMATION REQUIRED</code> message containing the token</li>
+        <li>The agent describes the intended action to the user and asks for approval</li>
+        <li>If the user approves, the agent retries the tool call with <code>_confirmToken</code> included in the input</li>
+        <li>The server validates that the token matches the specific tool name and has not expired</li>
+        <li>The tool executes normally</li>
+      </ol>
+      <p>This design prevents the LLM from spoofing confirmations &mdash; only the server can issue valid confirmation tokens, and each token is bound to a specific tool invocation.</p>
+
+      <h2 id="secret-management">Secret Management</h2>
+      <p>Secrets (API keys, tokens, passwords) are stored securely in the local SQLite <code>secrets</code> table. The agent can use secrets by name but <strong>never sees their actual values</strong> in conversation context.</p>
+      <h3>Storing Secrets</h3>
+      <p>There are three ways to store a secret:</p>
+      <ul>
+        <li><strong>Chat:</strong> Tell Zubo directly &mdash; <code>"Store my GitHub token: ghp_abc123xyz"</code></li>
+        <li><strong>Tool:</strong> The <code>secret_set</code> tool can be called programmatically</li>
+        <li><strong>Dashboard:</strong> Navigate to Settings &rarr; Secrets and use the form</li>
+      </ul>
+      <h3>Accessing Secrets in Skills</h3>
+      <p>User-installed skills can access secrets via environment variables:</p>
+<pre><code>const token = process.env.ZUBO_SECRET_GITHUB_TOKEN;</code></pre>
+      <p>Only secrets explicitly declared in the skill manifest are passed to the skill process.</p>
+      <h3>Managing Secrets</h3>
+      <ul>
+        <li><strong>Dashboard:</strong> View masked values (<code>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</code>), click &ldquo;Reveal&rdquo; to show the actual value, click &ldquo;Edit&rdquo; to update, or &ldquo;Delete&rdquo; to remove</li>
+        <li><strong>Naming:</strong> Secret names must match the pattern <code>[a-z0-9_]+</code> (lowercase alphanumeric and underscores only)</li>
+        <li><strong>CLI:</strong> Tell Zubo <code>"list my secrets"</code> or <code>"delete the github_token secret"</code></li>
+      </ul>
+
+      <h2 id="skill-sandboxing">Skill Sandboxing</h2>
+      <p>User-installed skills (stored in <code>~/.zubo/workspace/skills/</code>) run in <strong>isolated Bun subprocesses</strong>. This provides a security boundary between the main Zubo process and third-party skill code. Built-in tools are <em>not</em> sandboxed &mdash; they run in the main process.</p>
+      <h3>Sandbox Features</h3>
+      <ul>
+        <li><strong>Separate process:</strong> Each skill execution spawns a new subprocess with no access to the parent process memory or state</li>
+        <li><strong>Timeout enforcement:</strong> Skills are terminated if they exceed the configured timeout (default: 30 seconds)</li>
+        <li><strong>Minimal environment:</strong> Only explicitly declared secrets are passed as environment variables &mdash; the skill cannot access the full system environment</li>
+        <li><strong>Exit code handling:</strong> Non-zero exit codes are caught and reported as tool errors</li>
+      </ul>
+      <h3>Configuration</h3>
+<pre><code>zubo config set sandbox.enabled true
+zubo config set sandbox.timeoutMs 30000</code></pre>
+      <p>Skills installed from the Zubo skill registry are <strong>always sandboxed</strong>, regardless of the global setting.</p>
+
+      <h2 id="shell-command-safety">Shell Command Safety</h2>
+      <p>The <code>shell</code> tool includes a blocklist of dangerous command patterns. Any command matching these patterns is rejected before execution:</p>
+      <ul>
+        <li><code>rm -rf /</code>, <code>rm -rf ~</code>, <code>rm -rf *</code> &mdash; destructive recursive deletion</li>
+        <li><code>mkfs</code> &mdash; filesystem formatting</li>
+        <li><code>dd</code> writing to <code>/dev/</code> &mdash; raw device access</li>
+        <li><code>:(){:|:&amp;};:</code> &mdash; fork bombs</li>
+        <li><code>kill -1</code>, <code>kill -9 1</code> &mdash; killing init/system processes</li>
+        <li><code>chmod 777 /</code> &mdash; open permissions on root</li>
+        <li><code>shutdown</code>, <code>reboot</code>, <code>halt</code> &mdash; system power commands</li>
+      </ul>
+      <h3>Environment Sanitization</h3>
+      <p>Before executing any shell command, the environment is sanitized: API keys, tokens, and secrets are stripped from the environment variables passed to the child process. This prevents accidental leakage of credentials through commands like <code>env</code> or <code>printenv</code>.</p>
+      <h3>Output Limits</h3>
+      <ul>
+        <li><strong>stdout:</strong> Truncated at 50 KB</li>
+        <li><strong>stderr:</strong> Truncated at 10 KB</li>
+      </ul>
+      <p>This prevents runaway commands from consuming excessive memory in the agent context.</p>
+
+      <h2 id="file-access-restrictions">File Access Restrictions</h2>
+      <p>The <code>file_read</code> and <code>file_write</code> tools are restricted to the user&rsquo;s home directory. Path traversal attacks using <code>..</code> are blocked &mdash; all paths are resolved and validated before access.</p>
+      <h3>Blocked Paths (Read and Write)</h3>
+      <ul>
+        <li><code>~/.ssh/</code> &mdash; SSH private keys and configuration</li>
+        <li><code>~/.aws/credentials</code> &mdash; AWS credential files</li>
+        <li><code>.env</code> files &mdash; environment variable files containing secrets</li>
+        <li><code>~/.zubo/config.json</code> &mdash; Zubo configuration (contains API keys)</li>
+        <li>Private key files: <code>*.pem</code>, <code>*.key</code></li>
+      </ul>
+      <h3>Additional Write Blocks</h3>
+      <p>The <code>file_write</code> tool additionally blocks writing to shell configuration files:</p>
+      <ul>
+        <li><code>.bashrc</code>, <code>.bash_profile</code></li>
+        <li><code>.zshrc</code>, <code>.zprofile</code></li>
+        <li><code>.profile</code></li>
+      </ul>
+      <p>This prevents the agent from accidentally or maliciously modifying your shell startup scripts.</p>
+
+      <h2 id="http-request-safety">HTTP Request Safety</h2>
+      <p>The <code>http_request</code> tool blocks requests to private and internal IP ranges, preventing Server-Side Request Forgery (SSRF) attacks:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Range</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>127.0.0.0/8</code></td><td>Localhost / loopback</td></tr>
+          <tr><td><code>10.0.0.0/8</code></td><td>Private network (Class A)</td></tr>
+          <tr><td><code>172.16.0.0/12</code></td><td>Private network (Class B)</td></tr>
+          <tr><td><code>192.168.0.0/16</code></td><td>Private network (Class C)</td></tr>
+          <tr><td><code>169.254.0.0/16</code></td><td>Link-local addresses</td></tr>
+          <tr><td><code>0.0.0.0</code></td><td>Unspecified address</td></tr>
+        </tbody>
+      </table>
+      <p>This prevents the agent from being tricked into making requests to internal services, cloud metadata endpoints (e.g., <code>169.254.169.254</code>), or other hosts on your local network.</p>
+
+      <h2 id="rate-limiting">Rate Limiting</h2>
+      <p>Zubo includes per-IP sliding-window rate limiting to prevent abuse when the API is exposed to a network.</p>
+      <h3>Defaults</h3>
+      <ul>
+        <li><strong>Chat requests:</strong> 60 per minute</li>
+        <li><strong>File uploads:</strong> 10 per minute</li>
+      </ul>
+      <h3>Configuration</h3>
+<pre><code>zubo config set rateLimit.chatPerMinute 30
+zubo config set rateLimit.uploadPerMinute 5</code></pre>
+      <h3>Behavior</h3>
+      <p>When a client exceeds the rate limit, the server responds with <code>429 Too Many Requests</code> and includes a <code>Retry-After</code> header indicating how many seconds to wait before retrying.</p>
+
+      <h2 id="channel-access-control">Channel Access Control</h2>
+      <p>Each messaging channel supports an allowlist to restrict who can interact with Zubo. When the allowlist is empty (the default), anyone who can reach the channel can send messages.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th>Config Field</th>
+            <th>Value Format</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Telegram</td><td><code>allowedUsers</code></td><td>User ID numbers (e.g., <code>[123456789]</code>)</td></tr>
+          <tr><td>Discord</td><td><code>allowedUsers</code></td><td>User ID strings (e.g., <code>["98765432109876543"]</code>)</td></tr>
+          <tr><td>Slack</td><td><code>allowedUsers</code></td><td>User ID strings (e.g., <code>["U01ABC2DEF"]</code>)</td></tr>
+          <tr><td>WhatsApp</td><td><code>allowedNumbers</code></td><td>Phone numbers (e.g., <code>["+15551234567"]</code>)</td></tr>
+          <tr><td>Signal</td><td><code>allowedNumbers</code></td><td>Phone numbers (e.g., <code>["+15559876543"]</code>)</td></tr>
+        </tbody>
+      </table>
+      <p>Messages from users not on the allowlist are silently ignored. Always configure allowlists for channels exposed to the public internet.</p>
+
+      <h2 id="sub-agent-security">Sub-Agent Security</h2>
+      <p>When the main agent delegates tasks to sub-agents, several security constraints are enforced:</p>
+      <ul>
+        <li><strong>Restricted tool access:</strong> Delegated agents can only use tools explicitly listed in their <code>AGENT.md</code> manifest file</li>
+        <li><strong>Max delegation depth:</strong> 2 levels deep &mdash; this prevents infinite recursion or runaway delegation chains</li>
+        <li><strong>No further delegation:</strong> Sub-agents cannot use the <code>delegate</code> tool to create their own sub-agents</li>
+        <li><strong>No management access:</strong> Sub-agents cannot access the <code>manage_agents</code> or <code>delegate</code> tools</li>
+        <li><strong>Isolated sessions:</strong> Each delegation runs in a separate session context, so sub-agents cannot read or modify the parent agent&rsquo;s conversation state</li>
+      </ul>
+
+      <h2 id="data-security">Data Security</h2>
+      <p>All Zubo data is stored locally on your machine in the <code>~/.zubo/</code> directory. Nothing is sent to external servers unless you explicitly configure an LLM provider or integration.</p>
+      <ul>
+        <li><strong>Database:</strong> SQLite with WAL (Write-Ahead Logging) mode for crash-safe operation</li>
+        <li><strong>Automatic backups:</strong> Daily backups are created automatically in <code>~/.zubo/workspace/backups/</code>, with the last 7 backups retained</li>
+        <li><strong>Manual export:</strong> Run <code>zubo export</code> to export your data &mdash; this excludes secrets and API keys by default</li>
+        <li><strong>Excluded from exports:</strong> The <code>secrets</code> and <code>api_keys</code> tables are always excluded from exports to prevent accidental credential leakage</li>
+      </ul>
+
+      <h2 id="logging">Logging</h2>
+      <p>Zubo uses structured logging with automatic redaction of sensitive information.</p>
+      <h3>Automatic Redaction</h3>
+      <p>Any log entry containing fields named <code>keys</code>, <code>values</code>, <code>secrets</code>, <code>passwords</code>, <code>tokens</code>, or <code>credentials</code> will have their values replaced with <code>***</code> before being written to disk.</p>
+      <h3>Log Levels</h3>
+      <ul>
+        <li><code>debug</code> &mdash; Verbose output for troubleshooting</li>
+        <li><code>info</code> &mdash; Normal operational messages (default)</li>
+        <li><code>warn</code> &mdash; Potential issues that don&rsquo;t prevent operation</li>
+        <li><code>error</code> &mdash; Failures that need attention</li>
+      </ul>
+      <h3>Log Location and Access</h3>
+      <ul>
+        <li><strong>File:</strong> <code>~/.zubo/logs/zubo.log</code></li>
+        <li><strong>View logs:</strong> <code>zubo logs</code></li>
+        <li><strong>Follow logs:</strong> <code>zubo logs --follow</code> (streams new entries in real time)</li>
+      </ul>
+
+      <h2 id="best-practices">Best Practices</h2>
+      <ul>
+        <li><strong>Enable API auth</strong> if you expose the web chat port to a network &mdash; run <code>zubo config set auth.enabled true</code> and create at least one API key</li>
+        <li><strong>Always set allowedUsers</strong> for public-facing channels (Telegram, Discord, Slack) to prevent unauthorized access</li>
+        <li><strong>Use the confirmation system</strong> &mdash; do not bypass it by setting dangerous tools to <code>auto</code> permission</li>
+        <li><strong>Store secrets via the agent or dashboard</strong>, never hardcode them in skill source files or environment variables</li>
+        <li><strong>Review skill code before installing</strong> from the registry &mdash; sandboxing limits damage but does not eliminate all risk</li>
+        <li><strong>Set rate limits</strong> appropriate for your use case, especially if the API is network-accessible</li>
+        <li><strong>Check logs regularly</strong> for suspicious activity &mdash; use <code>zubo logs</code> to review recent entries</li>
+        <li><strong>Use <code>zubo export</code></strong> for safe backups &mdash; exports automatically exclude secrets and API keys</li>
+        <li><strong>Rotate API keys periodically</strong> &mdash; delete old keys with <code>zubo auth delete-key</code> and create fresh ones</li>
+        <li><strong>Keep Zubo updated</strong> to receive the latest security patches and improvements</li>
+      </ul>
+
+      <div class="docs-page-nav">
+        <a href="integrations.html">
+          <span class="nav-dir">Previous</span>
+          <span class="nav-label">&larr; Integrations</span>
+        </a>
+        <a href="api.html">
+          <span class="nav-dir">Next</span>
+          <span class="nav-label">API Reference &rarr;</span>
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+
+  <script src="../script.js"></script>
+</body>
+</html>

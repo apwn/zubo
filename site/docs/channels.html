@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Channel Setup — Zubo Docs</title>
-  <meta name="description" content="Set up messaging channels for Zubo: Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat.">
+  <meta name="description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat. Step-by-step setup guides for every supported messaging channel.">
   <meta name="theme-color" content="#060608">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +32,9 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
         </a>
         <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
-        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
       </div>
     </div>
   </header>
@@ -47,11 +49,19 @@
         </div>
       </div>
       <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
           <a href="channels.html" class="active">Channel Setup</a>
           <a href="integrations.html">Integrations</a>
-          <a href="skills.html">Skill Development</a>
+          <a href="security.html">Security &amp; Auth</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
@@ -65,126 +75,238 @@
 
     <main class="docs-content">
       <div class="docs-breadcrumb">
-        <a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Channel Setup
+        <a href="../index.html">Home</a>
+        <span>/</span>
+        <a href="index.html">Docs</a>
+        <span>/</span>
+        Channel Setup
       </div>
 
       <h1>Channel Setup</h1>
-      <p>Zubo supports six messaging channels. Each channel shares the same memory, personality, and tool access. Configure them in the <code>channels</code> section of <code>~/.zubo/config.json</code>.</p>
+      <p>Zubo connects to multiple messaging platforms simultaneously. All channels share the same agent personality, memory, tools, and skills. Messages from any channel are routed through the unified agent loop &mdash; so your agent behaves consistently whether someone messages it on Telegram, Discord, Slack, WhatsApp, Signal, or the built-in web chat.</p>
 
-      <h2>Web Chat</h2>
-      <p>Web Chat is enabled by default and requires no external setup. It provides the built-in dashboard at <code>http://localhost:&lt;port&gt;</code>.</p>
+      <h2>Web Chat (Always On)</h2>
+      <p>The web chat channel is enabled by default and requires no configuration. When Zubo starts, it serves a full-featured chat interface and dashboard at <code>http://localhost:&lt;port&gt;</code>.</p>
+      <ul>
+        <li><strong>No setup required</strong> &mdash; web chat is active out of the box</li>
+        <li><strong>Port</strong> &mdash; auto-assigned (<code>0</code>) by default, or set a specific port via config</li>
+        <li><strong>Features</strong> &mdash; streaming responses, file upload, voice input, tool status indicators, full conversation history</li>
+        <li><strong>Dashboard</strong> &mdash; the same URL serves the Zubo dashboard with analytics, memory management, skills, and settings</li>
+      </ul>
+      <p>Configuration:</p>
 <pre><code>{
   "channels": {
-    "webchat": {
-      "enabled": true,
-      "port": 3000
-    }
+    "webchat": { "enabled": true, "port": 3000 }
   }
 }</code></pre>
-      <p>Set <code>port</code> to <code>0</code> for an auto-assigned port.</p>
+      <p>Or set the port via CLI:</p>
+<pre><code>zubo config set channels.webchat.port 3000</code></pre>
 
       <h2>Telegram</h2>
+      <p>Connect Zubo to Telegram so you can chat with your agent from the Telegram app on any device.</p>
+      <h3>Setup Steps</h3>
       <ol>
-        <li>Open Telegram and message <a href="https://t.me/BotFather">@BotFather</a></li>
-        <li>Send <code>/newbot</code> and follow the prompts to create your bot</li>
-        <li>Copy the bot token</li>
-        <li>Add the token to your config:</li>
-      </ol>
+        <li>Open Telegram and search for <strong>@BotFather</strong></li>
+        <li>Send <code>/newbot</code> and follow the prompts to create a new bot. BotFather will give you a bot token (e.g., <code>123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11</code>)</li>
+        <li>Add the token to your Zubo config:
+<pre><code>zubo config set channels.telegram.botToken "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"</code></pre>
+        </li>
+        <li>(Optional) Restrict access to specific Telegram users by their numeric user ID:
 <pre><code>{
   "channels": {
     "telegram": {
-      "enabled": true,
-      "botToken": "123456789:ABCdef...",
+      "botToken": "123456:ABC-DEF...",
       "allowedUsers": [12345678]
     }
   }
 }</code></pre>
-      <blockquote><p><strong>Security:</strong> Set <code>allowedUsers</code> to an array of Telegram user IDs to restrict who can talk to your bot. Leave empty to allow anyone.</p></blockquote>
+        </li>
+        <li>Restart Zubo: <code>zubo restart</code></li>
+      </ol>
+      <p><strong>Getting your Telegram user ID:</strong> search for <strong>@userinfobot</strong> on Telegram and send it any message. It will reply with your numeric user ID.</p>
+
+      <h3>Config Fields</h3>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>enabled</code></td><td>boolean</td><td><code>true</code></td><td>Enable or disable the Telegram channel</td></tr>
+          <tr><td><code>botToken</code></td><td>string</td><td>&mdash;</td><td>Bot token from BotFather</td></tr>
+          <tr><td><code>allowedUsers</code></td><td>number[]</td><td><code>[]</code></td><td>Telegram user IDs allowed to message. Empty array means anyone can message.</td></tr>
+        </tbody>
+      </table>
 
       <h2>Discord</h2>
+      <p>Add Zubo as a Discord bot so it can respond to messages in your server.</p>
+      <h3>Setup Steps</h3>
       <ol>
         <li>Go to the <a href="https://discord.com/developers/applications">Discord Developer Portal</a></li>
-        <li>Click "New Application" and name it</li>
-        <li>Navigate to Bot &rarr; click "Add Bot"</li>
-        <li><strong>Enable "Message Content Intent"</strong> under Privileged Gateway Intents</li>
-        <li>Copy the bot token</li>
-        <li>Generate an invite link under OAuth2 &rarr; URL Generator (select <code>bot</code> scope with "Send Messages" and "Read Message History" permissions)</li>
-        <li>Add the token to your config:</li>
+        <li>Click <strong>New Application</strong> and give it a name</li>
+        <li>Go to the <strong>Bot</strong> section in the left sidebar, then click <strong>Reset Token</strong> to generate a bot token. Copy and save it.</li>
+        <li>Still in the Bot section, scroll down to <strong>Privileged Gateway Intents</strong> and enable <strong>Message Content Intent</strong></li>
+        <li>Go to <strong>OAuth2 &rarr; URL Generator</strong> in the left sidebar. Select the <code>bot</code> scope, then check the <strong>Send Messages</strong> and <strong>Read Message History</strong> permissions.</li>
+        <li>Copy the generated URL at the bottom and open it in your browser to invite the bot to your server</li>
+        <li>Add the token to your Zubo config:
+<pre><code>zubo config set channels.discord.botToken "MTk4NjIz..."</code></pre>
+        </li>
+        <li>Restart Zubo: <code>zubo restart</code></li>
       </ol>
-<pre><code>{
-  "channels": {
-    "discord": {
-      "enabled": true,
-      "botToken": "MTIzNDU2...",
-      "allowedUsers": []
-    }
-  }
-}</code></pre>
+
+      <h3>Config Fields</h3>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>enabled</code></td><td>boolean</td><td><code>true</code></td><td>Enable or disable the Discord channel</td></tr>
+          <tr><td><code>botToken</code></td><td>string</td><td>&mdash;</td><td>Bot token from the Discord Developer Portal</td></tr>
+          <tr><td><code>allowedUsers</code></td><td>string[]</td><td><code>[]</code></td><td>Discord user IDs allowed to message. Empty array means anyone can message.</td></tr>
+        </tbody>
+      </table>
 
       <h2>Slack</h2>
+      <p>Connect Zubo to your Slack workspace using Socket Mode for real-time communication without exposing a public URL.</p>
+      <h3>Setup Steps</h3>
       <ol>
-        <li>Create a new Slack app at <a href="https://api.slack.com/apps">api.slack.com/apps</a></li>
-        <li>Enable <strong>Socket Mode</strong> and generate an App-Level Token (<code>xapp-...</code>)</li>
-        <li>Under OAuth &amp; Permissions, add bot scopes: <code>chat:write</code>, <code>app_mentions:read</code>, <code>im:history</code></li>
-        <li>Install the app to your workspace and copy the Bot User OAuth Token (<code>xoxb-...</code>)</li>
-        <li>Enable Events: subscribe to <code>app_mention</code> and <code>message.im</code></li>
-        <li>Add tokens to your config:</li>
-      </ol>
+        <li>Go to <a href="https://api.slack.com/apps">api.slack.com/apps</a> and click <strong>Create New App</strong>. Choose "From scratch" and select your workspace.</li>
+        <li>In the left sidebar, go to <strong>Settings &rarr; Socket Mode</strong> and enable it</li>
+        <li>When prompted, generate an <strong>App-Level Token</strong> with the <code>connections:write</code> scope. Copy this token (it starts with <code>xapp-</code>).</li>
+        <li>Go to <strong>OAuth &amp; Permissions</strong> in the left sidebar. Under <strong>Bot Token Scopes</strong>, add: <code>chat:write</code>, <code>app_mentions:read</code>, <code>im:history</code>, <code>im:read</code>, <code>im:write</code></li>
+        <li>Click <strong>Install to Workspace</strong> at the top of the page and authorize. Copy the <strong>Bot User OAuth Token</strong> (it starts with <code>xoxb-</code>).</li>
+        <li>Add both tokens to your Zubo config:
 <pre><code>{
   "channels": {
     "slack": {
-      "enabled": true,
       "botToken": "xoxb-...",
       "appToken": "xapp-...",
       "allowedUsers": []
     }
   }
 }</code></pre>
+        </li>
+        <li>Restart Zubo: <code>zubo restart</code></li>
+      </ol>
+
+      <h3>Config Fields</h3>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>enabled</code></td><td>boolean</td><td><code>true</code></td><td>Enable or disable the Slack channel</td></tr>
+          <tr><td><code>botToken</code></td><td>string</td><td>&mdash;</td><td>Bot User OAuth Token (starts with <code>xoxb-</code>)</td></tr>
+          <tr><td><code>appToken</code></td><td>string</td><td>&mdash;</td><td>App-Level Token (starts with <code>xapp-</code>)</td></tr>
+          <tr><td><code>allowedUsers</code></td><td>string[]</td><td><code>[]</code></td><td>Slack user IDs allowed to message. Empty array means anyone in the workspace can message.</td></tr>
+        </tbody>
+      </table>
 
       <h2>WhatsApp</h2>
+      <p>Zubo connects to WhatsApp using the Baileys library, which provides an unofficial WhatsApp Web API. No Meta Business account or phone number API is required &mdash; it works by linking as a companion device to your existing WhatsApp account.</p>
+      <h3>Setup Steps</h3>
       <ol>
-        <li>Add the WhatsApp channel to your config:</li>
-      </ol>
+        <li>Add WhatsApp to your Zubo config:
 <pre><code>{
   "channels": {
-    "whatsapp": {
-      "enabled": true,
-      "allowedNumbers": ["+1234567890"]
-    }
+    "whatsapp": { "enabled": true }
   }
 }</code></pre>
-      <ol start="2">
-        <li>Start Zubo &mdash; a QR code will appear in the terminal</li>
-        <li>Open WhatsApp on your phone &rarr; Linked Devices &rarr; Link a Device</li>
-        <li>Scan the QR code</li>
+        </li>
+        <li>Start (or restart) Zubo. A QR code will appear in your terminal.</li>
+        <li>On your phone, open <strong>WhatsApp &rarr; Settings &rarr; Linked Devices &rarr; Link a Device</strong></li>
+        <li>Scan the QR code displayed in the terminal</li>
+        <li>Once linked, Zubo will respond to incoming WhatsApp messages</li>
       </ol>
-      <blockquote><p><strong>Note:</strong> WhatsApp uses a local session. You'll need to re-authenticate if the session expires.</p></blockquote>
+
+      <h3>Config Fields</h3>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>enabled</code></td><td>boolean</td><td><code>true</code></td><td>Enable or disable the WhatsApp channel</td></tr>
+          <tr><td><code>authDir</code></td><td>string</td><td>auto</td><td>Directory where WhatsApp authentication credentials are stored. Defaults to a directory inside <code>~/.zubo</code>.</td></tr>
+          <tr><td><code>allowedNumbers</code></td><td>string[]</td><td><code>[]</code></td><td>Phone numbers allowed to message, in international format (e.g., <code>"+1234567890"</code>). Empty array means anyone can message.</td></tr>
+        </tbody>
+      </table>
 
       <h2>Signal</h2>
+      <p>Connect Zubo to Signal using <a href="https://github.com/AsamK/signal-cli">signal-cli</a>, a command-line interface for the Signal messenger.</p>
+      <h3>Setup Steps</h3>
       <ol>
-        <li>Install <a href="https://github.com/AsamK/signal-cli">signal-cli</a></li>
-        <li>Register a phone number: <code>signal-cli -u +1234567890 register</code></li>
-        <li>Verify with the code sent to you: <code>signal-cli -u +1234567890 verify CODE</code></li>
-        <li>Add to your config:</li>
-      </ol>
+        <li>Install signal-cli on your system:
+<pre><code># macOS
+brew install signal-cli
+
+# Linux (download from GitHub releases)
+# See: https://github.com/AsamK/signal-cli/releases</code></pre>
+        </li>
+        <li>Register your phone number with Signal:
+<pre><code>signal-cli -u +1234567890 register</code></pre>
+        </li>
+        <li>Verify the number with the SMS code you receive:
+<pre><code>signal-cli -u +1234567890 verify 123-456</code></pre>
+        </li>
+        <li>Add Signal to your Zubo config:
 <pre><code>{
   "channels": {
     "signal": {
-      "enabled": true,
       "phoneNumber": "+1234567890",
       "signalCliPath": "/usr/local/bin/signal-cli",
-      "allowedNumbers": ["+1234567890"]
+      "allowedNumbers": ["+1987654321"]
     }
   }
 }</code></pre>
+        </li>
+        <li>Restart Zubo: <code>zubo restart</code></li>
+      </ol>
 
-      <h2>Multiple Channels</h2>
-      <p>You can enable as many channels as you want simultaneously. They all share the same agent, memory, and tools. Disable any channel by setting <code>enabled: false</code>.</p>
+      <h3>Config Fields</h3>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>enabled</code></td><td>boolean</td><td><code>true</code></td><td>Enable or disable the Signal channel</td></tr>
+          <tr><td><code>phoneNumber</code></td><td>string</td><td>&mdash;</td><td>Your registered Signal phone number in international format</td></tr>
+          <tr><td><code>signalCliPath</code></td><td>string</td><td>auto</td><td>Path to the signal-cli binary. Zubo will attempt to find it automatically if not specified.</td></tr>
+          <tr><td><code>allowedNumbers</code></td><td>string[]</td><td><code>[]</code></td><td>Phone numbers allowed to message. Empty array means anyone can message.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Running Multiple Channels</h2>
+      <p>Zubo is designed to run all channels simultaneously. There is no limit to how many channels you can enable at once.</p>
+      <ul>
+        <li><strong>Shared state</strong> &mdash; all channels share the same memory, personality, tools, skills, and session. Your agent has one unified brain regardless of which platform a message comes from.</li>
+        <li><strong>Automatic routing</strong> &mdash; when a message arrives from Telegram, Discord, or any other channel, it goes through the same agent loop. The response is automatically sent back to whichever channel the message originated from.</li>
+        <li><strong>Proactive messages</strong> &mdash; scheduled tasks, alerts, and proactive triggers can broadcast to all connected channels simultaneously, or target a specific channel.</li>
+        <li><strong>Per-channel formatting</strong> &mdash; while the agent personality is shared, each channel adapter handles platform-specific formatting (Markdown for Telegram, embeds for Discord, blocks for Slack, etc.).</li>
+      </ul>
+
+      <h2>Channel Security</h2>
+      <p>Controlling who can interact with your agent is critical, especially for public-facing deployments.</p>
+      <ul>
+        <li><strong>Access control</strong> &mdash; use <code>allowedUsers</code> or <code>allowedNumbers</code> on each channel to restrict who can send messages. When the list is empty, anyone on that platform can message your agent.</li>
+        <li><strong>Rate limiting</strong> &mdash; the web chat channel enforces rate limits per IP address. Other channels enforce rate limits per user ID. Configure limits via <code>rateLimit.chatPerMinute</code> in your config.</li>
+        <li><strong>API authentication</strong> &mdash; enable bearer token auth for the web chat HTTP endpoints by setting <code>auth.enabled: true</code> in your config. See the <a href="security.html">Security &amp; Auth</a> guide for details.</li>
+        <li><strong>Tool confirmation</strong> &mdash; destructive tools like <code>shell</code>, <code>file_write</code>, and <code>secret_delete</code> require explicit user confirmation before executing, regardless of channel.</li>
+      </ul>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li><strong>Always set <code>allowedUsers</code></strong> for public-facing channels &mdash; without it, anyone who finds your bot can interact with your agent and its tools</li>
+        <li><strong>Start with web chat only</strong>, then add channels one at a time as needed. This makes it easier to debug connection issues.</li>
+        <li><strong>Disable without removing</strong> &mdash; use <code>zubo config set channels.telegram.enabled false</code> to temporarily disable a channel without deleting its configuration</li>
+        <li><strong>Check logs</strong> if a channel is not connecting: <code>zubo logs</code> will show connection errors and status updates for each channel adapter</li>
+        <li><strong>Monitor from the dashboard</strong> &mdash; the Settings &rarr; Channels page shows real-time connection status for every enabled channel</li>
+        <li><strong>Keep tokens secure</strong> &mdash; bot tokens grant full control over your bot. Never share them or commit them to version control. Zubo stores them in <code>~/.zubo/config.json</code> with restricted file permissions.</li>
+        <li><strong>Test incrementally</strong> &mdash; after adding a new channel, send a simple test message before relying on it for important tasks</li>
+      </ul>
 
       <div class="docs-page-nav">
-        <a href="config.html">
+        <a href="skills.html">
           <span class="nav-dir">Previous</span>
-          <span class="nav-label">&larr; Configuration</span>
+          <span class="nav-label">&larr; Skills</span>
         </a>
         <a href="integrations.html">
           <span class="nav-dir">Next</span>
@@ -195,6 +317,7 @@
   </div>
 
   <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+
   <script src="../script.js"></script>
 </body>
 </html>

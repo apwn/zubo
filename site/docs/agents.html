@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agents &amp; Workflows — Zubo Docs</title>
+  <meta name="description" content="Learn how to create custom agents, delegate tasks to sub-agents, build multi-step workflows, and organize agent teams in Zubo.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html" class="active">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="security.html">Security &amp; Auth</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Agents &amp; Workflows</div>
+
+      <h1>Agents &amp; Workflows</h1>
+      <p>Zubo supports custom sub-agents, multi-agent delegation, structured workflows, and agent teams. This allows you to create specialized agents for specific tasks and orchestrate them together into powerful, composable pipelines that go far beyond what a single agent can accomplish on its own.</p>
+
+      <h2>The Default Agent</h2>
+      <p>By default, Zubo operates as a single agent that handles all messages across every connected channel using a unified session identified as "owner." This default agent has access to all registered tools &mdash; both built-in tools and any user-installed skills &mdash; and its personality and behavior are defined by the system prompt stored at <code>~/.zubo/workspace/SYSTEM.md</code>.</p>
+      <p>For many use cases, the default agent is all you need. It can search the web, manage your calendar, write code, read and write memory, and use any skill you install. Custom agents become valuable when you want to restrict tool access, provide specialized instructions, or build multi-step workflows.</p>
+
+      <h2>Custom System Prompt</h2>
+      <p>The system prompt defines your agent's personality, rules, and background knowledge. There are two ways to customize it:</p>
+      <ul>
+        <li><strong>Edit the file directly</strong> &mdash; Open <code>~/.zubo/workspace/SYSTEM.md</code> in any text editor and modify it.</li>
+        <li><strong>Use the dashboard</strong> &mdash; Navigate to the System Prompt panel in the web dashboard and edit it there. Changes are saved to <code>SYSTEM.md</code> automatically.</li>
+      </ul>
+      <p>Here is an example <code>SYSTEM.md</code> that defines a personalized assistant:</p>
+<pre><code># System Prompt
+
+You are Zubo, a personal AI assistant for Thomas.
+
+## Personality
+- Friendly but concise. Avoid unnecessary filler.
+- Use a professional tone for work topics, casual for personal.
+- When unsure, ask clarifying questions rather than guessing.
+
+## Rules
+- Always check memory before answering personal questions.
+- Never share API keys, passwords, or sensitive data in chat.
+- Prefer short answers unless the user asks for detail.
+
+## Context
+- Thomas is a software engineer working on a Rust project called "relay."
+- His timezone is America/New_York.
+- He prefers metric units and Markdown formatting.</code></pre>
+      <p>The system prompt is loaded fresh on every message, so changes take effect immediately without restarting Zubo.</p>
+
+      <h2>Creating Custom Agents</h2>
+      <p>Custom agents are defined as directories inside <code>~/.zubo/workspace/agents/</code>. Each directory contains a single <code>AGENT.md</code> file that specifies the agent's name, description, system prompt, and allowed tools.</p>
+      <p>Here is an example <code>AGENT.md</code> for a research specialist:</p>
+<pre><code># research_agent
+A specialized agent for web research and summarization.
+
+## System Prompt
+You are a research specialist. Focus on finding accurate, up-to-date
+information from reliable sources. Always cite your sources and provide
+concise summaries. When researching a topic, search from multiple angles
+to ensure comprehensive coverage.
+
+## Tools
+- web_search
+- url_fetch
+- memory_write</code></pre>
+      <p>There are three ways to create a custom agent:</p>
+      <ul>
+        <li><strong>Manually</strong> &mdash; Create the directory and <code>AGENT.md</code> file yourself at <code>~/.zubo/workspace/agents/research_agent/AGENT.md</code>.</li>
+        <li><strong>Conversationally</strong> &mdash; Tell Zubo: "Create an agent called research_agent that specializes in web research and has access to web_search, url_fetch, and memory_write." Zubo will generate the <code>AGENT.md</code> for you.</li>
+        <li><strong>Programmatically</strong> &mdash; Use the <code>manage_agents</code> tool to create, update, list, or delete agents.</li>
+      </ul>
+      <p>Agents have restricted tool access &mdash; they can only use the tools explicitly listed in their <code>## Tools</code> section. This is a key security and reliability feature: a research agent does not need access to your calendar, and a writing agent does not need access to the shell.</p>
+
+      <h3>Agent Fields</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>Name (H1)</code></td><td>Yes</td><td>Lowercase with underscores, e.g. <code>research_agent</code>. Used as the agent identifier.</td></tr>
+          <tr><td><code>Description</code></td><td>Yes</td><td>Free-text between the H1 heading and the first H2. Describes what the agent does.</td></tr>
+          <tr><td><code>System Prompt</code></td><td>Yes</td><td>Content under the <code>## System Prompt</code> heading. Defines the agent's behavior and personality.</td></tr>
+          <tr><td><code>Tools</code></td><td>Yes</td><td>Bullet list under the <code>## Tools</code> heading. Each item is the name of a registered tool or skill.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Sub-Agent Delegation</h2>
+      <p>The main agent can delegate tasks to sub-agents using the built-in <code>delegate</code> tool. When a task is delegated, the sub-agent runs with its own system prompt and restricted tool set, processes the task, and returns a result to the main agent.</p>
+      <p>Key rules for delegation:</p>
+      <ul>
+        <li><strong>Maximum delegation depth: 2</strong> &mdash; This prevents infinite recursion. The main agent (depth 0) can delegate to a sub-agent (depth 1), which can delegate once more (depth 2), but no further.</li>
+        <li><strong>Sub-agents cannot delegate further or access the <code>manage_agents</code> or <code>delegate</code> tools</strong> &mdash; These tools are automatically stripped from sub-agent tool lists to prevent abuse.</li>
+        <li><strong>Each delegation creates a separate session</strong> &mdash; This provides context isolation. The sub-agent's conversation history does not bleed into the main agent's context.</li>
+        <li><strong>Memory is shared</strong> &mdash; Sub-agents can search and write to the same memory store as the main agent, so research findings and facts persist across delegations.</li>
+      </ul>
+      <p>Here is an example of how delegation works in practice:</p>
+<pre><code>User: "Research the latest AI news and summarize it"
+
+Zubo (main agent):
+  [Decides this is a research task, delegates to research_agent]
+
+  research_agent:
+    [Uses web_search to find recent AI articles]
+    [Uses url_fetch to read the top 3 articles]
+    [Uses memory_write to save key findings]
+    Returns: "Here's a summary of today's AI news:
+    1. OpenAI announced GPT-5 with improved reasoning...
+    2. Google DeepMind published new results on...
+    3. Meta released an open-source model that..."
+
+Zubo (main agent):
+  "Based on the research, here's what's happening in AI today:
+   [Formats and presents the research_agent's findings]"</code></pre>
+      <p>The user sees only the final response from the main agent. The delegation is transparent unless you inspect the logs in the dashboard.</p>
+
+      <h2>Workflows</h2>
+      <p>Workflows let you chain multiple agents together in a structured, multi-step pipeline. Each step defines a task, the agent that should handle it, and its dependencies on other steps. Zubo executes steps in dependency order using topological sorting, and independent steps run in parallel.</p>
+      <p>Workflows are defined as <code>WORKFLOW.md</code> files inside <code>~/.zubo/workspace/workflows/</code>. Here is an example:</p>
+<pre><code># content_pipeline
+A workflow that researches, writes, and reviews content.
+
+## Agents
+- research_agent
+- writer_agent
+- reviewer_agent
+
+## Steps
+### research
+- agent: research_agent
+- task: Research the topic: $input
+
+### write
+- agent: writer_agent
+- task: Write an article based on this research: $research
+- dependsOn: research
+
+### review
+- agent: reviewer_agent
+- task: Review and improve this article: $write
+- dependsOn: write</code></pre>
+      <p>In this example, the <code>research</code> step runs first. Once it completes, its output is passed to the <code>write</code> step via the <code>$research</code> variable. After writing is complete, the <code>review</code> step receives the article via <code>$write</code> and produces the final output.</p>
+
+      <h3>Running a Workflow</h3>
+      <p>There are two ways to trigger a workflow:</p>
+      <ul>
+        <li><strong>Conversationally</strong> &mdash; Tell Zubo: "Run the content_pipeline workflow with input: AI trends in 2025"</li>
+        <li><strong>Programmatically</strong> &mdash; Use the <code>run_workflow</code> tool with the workflow name and input string.</li>
+      </ul>
+
+      <h3>Variables</h3>
+      <p>Workflows use a simple variable system to pass data between steps:</p>
+      <ul>
+        <li><code>$input</code> &mdash; The original input string provided when the workflow was triggered.</li>
+        <li><code>$stepName</code> &mdash; The output of a previously completed step. For example, <code>$research</code> contains the output of the <code>research</code> step.</li>
+      </ul>
+
+      <h3>Execution Details</h3>
+      <ul>
+        <li>Steps are executed in topological order based on their <code>dependsOn</code> declarations.</li>
+        <li>Steps with no dependencies (or whose dependencies are already satisfied) run in parallel.</li>
+        <li>Each step has a maximum of <strong>8 agent rounds</strong> to complete its task.</li>
+        <li>Execution is logged in the database in the <code>workflow_executions</code> and <code>workflow_step_logs</code> tables for auditing and debugging.</li>
+      </ul>
+
+      <h3>Workflow Step Fields</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>Step name (H3)</code></td><td>Yes</td><td>Unique step identifier, used as a variable name for downstream steps.</td></tr>
+          <tr><td><code>agent</code></td><td>No</td><td>The agent to delegate this step to. If omitted, the main agent handles the step.</td></tr>
+          <tr><td><code>task</code></td><td>Yes</td><td>Natural language description of what this step should accomplish. Supports variable interpolation.</td></tr>
+          <tr><td><code>dependsOn</code></td><td>No</td><td>Name of a step (or comma-separated list of steps) that must complete before this step can start.</td></tr>
+          <tr><td><code>output</code></td><td>No</td><td>Custom variable name for this step's output. Defaults to the step name.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Agent Teams</h2>
+      <p>Teams provide a way to group related agents and associate them with a default workflow. They are defined as <code>TEAM.md</code> files inside <code>~/.zubo/workspace/teams/</code>.</p>
+<pre><code># content_team
+A team for content creation workflows.
+
+## Agents
+- research_agent
+- writer_agent
+- reviewer_agent
+
+## Default Workflow
+content_pipeline</code></pre>
+      <p>Teams serve as an organizational layer:</p>
+      <ul>
+        <li>They group agents that work together on related tasks.</li>
+        <li>They associate a default workflow that is triggered when the team is invoked.</li>
+        <li>They can be created and managed using the <code>manage_teams</code> tool or by asking Zubo conversationally.</li>
+      </ul>
+      <p>When you tell Zubo "use the content team to write about AI trends," it automatically activates the team's default workflow with your input.</p>
+
+      <h2>Best Practices</h2>
+      <ul>
+        <li><strong>Keep agents focused</strong> &mdash; Each agent should have a clear, narrow purpose. A "research_agent" that also edits code and manages calendars is doing too much.</li>
+        <li><strong>Limit tools per agent</strong> &mdash; Only give agents the tools they actually need. Fewer tools means less confusion for the LLM and fewer potential failure modes.</li>
+        <li><strong>Use workflows for multi-step processes</strong> &mdash; Rather than asking one agent to research, write, and review in a single turn, break it into a workflow with specialized agents for each step.</li>
+        <li><strong>Write clear system prompts</strong> &mdash; The more specific your agent's system prompt, the better it performs. Include examples of desired output format, tone, and behavior.</li>
+        <li><strong>Test agents individually</strong> &mdash; Before combining agents in a workflow, test each one in isolation to make sure it handles its task well.</li>
+        <li><strong>Don't over-engineer</strong> &mdash; The default agent handles most tasks well on its own. Only create custom agents when you have a genuine need for specialization, restricted tool access, or multi-step orchestration.</li>
+      </ul>
+
+      <div class="docs-page-nav">
+        <a href="config.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Configuration</span></a>
+        <a href="memory.html"><span class="nav-dir">Next</span><span class="nav-label">Memory System &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+</body>
+</html>
