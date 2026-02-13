@@ -1,14 +1,26 @@
-import { safeApiError, safeExceptionError } from "../../api-helpers.js";
-import { getGoogleAccessToken } from "../../../../util/google-tokens";
-
 const API = "https://docs.googleapis.com/v1/documents";
+
+async function getToken(): Promise<string> {
+  const Zubo = (globalThis as any).Zubo;
+  if (Zubo?.getGoogleToken) return Zubo.getGoogleToken();
+  throw new Error("Google is NOT connected. Use google_oauth with action 'start' to set up Google.");
+}
+
+function safeApiErr(status: number, statusText: string, service: string): string {
+  return JSON.stringify({ error: `${service} API error: ${status} ${statusText}` });
+}
 
 export default async function (input: Record<string, unknown>): Promise<string> {
   let token: string;
   try {
-    token = await getGoogleAccessToken();
+    token = await getToken();
   } catch (err: any) {
-    return JSON.stringify({ error: err.message });
+    return JSON.stringify({
+      error: err.message,
+      action_required: "Google is NOT connected. The user needs to complete the OAuth 2.0 flow. " +
+        "Ask the user for their Google OAuth client_id (ends with .apps.googleusercontent.com) " +
+        "and client_secret (starts with GOCSPX-), then use google_oauth tool with action 'start'.",
+    });
   }
 
   const { action, document_id, title, text, index } = input as {
@@ -33,7 +45,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify({ title }),
         });
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Docs");
         const doc = (await res.json()) as any;
         return JSON.stringify({
           document_id: doc.documentId,
@@ -45,7 +57,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       case "read": {
         if (!document_id) return JSON.stringify({ error: "document_id is required for read" });
         const res = await fetch(`${API}/${document_id}`, { headers });
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Docs");
         const doc = (await res.json()) as any;
         // Extract plain text from doc body
         let content = "";
@@ -82,7 +94,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
             ],
           }),
         });
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Docs");
         return JSON.stringify({ success: true, message: "Document updated." });
       }
 
@@ -90,6 +102,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return safeExceptionError(err, "Google");
+    console.error(`[Google Docs] Request failed: ${err.message}`);
+    return JSON.stringify({ error: "Google Docs request failed. Check logs for details." });
   }
 }

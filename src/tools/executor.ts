@@ -50,12 +50,17 @@ async function shouldSandbox(
     const handlerPath = join(skillDir, "handler.ts");
     if (!existsSync(handlerPath)) return null;
 
+    // If the handler uses getGoogleToken, it needs the main process globals — skip sandbox
+    const handlerCode = readFileSync(handlerPath, "utf-8");
+    if (handlerCode.includes("getGoogleToken")) {
+      return null;
+    }
+
     // Only pass secrets that the skill actually references (grep handler for getSecret calls)
     const env: Record<string, string> = {};
     try {
       const { getDb } = await import("../db/connection");
       const db = getDb();
-      const handlerCode = readFileSync(handlerPath, "utf-8");
       const rows = db.query("SELECT name, value FROM secrets").all() as { name: string; value: string }[];
       for (const row of rows) {
         // Only pass secrets referenced in the handler code

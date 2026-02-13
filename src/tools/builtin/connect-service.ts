@@ -96,9 +96,13 @@ export function registerConnectServiceTool() {
               skills_installed: installed,
               message:
                 "Google integration skills installed. Google requires OAuth 2.0 to authenticate. " +
-                "Use the google_oauth tool with action 'start' to complete the connection. " +
-                "You will need a client_id and client_secret from the Google Cloud Console.",
-              next_step: "Use google_oauth tool with action 'start', providing client_id and client_secret.",
+                "You need TWO credentials from the user: " +
+                "(1) client_id (ends with .apps.googleusercontent.com) and " +
+                "(2) client_secret (starts with GOCSPX-). " +
+                "These are different values — ask for both separately.",
+              next_step:
+                "Ask the user for both their Google OAuth client_id AND client_secret, " +
+                "then call google_oauth with action 'start' passing both values.",
             });
           }
 

@@ -42,11 +42,23 @@ export function deleteSecret(name: string): boolean {
 }
 
 /**
- * Exposes getSecret on globalThis.Zubo so user-created skill handlers
- * can access secrets without relative imports back into the source tree.
+ * Exposes getSecret (and helpers) on globalThis.Zubo so user-created
+ * skill handlers can access secrets without relative imports.
  */
 export function exposeSecretsRuntime(): void {
   const g = globalThis as any;
   if (!g.Zubo) g.Zubo = {};
   g.Zubo.getSecret = getSecret;
+}
+
+/**
+ * Exposes getGoogleToken on globalThis.Zubo so installed Google skill
+ * handlers can get a valid OAuth access token without importing from src.
+ */
+export function exposeGoogleTokenRuntime(
+  getGoogleAccessToken: () => Promise<string>
+): void {
+  const g = globalThis as any;
+  if (!g.Zubo) g.Zubo = {};
+  g.Zubo.getGoogleToken = getGoogleAccessToken;
 }

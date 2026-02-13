@@ -1,6 +1,6 @@
 # gmail
 
-Manage Gmail: list, read, send, search, and reply to emails. Requires a Google API token stored as `gmail_token`.
+Manage Gmail: list, read, send, search, and reply to emails. Requires Google OAuth 2.0 connection (use google_oauth tool to connect).
 
 ## Input Schema
 

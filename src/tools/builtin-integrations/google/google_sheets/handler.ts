@@ -1,14 +1,26 @@
-import { safeApiError, safeExceptionError } from "../../api-helpers.js";
-import { getGoogleAccessToken } from "../../../../util/google-tokens";
-
 const API = "https://sheets.googleapis.com/v4/spreadsheets";
+
+async function getToken(): Promise<string> {
+  const Zubo = (globalThis as any).Zubo;
+  if (Zubo?.getGoogleToken) return Zubo.getGoogleToken();
+  throw new Error("Google is NOT connected. Use google_oauth with action 'start' to set up Google.");
+}
+
+function safeApiErr(status: number, statusText: string, service: string): string {
+  return JSON.stringify({ error: `${service} API error: ${status} ${statusText}` });
+}
 
 export default async function (input: Record<string, unknown>): Promise<string> {
   let token: string;
   try {
-    token = await getGoogleAccessToken();
+    token = await getToken();
   } catch (err: any) {
-    return JSON.stringify({ error: err.message });
+    return JSON.stringify({
+      error: err.message,
+      action_required: "Google is NOT connected. The user needs to complete the OAuth 2.0 flow. " +
+        "Ask the user for their Google OAuth client_id (ends with .apps.googleusercontent.com) " +
+        "and client_secret (starts with GOCSPX-), then use google_oauth tool with action 'start'.",
+    });
   }
 
   const { action, spreadsheet_id, title, range, values } = input as {
@@ -33,7 +45,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify({ properties: { title } }),
         });
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Sheets");
         const sheet = (await res.json()) as any;
         return JSON.stringify({
           spreadsheet_id: sheet.spreadsheetId,
@@ -47,7 +59,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         if (!range) return JSON.stringify({ error: "range is required for read" });
         const encodedRange = encodeURIComponent(range);
         const res = await fetch(`${API}/${spreadsheet_id}/values/${encodedRange}`, { headers });
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Sheets");
         const data = (await res.json()) as any;
         return JSON.stringify({ range: data.range, values: data.values || [] });
       }
@@ -65,7 +77,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
             body: JSON.stringify({ values }),
           }
         );
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Sheets");
         const result = (await res.json()) as any;
         return JSON.stringify({
           updated_range: result.updates?.updatedRange,
@@ -86,7 +98,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
             body: JSON.stringify({ values }),
           }
         );
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Sheets");
         const result = (await res.json()) as any;
         return JSON.stringify({
           updated_range: result.updatedRange,
@@ -98,6 +110,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return safeExceptionError(err, "Google");
+    console.error(`[Google Sheets] Request failed: ${err.message}`);
+    return JSON.stringify({ error: "Google Sheets request failed. Check logs for details." });
   }
 }

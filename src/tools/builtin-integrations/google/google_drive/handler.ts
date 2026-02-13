@@ -1,14 +1,26 @@
-import { safeApiError, safeExceptionError } from "../../api-helpers.js";
-import { getGoogleAccessToken } from "../../../../util/google-tokens";
-
 const API = "https://www.googleapis.com/drive/v3";
+
+async function getToken(): Promise<string> {
+  const Zubo = (globalThis as any).Zubo;
+  if (Zubo?.getGoogleToken) return Zubo.getGoogleToken();
+  throw new Error("Google is NOT connected. Use google_oauth with action 'start' to set up Google.");
+}
+
+function safeApiErr(status: number, statusText: string, service: string): string {
+  return JSON.stringify({ error: `${service} API error: ${status} ${statusText}` });
+}
 
 export default async function (input: Record<string, unknown>): Promise<string> {
   let token: string;
   try {
-    token = await getGoogleAccessToken();
+    token = await getToken();
   } catch (err: any) {
-    return JSON.stringify({ error: err.message });
+    return JSON.stringify({
+      error: err.message,
+      action_required: "Google is NOT connected. The user needs to complete the OAuth 2.0 flow. " +
+        "Ask the user for their Google OAuth client_id (ends with .apps.googleusercontent.com) " +
+        "and client_secret (starts with GOCSPX-), then use google_oauth tool with action 'start'.",
+    });
   }
 
   const { action, file_id, name, parent_id, query, page_size } = input as {
@@ -34,7 +46,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         });
         if (query) qs.set("q", query);
         const res = await fetch(`${API}/files?${qs}`, { headers });
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Drive");
         const data = (await res.json()) as any;
         return JSON.stringify(
           (data.files || []).map((f: any) => ({
@@ -60,7 +72,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           headers,
           body: JSON.stringify(metadata),
         });
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Drive");
         const folder = (await res.json()) as any;
         return JSON.stringify({ id: folder.id, name: folder.name });
       }
@@ -71,7 +83,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           fields: "id,name,mimeType,size,modifiedTime,webViewLink,description",
         });
         const res = await fetch(`${API}/files/${file_id}?${qs}`, { headers });
-        if (!res.ok) return await safeApiError(res, "Google");
+        if (!res.ok) return safeApiErr(res.status, res.statusText, "Google Drive");
         const f = (await res.json()) as any;
         return JSON.stringify({
           id: f.id,
@@ -88,6 +100,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         return JSON.stringify({ error: `Unknown action: ${action}` });
     }
   } catch (err: any) {
-    return safeExceptionError(err, "Google");
+    console.error(`[Google Drive] Request failed: ${err.message}`);
+    return JSON.stringify({ error: "Google Drive request failed. Check logs for details." });
   }
 }

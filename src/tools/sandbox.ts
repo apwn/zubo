@@ -1,7 +1,16 @@
-import { join } from "path";
+import { join, dirname } from "path";
 import { logger } from "../util/logger";
 
 const SANDBOX_RUNNER = join(import.meta.dir, "sandbox-runner.ts");
+
+/** Resolve the directory containing the `bun` binary once at import time. */
+const BUN_BIN_DIR = (() => {
+  try {
+    return dirname(Bun.which("bun") ?? process.execPath);
+  } catch {
+    return dirname(process.execPath);
+  }
+})();
 
 export interface SandboxOptions {
   timeoutMs?: number;
@@ -29,7 +38,7 @@ export async function executeSandboxed(
         ...options.env,
         // Minimal env — don't pass full parent env to prevent secret leakage
         HOME: process.env.HOME ?? "",
-        PATH: "/usr/local/bin:/usr/bin:/bin",
+        PATH: `${BUN_BIN_DIR}:/usr/local/bin:/usr/bin:/bin`,
         NODE_ENV: process.env.NODE_ENV ?? "production",
       },
     }

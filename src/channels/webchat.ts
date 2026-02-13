@@ -1170,10 +1170,21 @@ export function createWebChatAdapter(
               const stream = new ReadableStream({
                 start(controller) {
                   const encoder = new TextEncoder();
+                  let closed = false;
                   const send = (event: string, data: any) => {
-                    controller.enqueue(
-                      encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
-                    );
+                    if (closed) return;
+                    try {
+                      controller.enqueue(
+                        encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+                      );
+                    } catch {
+                      closed = true;
+                    }
+                  };
+                  const close = () => {
+                    if (closed) return;
+                    closed = true;
+                    try { controller.close(); } catch {}
                   };
 
                   if (!router.handleMessageStream) {
@@ -1181,10 +1192,10 @@ export function createWebChatAdapter(
                     router.handleMessage(message, async (reply) => {
                       send("delta", { text: reply });
                       send("done", { reply });
-                      controller.close();
+                      close();
                     }).catch((err) => {
                       send("error", { error: err.message });
-                      controller.close();
+                      close();
                     });
                     return;
                   }
@@ -1196,10 +1207,10 @@ export function createWebChatAdapter(
                     (name) => send("tool", { name, status: "end" }),
                   ).then((reply) => {
                     send("done", { reply });
-                    controller.close();
+                    close();
                   }).catch((err) => {
                     send("error", { error: err.message });
-                    controller.close();
+                    close();
                   });
                 },
               });
