@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started — Zubo Docs</title>
+  <meta name="description" content="Get started with Zubo — your self-hosted AI agent with persistent memory, multi-channel presence, and 20+ smart tools.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-mark">Z</div>
+        <span class="logo-wordmark">zubo</span>
+      </a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html" class="active">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="skills.html">Skill Development</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb">
+        <a href="../index.html">Home</a>
+        <span>/</span>
+        <a href="index.html">Docs</a>
+      </div>
+
+      <h1>Getting Started with Zubo</h1>
+      <p>Zubo is a self-hosted AI agent with persistent semantic memory, multi-channel presence, 20+ smart tools, and sub-agent delegation. It runs entirely on your machine &mdash; no cloud required.</p>
+
+      <h2>Features</h2>
+      <ul>
+        <li><strong>Multi-provider LLM</strong> &mdash; Claude, OpenAI-compatible, Ollama, with automatic failover</li>
+        <li><strong>Multi-channel</strong> &mdash; Telegram, Discord, Slack, WhatsApp, Signal, Web Chat</li>
+        <li><strong>Persistent memory</strong> &mdash; Vector + full-text hybrid search (ONNX embeddings, FTS5)</li>
+        <li><strong>Tool system</strong> &mdash; Built-in tools, extensible skills, skill registry</li>
+        <li><strong>Integrations</strong> &mdash; GitHub, Google, Notion, Linear, Jira, Slack, Twitter</li>
+        <li><strong>Workflows</strong> &mdash; Multi-agent pipelines with delegation</li>
+        <li><strong>Scheduling</strong> &mdash; Cron jobs, heartbeat, proactive tasks</li>
+        <li><strong>Voice</strong> &mdash; Speech-to-text (Whisper) and text-to-speech (OpenAI, ElevenLabs)</li>
+        <li><strong>Dashboard</strong> &mdash; Built-in web UI with analytics, memory management, and settings</li>
+        <li><strong>Document ingestion</strong> &mdash; Upload PDF, DOCX, TXT, CSV, JSON, and more</li>
+        <li><strong>API authentication</strong> &mdash; Bearer token auth with key management</li>
+        <li><strong>Skill sandboxing</strong> &mdash; User-installed skills run in isolated subprocesses</li>
+      </ul>
+
+      <h2>Installation</h2>
+      <p>Zubo requires <a href="https://bun.sh">Bun</a> (v1.0+). Install it in three steps:</p>
+
+      <h3>Step 1: Install</h3>
+<pre><code>bun add -g zubo
+# or: npm i -g zubo</code></pre>
+
+      <h3>Step 2: Setup</h3>
+<pre><code>zubo setup</code></pre>
+      <p>The interactive setup wizard walks you through:</p>
+      <ul>
+        <li>Choosing an LLM provider (Anthropic, OpenAI, Ollama, etc.)</li>
+        <li>Entering your API key</li>
+        <li>Selecting a model</li>
+        <li>Optionally configuring channels (Telegram, Discord, etc.)</li>
+      </ul>
+
+      <h3>Step 3: Start</h3>
+<pre><code>zubo start</code></pre>
+      <p>The web dashboard will be available at <code>http://localhost:&lt;port&gt;</code> (shown in terminal output). Use <code>zubo start --daemon</code> to run in the background.</p>
+
+      <h2>Architecture</h2>
+      <div class="docs-arch">User Message
+  &rarr; Channel Adapter (Telegram/Discord/Slack/WhatsApp/Signal/WebChat)
+    &rarr; Message Router
+      &rarr; Agent Loop (LLM + Tool Execution)
+        &rarr; Tools (built-in, skills, integrations)
+        &rarr; Memory (vector search, FTS5, document parsing)
+        &rarr; Scheduler (cron, heartbeat, proactive tasks)
+      &rarr; Response
+    &rarr; Channel Adapter
+  &rarr; User</div>
+
+      <h2>Tech Stack</h2>
+      <table>
+        <thead>
+          <tr><th>Component</th><th>Technology</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Runtime</td><td>Bun</td></tr>
+          <tr><td>Language</td><td>TypeScript</td></tr>
+          <tr><td>Database</td><td>SQLite (via bun:sqlite)</td></tr>
+          <tr><td>Embeddings</td><td>ONNX Runtime (all-MiniLM-L6-v2)</td></tr>
+          <tr><td>Search</td><td>FTS5 + cosine similarity vector search</td></tr>
+          <tr><td>Dashboard</td><td>Zero-dependency inline HTML</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Next Steps</h2>
+      <ul>
+        <li><a href="config.html">Configuration Reference</a> &mdash; All config fields explained</li>
+        <li><a href="channels.html">Channel Setup</a> &mdash; Connect Telegram, Discord, Slack, and more</li>
+        <li><a href="integrations.html">Integrations</a> &mdash; Set up GitHub, Google, Notion, and others</li>
+        <li><a href="skills.html">Skill Development</a> &mdash; Build custom skills</li>
+        <li><a href="api.html">API Reference</a> &mdash; All endpoints documented</li>
+        <li><a href="cli.html">CLI Commands</a> &mdash; Every command with examples</li>
+      </ul>
+
+      <div class="docs-page-nav">
+        <div></div>
+        <a href="config.html">
+          <span class="nav-dir">Next</span>
+          <span class="nav-label">Configuration &rarr;</span>
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+
+  <script src="../script.js"></script>
+</body>
+</html>

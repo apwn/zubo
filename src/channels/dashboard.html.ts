@@ -407,6 +407,20 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   .settings-select { cursor: pointer; appearance: auto; }
   .settings-input::placeholder { color: var(--text-faint); }
 
+  /* Perf grid */
+  .perf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .perf-card {
+    background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 18px 20px; transition: border-color var(--transition);
+  }
+  .perf-card:hover { border-color: rgba(124,58,237,0.25); }
+  .perf-card .perf-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; margin-bottom: 8px; }
+  .perf-card .perf-value { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+
+  .cost-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .cost-bar { height: 8px; border-radius: 4px; background: var(--gradient); min-width: 2px; transition: width 300ms; }
+  .cost-pct { font-size: 11px; color: var(--text-faint); white-space: nowrap; }
+
   /* Analytics CSS bar chart */
   .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; }
   .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; }
@@ -611,6 +625,30 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <table id="sessions-table">
           <thead><tr><th>Session</th><th>Provider</th><th>Tokens</th><th>Cost</th><th>Last Used</th></tr></thead>
           <tbody id="sessions-body"></tbody>
+        </table>
+
+        <div class="memory-section-title" style="margin-top:28px;">System Health</div>
+        <div class="perf-grid" id="perf-health"></div>
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:14px;">
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">RSS Memory (7 Days)</div>
+          <div class="bar-chart" id="rss-chart"></div>
+        </div>
+
+        <div class="memory-section-title" style="margin-top:28px;">Cost Breakdown by Model</div>
+        <table id="cost-table">
+          <thead><tr><th>Provider</th><th>Model</th><th>Tokens</th><th>Cost</th><th style="width:30%;">Share</th></tr></thead>
+          <tbody id="cost-body"></tbody>
+        </table>
+
+        <div class="memory-section-title" style="margin-top:28px;">Response Time Trend (7 Days)</div>
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+          <div class="bar-chart" id="response-chart"></div>
+        </div>
+
+        <div class="memory-section-title" style="margin-top:28px;">Top Models</div>
+        <table id="top-models-table">
+          <thead><tr><th>Model</th><th>Requests</th><th>Tokens</th><th>Cost</th><th>Avg Response</th></tr></thead>
+          <tbody id="top-models-body"></tbody>
         </table>
       </div>
     </div>
@@ -1173,6 +1211,178 @@ function loadAnalytics() {
       body.appendChild(tr);
     });
   });
+
+  // System Health — perf snapshots
+  api('/analytics/perf-snapshots').then(function(data) {
+    var container = document.getElementById('perf-health');
+    var chart = document.getElementById('rss-chart');
+    container.replaceChildren();
+    chart.replaceChildren();
+    var snaps = data.snapshots || [];
+    if (!snaps.length) {
+      var emptyCard = document.createElement('div');
+      emptyCard.className = 'perf-card';
+      var emptyLabel = document.createElement('div');
+      emptyLabel.className = 'perf-label';
+      emptyLabel.textContent = 'No Data';
+      var emptyVal = document.createElement('div');
+      emptyVal.className = 'perf-value';
+      emptyVal.style.cssText = 'font-size:14px;color:var(--text-muted);';
+      emptyVal.textContent = 'Performance data will appear after the first heartbeat.';
+      emptyCard.appendChild(emptyLabel);
+      emptyCard.appendChild(emptyVal);
+      container.appendChild(emptyCard);
+      chart.textContent = 'No data yet';
+      return;
+    }
+    var latest = snaps[snaps.length - 1];
+    var cardData = [
+      { label: 'RSS Memory', value: (latest.rss_mb || 0).toFixed(1) + ' MB' },
+      { label: 'Heap Memory', value: (latest.heap_mb || 0).toFixed(1) + ' MB' },
+      { label: 'Database Size', value: (latest.db_size_mb || 0).toFixed(1) + ' MB' },
+    ];
+    cardData.forEach(function(c) {
+      var card = document.createElement('div');
+      card.className = 'perf-card';
+      var lbl = document.createElement('div');
+      lbl.className = 'perf-label';
+      lbl.textContent = c.label;
+      var val = document.createElement('div');
+      val.className = 'perf-value';
+      val.textContent = c.value;
+      card.appendChild(lbl);
+      card.appendChild(val);
+      container.appendChild(card);
+    });
+    // RSS chart
+    var maxRss = 1;
+    snaps.forEach(function(s) { if ((s.rss_mb || 0) > maxRss) maxRss = s.rss_mb; });
+    snaps.forEach(function(s) {
+      var col = document.createElement('div');
+      col.className = 'bar-col';
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = Math.max(2, ((s.rss_mb || 0) / maxRss) * 100) + 'px';
+      bar.setAttribute('data-tooltip', (s.rss_mb || 0).toFixed(1) + ' MB');
+      var label = document.createElement('div');
+      label.className = 'bar-label';
+      label.textContent = (s.created_at || '').slice(5, 10);
+      col.appendChild(bar);
+      col.appendChild(label);
+      chart.appendChild(col);
+    });
+  }).catch(function() {});
+
+  // Cost breakdown
+  api('/analytics/cost-breakdown').then(function(data) {
+    var body = document.getElementById('cost-body');
+    body.replaceChildren();
+    var rows = data.breakdown || [];
+    if (!rows.length) {
+      var emptyTr = document.createElement('tr');
+      var emptyTd = document.createElement('td');
+      emptyTd.setAttribute('colspan', '5');
+      emptyTd.style.cssText = 'text-align:center;color:var(--text-faint);';
+      emptyTd.textContent = 'No usage data yet';
+      emptyTr.appendChild(emptyTd);
+      body.appendChild(emptyTr);
+      return;
+    }
+    var maxCost = 0.001;
+    rows.forEach(function(r) { if ((r.total_cost || 0) > maxCost) maxCost = r.total_cost; });
+    rows.forEach(function(r) {
+      var tr = document.createElement('tr');
+      var pct = Math.round(((r.total_cost || 0) / maxCost) * 100);
+      // Provider cell
+      var td1 = document.createElement('td');
+      td1.textContent = r.provider || '?';
+      tr.appendChild(td1);
+      // Model cell
+      var td2 = document.createElement('td');
+      td2.textContent = r.model || '?';
+      tr.appendChild(td2);
+      // Tokens cell
+      var td3 = document.createElement('td');
+      td3.textContent = (r.total_tokens || 0).toLocaleString();
+      tr.appendChild(td3);
+      // Cost cell
+      var td4 = document.createElement('td');
+      td4.textContent = '$' + (r.total_cost || 0).toFixed(4);
+      tr.appendChild(td4);
+      // Share bar cell
+      var td5 = document.createElement('td');
+      var barWrap = document.createElement('div');
+      barWrap.className = 'cost-bar-wrap';
+      var barDiv = document.createElement('div');
+      barDiv.className = 'cost-bar';
+      barDiv.style.width = pct + '%';
+      var pctSpan = document.createElement('span');
+      pctSpan.className = 'cost-pct';
+      pctSpan.textContent = (r.requests || 0) + ' req';
+      barWrap.appendChild(barDiv);
+      barWrap.appendChild(pctSpan);
+      td5.appendChild(barWrap);
+      tr.appendChild(td5);
+      body.appendChild(tr);
+    });
+  }).catch(function() {});
+
+  // Response time trend
+  api('/analytics/response-time-trend').then(function(data) {
+    var chart = document.getElementById('response-chart');
+    chart.replaceChildren();
+    var trend = data.trend || [];
+    if (!trend.length) { chart.textContent = 'No data yet'; return; }
+    var maxMs = 1;
+    trend.forEach(function(t) { if ((t.avg_ms || 0) > maxMs) maxMs = t.avg_ms; });
+    trend.forEach(function(t) {
+      var col = document.createElement('div');
+      col.className = 'bar-col';
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = Math.max(2, ((t.avg_ms || 0) / maxMs) * 100) + 'px';
+      bar.setAttribute('data-tooltip', (t.avg_ms || 0) + 'ms avg (' + (t.min_ms || 0) + '-' + (t.max_ms || 0) + 'ms)');
+      var label = document.createElement('div');
+      label.className = 'bar-label';
+      label.textContent = (t.day || '').slice(5);
+      col.appendChild(bar);
+      col.appendChild(label);
+      chart.appendChild(col);
+    });
+  }).catch(function() {});
+
+  // Top models
+  api('/analytics/top-models').then(function(data) {
+    var body = document.getElementById('top-models-body');
+    body.replaceChildren();
+    var models = data.models || [];
+    if (!models.length) {
+      var emptyTr = document.createElement('tr');
+      var emptyTd = document.createElement('td');
+      emptyTd.setAttribute('colspan', '5');
+      emptyTd.style.cssText = 'text-align:center;color:var(--text-faint);';
+      emptyTd.textContent = 'No usage data yet';
+      emptyTr.appendChild(emptyTd);
+      body.appendChild(emptyTr);
+      return;
+    }
+    models.forEach(function(m) {
+      var tr = document.createElement('tr');
+      var cells = [
+        (m.provider || '') + '/' + (m.model || ''),
+        String(m.requests || 0),
+        (m.total_tokens || 0).toLocaleString(),
+        '$' + (m.total_cost || 0).toFixed(4),
+        (m.avg_response_ms || 0) + 'ms'
+      ];
+      cells.forEach(function(text) {
+        var td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }).catch(function() {});
 }
 
 // --- SYSTEM PROMPT ---

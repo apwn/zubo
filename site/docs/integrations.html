@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integrations — Zubo Docs</title>
+  <meta name="description" content="Set up integrations for Zubo: GitHub, Google, Notion, Linear, Jira, Slack, and Twitter.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links"><a href="index.html">Overview</a><a href="config.html">Configuration</a></div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links"><a href="channels.html">Channel Setup</a><a href="integrations.html" class="active">Integrations</a><a href="skills.html">Skill Development</a></div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links"><a href="api.html">API Reference</a><a href="cli.html">CLI Commands</a></div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Integrations</div>
+
+      <h1>Integrations</h1>
+      <p>Zubo integrates with popular services through built-in skills. Each integration requires a secret (API key or token) that you set through the agent or config.</p>
+
+      <h2>Setting Secrets</h2>
+      <p>Tell Zubo your secret in chat:</p>
+<pre><code>"Set my github_token to ghp_abc123..."</code></pre>
+      <p>Secrets are stored encrypted in your local database and are never sent to any third party.</p>
+
+      <h2>GitHub</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Secret</td><td><code>github_token</code></td></tr>
+          <tr><td>Type</td><td>Personal Access Token (classic)</td></tr>
+          <tr><td>Scopes</td><td><code>repo</code>, <code>read:user</code></td></tr>
+          <tr><td>Capabilities</td><td>Issues, PRs, repos, commits, code search</td></tr>
+        </tbody>
+      </table>
+      <h3>Setup</h3>
+      <ol>
+        <li>Go to <a href="https://github.com/settings/tokens">GitHub Settings &rarr; Tokens</a></li>
+        <li>Generate a classic token with <code>repo</code> scope</li>
+        <li>Tell Zubo: <code>"Set my github_token to ghp_..."</code></li>
+      </ol>
+
+      <h2>Google</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Secret</td><td><code>google_api_key</code></td></tr>
+          <tr><td>Type</td><td>Google API Key or OAuth credentials</td></tr>
+          <tr><td>Capabilities</td><td>Gmail, Calendar, Docs, Drive, Sheets</td></tr>
+        </tbody>
+      </table>
+      <h3>Setup</h3>
+      <ol>
+        <li>Go to <a href="https://console.cloud.google.com/">Google Cloud Console</a></li>
+        <li>Create a project and enable Gmail, Calendar, Drive, and Sheets APIs</li>
+        <li>Create an API key or OAuth 2.0 credentials</li>
+        <li>Tell Zubo: <code>"Set my google_api_key to AIza..."</code></li>
+      </ol>
+
+      <h2>Notion</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Secret</td><td><code>notion_token</code></td></tr>
+          <tr><td>Type</td><td>Internal Integration Token</td></tr>
+          <tr><td>Capabilities</td><td>Read pages, create entries, search databases</td></tr>
+        </tbody>
+      </table>
+      <h3>Setup</h3>
+      <ol>
+        <li>Go to <a href="https://www.notion.so/my-integrations">Notion Integrations</a></li>
+        <li>Create a new integration</li>
+        <li>Share the relevant pages/databases with your integration</li>
+        <li>Tell Zubo: <code>"Set my notion_token to ntn_..."</code></li>
+      </ol>
+
+      <h2>Linear</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Secret</td><td><code>linear_token</code></td></tr>
+          <tr><td>Type</td><td>Personal API Key</td></tr>
+          <tr><td>Capabilities</td><td>Issues, projects, sprints, teams</td></tr>
+        </tbody>
+      </table>
+      <h3>Setup</h3>
+      <ol>
+        <li>Go to Linear Settings &rarr; API &rarr; Personal API Keys</li>
+        <li>Create a new key</li>
+        <li>Tell Zubo: <code>"Set my linear_token to lin_api_..."</code></li>
+      </ol>
+
+      <h2>Jira</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Secret</td><td><code>jira_token</code></td></tr>
+          <tr><td>Type</td><td>API Token</td></tr>
+          <tr><td>Capabilities</td><td>Issues, boards, sprints</td></tr>
+        </tbody>
+      </table>
+      <h3>Setup</h3>
+      <ol>
+        <li>Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens">Atlassian API Tokens</a></li>
+        <li>Create a new API token</li>
+        <li>Tell Zubo: <code>"Set my jira_token to ..."</code></li>
+      </ol>
+
+      <h2>Slack (Integration)</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Secret</td><td><code>slack_token</code></td></tr>
+          <tr><td>Type</td><td>Bot User OAuth Token</td></tr>
+          <tr><td>Capabilities</td><td>Send messages to channels and users</td></tr>
+        </tbody>
+      </table>
+      <blockquote><p>This is separate from the Slack <em>channel</em> (which receives messages). The integration token lets Zubo <em>send</em> messages proactively.</p></blockquote>
+
+      <h2>Twitter / X</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Secret</td><td><code>twitter_bearer_token</code></td></tr>
+          <tr><td>Type</td><td>Bearer Token (v2 API)</td></tr>
+          <tr><td>Capabilities</td><td>Post tweets, read timelines, track mentions</td></tr>
+        </tbody>
+      </table>
+      <h3>Setup</h3>
+      <ol>
+        <li>Apply for a <a href="https://developer.twitter.com/">Twitter Developer account</a></li>
+        <li>Create a project and app</li>
+        <li>Generate a Bearer Token</li>
+        <li>Tell Zubo: <code>"Set my twitter_bearer_token to ..."</code></li>
+      </ol>
+
+      <h2>Summary</h2>
+      <table>
+        <thead><tr><th>Service</th><th>Secret Key</th><th>Skills</th></tr></thead>
+        <tbody>
+          <tr><td>GitHub</td><td><code>github_token</code></td><td>Issues, PRs, Repos</td></tr>
+          <tr><td>Google</td><td><code>google_api_key</code></td><td>Gmail, Calendar, Docs, Drive, Sheets</td></tr>
+          <tr><td>Notion</td><td><code>notion_token</code></td><td>Pages, Databases, Search</td></tr>
+          <tr><td>Linear</td><td><code>linear_token</code></td><td>Issues, Projects</td></tr>
+          <tr><td>Jira</td><td><code>jira_token</code></td><td>Issues, Boards</td></tr>
+          <tr><td>Slack</td><td><code>slack_token</code></td><td>Messages</td></tr>
+          <tr><td>Twitter</td><td><code>twitter_bearer_token</code></td><td>Posts</td></tr>
+        </tbody>
+      </table>
+
+      <div class="docs-page-nav">
+        <a href="channels.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Channel Setup</span></a>
+        <a href="skills.html"><span class="nav-dir">Next</span><span class="nav-label">Skill Development &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+</body>
+</html>

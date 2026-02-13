@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLI Commands — Zubo Docs</title>
+  <meta name="description" content="Complete CLI reference for Zubo. Every command with flags and examples.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links"><a href="index.html">Overview</a><a href="config.html">Configuration</a></div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links"><a href="channels.html">Channel Setup</a><a href="integrations.html">Integrations</a><a href="skills.html">Skill Development</a></div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links"><a href="api.html">API Reference</a><a href="cli.html" class="active">CLI Commands</a></div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>CLI Commands</div>
+
+      <h1>CLI Commands</h1>
+      <p>Zubo provides a comprehensive CLI for managing your agent. All commands are run as <code>zubo &lt;command&gt;</code>.</p>
+
+      <h2>Core Commands</h2>
+
+      <h3>zubo setup</h3>
+      <p>Interactive setup wizard. Configures API keys, providers, and channels.</p>
+<pre><code>zubo setup</code></pre>
+
+      <h3>zubo start</h3>
+      <p>Start the agent and web dashboard.</p>
+<pre><code># Foreground (default)
+zubo start
+
+# Background daemon
+zubo start --daemon</code></pre>
+
+      <h3>zubo stop</h3>
+      <p>Stop the background daemon.</p>
+<pre><code>zubo stop</code></pre>
+
+      <h3>zubo status</h3>
+      <p>Show current configuration and runtime status.</p>
+<pre><code>zubo status</code></pre>
+
+      <h2>Logs</h2>
+
+      <h3>zubo logs</h3>
+      <p>View recent log output.</p>
+<pre><code># Last 50 lines
+zubo logs
+
+# Follow logs in real-time
+zubo logs --follow</code></pre>
+
+      <h2>Model Management</h2>
+
+      <h3>zubo model</h3>
+      <p>View or change the active LLM provider and model.</p>
+<pre><code># Show current model
+zubo model
+
+# Switch provider/model
+zubo model anthropic/claude-sonnet-4-5-20250929
+zubo model openai/gpt-4o
+zubo model ollama/llama3
+
+# List configured providers
+zubo model --list</code></pre>
+
+      <h2>Skills</h2>
+
+      <h3>zubo skills</h3>
+      <p>Interactive skill management menu.</p>
+<pre><code>zubo skills</code></pre>
+
+      <h3>zubo skills list</h3>
+      <p>List all installed skills with status.</p>
+<pre><code>zubo skills list</code></pre>
+
+      <h3>zubo skills new</h3>
+      <p>Scaffold a new skill with SKILL.md and handler.ts templates.</p>
+<pre><code>zubo skills new</code></pre>
+
+      <h3>zubo install &lt;name&gt;</h3>
+      <p>Install a skill from the community registry.</p>
+<pre><code>zubo install weather
+zubo install email-summary</code></pre>
+
+      <h3>zubo search &lt;query&gt;</h3>
+      <p>Search the skill registry.</p>
+<pre><code>zubo search "email"
+zubo search "calendar"</code></pre>
+
+      <h3>zubo publish</h3>
+      <p>Publish the current skill to the registry.</p>
+<pre><code># Run from a skill directory
+zubo publish</code></pre>
+
+      <h2>Authentication</h2>
+
+      <h3>zubo auth create-key</h3>
+      <p>Generate a new API key for authenticated access.</p>
+<pre><code>zubo auth create-key</code></pre>
+
+      <h3>zubo auth list-keys</h3>
+      <p>List all active API keys.</p>
+<pre><code>zubo auth list-keys</code></pre>
+
+      <h2>Data Management</h2>
+
+      <h3>zubo export</h3>
+      <p>Export the database as JSON.</p>
+<pre><code>zubo export
+# Outputs: zubo-export.json</code></pre>
+
+      <h3>zubo import &lt;path&gt;</h3>
+      <p>Import data from a JSON export.</p>
+<pre><code>zubo import ./zubo-export.json</code></pre>
+
+      <h2>Command Summary</h2>
+      <table>
+        <thead><tr><th>Command</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>zubo setup</code></td><td>Interactive configuration wizard</td></tr>
+          <tr><td><code>zubo start</code></td><td>Start the agent</td></tr>
+          <tr><td><code>zubo start --daemon</code></td><td>Start in background</td></tr>
+          <tr><td><code>zubo stop</code></td><td>Stop the daemon</td></tr>
+          <tr><td><code>zubo status</code></td><td>Show status</td></tr>
+          <tr><td><code>zubo logs</code></td><td>View recent logs</td></tr>
+          <tr><td><code>zubo logs --follow</code></td><td>Stream logs live</td></tr>
+          <tr><td><code>zubo model</code></td><td>Show active model</td></tr>
+          <tr><td><code>zubo model &lt;p/m&gt;</code></td><td>Switch model</td></tr>
+          <tr><td><code>zubo model --list</code></td><td>List providers</td></tr>
+          <tr><td><code>zubo skills</code></td><td>Manage skills</td></tr>
+          <tr><td><code>zubo skills list</code></td><td>List installed skills</td></tr>
+          <tr><td><code>zubo skills new</code></td><td>Create a new skill</td></tr>
+          <tr><td><code>zubo install &lt;name&gt;</code></td><td>Install from registry</td></tr>
+          <tr><td><code>zubo search &lt;query&gt;</code></td><td>Search registry</td></tr>
+          <tr><td><code>zubo publish</code></td><td>Publish a skill</td></tr>
+          <tr><td><code>zubo auth create-key</code></td><td>Create API key</td></tr>
+          <tr><td><code>zubo auth list-keys</code></td><td>List API keys</td></tr>
+          <tr><td><code>zubo export</code></td><td>Export database</td></tr>
+          <tr><td><code>zubo import &lt;path&gt;</code></td><td>Import database</td></tr>
+        </tbody>
+      </table>
+
+      <div class="docs-page-nav">
+        <a href="api.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; API Reference</span></a>
+        <div></div>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+</body>
+</html>

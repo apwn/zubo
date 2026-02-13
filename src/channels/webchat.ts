@@ -579,6 +579,77 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     })() as any;
   }
 
+  // GET /api/dashboard/analytics/perf-snapshots
+  if (path === "/analytics/perf-snapshots" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const rows = db.query(
+        `SELECT rss_mb, heap_mb, db_size_mb, created_at
+         FROM perf_snapshots WHERE created_at >= datetime('now', '-7 days')
+         ORDER BY created_at`
+      ).all();
+      return Response.json({ snapshots: rows });
+    } catch {
+      return Response.json({ snapshots: [] });
+    }
+  }
+
+  // GET /api/dashboard/analytics/cost-breakdown
+  if (path === "/analytics/cost-breakdown" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const rows = db.query(
+        `SELECT provider, model,
+                SUM(input_tokens + output_tokens) as total_tokens,
+                COALESCE(SUM(cost_usd), 0) as total_cost,
+                COUNT(*) as requests
+         FROM usage GROUP BY provider, model ORDER BY total_cost DESC`
+      ).all();
+      return Response.json({ breakdown: rows });
+    } catch {
+      return Response.json({ breakdown: [] });
+    }
+  }
+
+  // GET /api/dashboard/analytics/response-time-trend
+  if (path === "/analytics/response-time-trend" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const rows = db.query(
+        `SELECT date(created_at) as day,
+                ROUND(AVG(response_time_ms)) as avg_ms,
+                MIN(response_time_ms) as min_ms,
+                MAX(response_time_ms) as max_ms,
+                COUNT(*) as requests
+         FROM usage WHERE response_time_ms IS NOT NULL
+           AND created_at >= datetime('now', '-7 days')
+         GROUP BY day ORDER BY day`
+      ).all();
+      return Response.json({ trend: rows });
+    } catch {
+      return Response.json({ trend: [] });
+    }
+  }
+
+  // GET /api/dashboard/analytics/top-models
+  if (path === "/analytics/top-models" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const rows = db.query(
+        `SELECT provider, model,
+                COUNT(*) as requests,
+                SUM(input_tokens + output_tokens) as total_tokens,
+                COALESCE(SUM(cost_usd), 0) as total_cost,
+                ROUND(AVG(response_time_ms)) as avg_response_ms
+         FROM usage GROUP BY provider, model
+         ORDER BY total_tokens DESC LIMIT 10`
+      ).all();
+      return Response.json({ models: rows });
+    } catch {
+      return Response.json({ models: [] });
+    }
+  }
+
   return null;
 }
 

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Skills — Zubo</title>
+  <meta name="description" content="Browse and install community skills for Zubo. Extend your AI agent with custom tools, integrations, and automations.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+
+  <div class="scroll-progress" id="scroll-progress"></div>
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <header class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-mark">Z</div>
+        <span class="logo-wordmark">zubo</span>
+      </a>
+      <nav class="nav-links" id="nav-links">
+        <a href="index.html#features">Features</a>
+        <a href="docs/index.html">Docs</a>
+        <a href="skills.html" style="color:#fff;">Skills</a>
+        <a href="index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+        <a href="index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="skills-hero">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">Community</span>
+        <h1 class="section-title" style="font-size:clamp(2.2rem,5vw,3.5rem);">Extend Zubo with <span class="gradient-text">community skills</span></h1>
+        <p class="section-subtitle">Browse, search, and install skills built by the community. One command to add new capabilities to your agent.</p>
+      </div>
+      <div class="skills-search-wrap">
+        <input type="text" id="skills-search" class="skills-search" placeholder="Search skills by name, tag, or description..." autocomplete="off">
+      </div>
+    </div>
+  </section>
+
+  <!-- Tag Filter -->
+  <section class="skills-filter">
+    <div class="container">
+      <div class="skills-tags" id="skills-tags">
+        <button class="skill-tag-btn active" data-tag="all">All</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills Grid -->
+  <section class="skills-listing">
+    <div class="container">
+      <div id="skills-loading" class="skills-state">Loading skills...</div>
+      <div id="skills-error" class="skills-state" style="display:none;"></div>
+      <div id="skills-empty" class="skills-state" style="display:none;">No skills match your search.</div>
+      <div class="skills-grid" id="skills-grid"></div>
+    </div>
+  </section>
+
+  <!-- Create a Skill Guide -->
+  <section class="skill-guide" id="create">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">Build</span>
+        <h2 class="section-title">Create your own <span class="gradient-text">skill</span></h2>
+        <p class="section-subtitle">Skills are self-contained TypeScript modules. Build one in four steps.</p>
+      </div>
+
+      <div class="skill-guide-steps reveal-stagger">
+        <div class="skill-guide-step">
+          <div class="step-number">1</div>
+          <h3>Scaffold</h3>
+          <p>Run <code>zubo skills new</code> to generate a skill directory with SKILL.md and handler.ts templates.</p>
+        </div>
+        <div class="skill-guide-step">
+          <div class="step-number">2</div>
+          <h3>Define</h3>
+          <p>Edit <code>SKILL.md</code> to declare the skill name, description, input schema, and required secrets.</p>
+        </div>
+        <div class="skill-guide-step">
+          <div class="step-number">3</div>
+          <h3>Implement</h3>
+          <p>Write your logic in <code>handler.ts</code>. Access inputs, secrets, and return structured results.</p>
+        </div>
+        <div class="skill-guide-step">
+          <div class="step-number">4</div>
+          <h3>Publish</h3>
+          <p>Run <code>zubo publish</code> to submit to the skill registry. Others can install with one command.</p>
+        </div>
+      </div>
+
+      <!-- SKILL.md format example -->
+      <div class="skill-format-block reveal">
+        <div class="terminal" style="border-radius:var(--radius-lg);overflow:hidden;">
+          <div class="terminal-chrome">
+            <div class="terminal-dots">
+              <span class="td td-r"></span>
+              <span class="td td-y"></span>
+              <span class="td td-g"></span>
+            </div>
+            <div class="terminal-title">SKILL.md</div>
+          </div>
+          <div class="terminal-body" style="padding:20px 24px;font-size:13px;line-height:1.8;">
+<span style="color:#c4b5fd;"># my-skill</span>
+
+<span style="color:#9595a8;">A brief description of what this skill does.</span>
+
+<span style="color:#c4b5fd;">## Input</span>
+<span style="color:#5f5f73;">```json</span>
+<span style="color:#9595a8;">{
+  "query": { "type": "string", "required": true },
+  "limit": { "type": "number", "default": 10 }
+}</span>
+<span style="color:#5f5f73;">```</span>
+
+<span style="color:#c4b5fd;">## Secrets</span>
+<span style="color:#9595a8;">- `MY_API_KEY` — Required for authentication</span>
+
+<span style="color:#c4b5fd;">## Tags</span>
+<span style="color:#9595a8;">api, search, data</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="final-cta" style="padding:100px 0;">
+    <div class="container">
+      <div class="cta-content reveal">
+        <h2>Ready to build your <span class="gradient-text">perfect AI agent</span>?</h2>
+        <p>Install skills with one command. Build your own in minutes.</p>
+        <div class="cta-actions">
+          <a href="index.html#get-started" class="btn btn-primary btn-xl">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Get Started
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo">
+            <div class="logo-mark">Z</div>
+            <span class="logo-wordmark">zubo</span>
+          </a>
+          <p>Your AI agent that never forgets.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h5>Product</h5>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#integrations">Integrations</a>
+            <a href="index.html#channels">Channels</a>
+            <a href="index.html#get-started">Get Started</a>
+          </div>
+          <div class="footer-col">
+            <h5>Resources</h5>
+            <a href="docs/index.html">Documentation</a>
+            <a href="skills.html">Community Skills</a>
+            <a href="https://github.com/nicholasgriffintn/zubo">GitHub</a>
+            <a href="https://github.com/nicholasgriffintn/zubo/issues">Issues</a>
+          </div>
+          <div class="footer-col">
+            <h5>Community</h5>
+            <a href="https://github.com/nicholasgriffintn/zubo/discussions">Discussions</a>
+            <a href="https://github.com/nicholasgriffintn/zubo/blob/main/CONTRIBUTING.md">Contributing</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Zubo. MIT License. Built with care.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+  (function() {
+    'use strict';
+
+    var REGISTRY_URL = 'https://raw.githubusercontent.com/zubo-skills/registry/main/registry.json';
+    var allSkills = [];
+    var activeTag = 'all';
+
+    function escapeHtml(str) {
+      var d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function createSkillCard(skill) {
+      var card = document.createElement('div');
+      card.className = 'skill-card';
+
+      var header = document.createElement('div');
+      header.className = 'skill-card-header';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'skill-card-name';
+      nameEl.textContent = skill.name;
+      header.appendChild(nameEl);
+
+      var metaEl = document.createElement('div');
+      metaEl.className = 'skill-card-meta';
+      if (skill.author) {
+        var authorSpan = document.createElement('span');
+        authorSpan.textContent = 'by ' + skill.author;
+        metaEl.appendChild(authorSpan);
+      }
+      if (skill.version) {
+        var versionSpan = document.createElement('span');
+        versionSpan.textContent = 'v' + skill.version;
+        metaEl.appendChild(versionSpan);
+      }
+      header.appendChild(metaEl);
+      card.appendChild(header);
+
+      var descEl = document.createElement('div');
+      descEl.className = 'skill-card-desc';
+      descEl.textContent = skill.description || '';
+      card.appendChild(descEl);
+
+      if (skill.tags && skill.tags.length) {
+        var tagsEl = document.createElement('div');
+        tagsEl.className = 'skill-card-tags';
+        skill.tags.forEach(function(t) {
+          var tagSpan = document.createElement('span');
+          tagSpan.className = 'skill-card-tag';
+          tagSpan.textContent = t;
+          tagsEl.appendChild(tagSpan);
+        });
+        card.appendChild(tagsEl);
+      }
+
+      if (skill.secrets && skill.secrets.length) {
+        var secretsEl = document.createElement('div');
+        secretsEl.className = 'skill-card-secrets';
+        secretsEl.appendChild(document.createTextNode('Requires: '));
+        skill.secrets.forEach(function(s, i) {
+          if (i > 0) secretsEl.appendChild(document.createTextNode(', '));
+          var code = document.createElement('code');
+          code.textContent = s;
+          secretsEl.appendChild(code);
+        });
+        card.appendChild(secretsEl);
+      }
+
+      var installEl = document.createElement('div');
+      installEl.className = 'skill-card-install';
+      var installCode = document.createElement('code');
+      var installCmd = 'zubo install ' + skill.name;
+      installCode.textContent = installCmd;
+      installEl.appendChild(installCode);
+
+      var copyBtn = document.createElement('button');
+      copyBtn.className = 'skill-copy-btn';
+      copyBtn.setAttribute('aria-label', 'Copy install command');
+      copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+      copyBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(installCmd).then(function() {
+          copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+          copyBtn.style.color = '#10b981';
+          setTimeout(function() {
+            copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+            copyBtn.style.color = '';
+          }, 2000);
+        });
+      });
+      installEl.appendChild(copyBtn);
+      card.appendChild(installEl);
+
+      return card;
+    }
+
+    function renderSkills(skills) {
+      var grid = document.getElementById('skills-grid');
+      var empty = document.getElementById('skills-empty');
+      var loading = document.getElementById('skills-loading');
+      loading.style.display = 'none';
+
+      grid.textContent = '';
+
+      if (!skills.length) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      skills.forEach(function(skill) {
+        grid.appendChild(createSkillCard(skill));
+      });
+    }
+
+    function buildTagButtons(skills) {
+      var tagSet = {};
+      skills.forEach(function(s) {
+        (s.tags || []).forEach(function(t) { tagSet[t] = (tagSet[t] || 0) + 1; });
+      });
+      var container = document.getElementById('skills-tags');
+      Object.keys(tagSet).sort().forEach(function(tag) {
+        var btn = document.createElement('button');
+        btn.className = 'skill-tag-btn';
+        btn.setAttribute('data-tag', tag);
+        btn.textContent = tag + ' (' + tagSet[tag] + ')';
+        container.appendChild(btn);
+      });
+
+      container.addEventListener('click', function(e) {
+        var btn = e.target.closest('.skill-tag-btn');
+        if (!btn) return;
+        activeTag = btn.getAttribute('data-tag');
+        container.querySelectorAll('.skill-tag-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        filterAndRender();
+      });
+    }
+
+    function filterAndRender() {
+      var query = (document.getElementById('skills-search').value || '').toLowerCase().trim();
+      var filtered = allSkills.filter(function(s) {
+        if (activeTag !== 'all' && (s.tags || []).indexOf(activeTag) === -1) return false;
+        if (!query) return true;
+        var haystack = ((s.name || '') + ' ' + (s.description || '') + ' ' + (s.tags || []).join(' ')).toLowerCase();
+        return haystack.indexOf(query) !== -1;
+      });
+      renderSkills(filtered);
+    }
+
+    // Fetch registry
+    fetch(REGISTRY_URL)
+      .then(function(r) {
+        if (!r.ok) throw new Error('Failed to load registry');
+        return r.json();
+      })
+      .then(function(data) {
+        allSkills = data.skills || data || [];
+        if (!Array.isArray(allSkills)) allSkills = [];
+        buildTagButtons(allSkills);
+        renderSkills(allSkills);
+      })
+      .catch(function() {
+        document.getElementById('skills-loading').style.display = 'none';
+        var errEl = document.getElementById('skills-error');
+        errEl.style.display = 'block';
+        errEl.textContent = 'Could not load the skill registry. The registry may not be published yet.';
+        // Show placeholder skills for demo
+        allSkills = [
+          { name: 'weather', description: 'Get current weather and forecasts for any location', author: 'zubo', version: '1.0.0', tags: ['api', 'weather', 'utility'], secrets: ['OPENWEATHER_API_KEY'] },
+          { name: 'email-summary', description: 'Summarize unread emails and draft replies', author: 'community', version: '0.2.0', tags: ['email', 'productivity'], secrets: ['GMAIL_TOKEN'] },
+          { name: 'stock-price', description: 'Fetch real-time stock quotes and market data', author: 'zubo', version: '1.1.0', tags: ['finance', 'api'], secrets: ['ALPHA_VANTAGE_KEY'] },
+          { name: 'pomodoro', description: 'Pomodoro timer with session tracking and break reminders', author: 'community', version: '0.1.0', tags: ['productivity', 'timer'], secrets: [] },
+          { name: 'translate', description: 'Translate text between 100+ languages using DeepL', author: 'zubo', version: '1.0.0', tags: ['translation', 'api', 'utility'], secrets: ['DEEPL_API_KEY'] },
+          { name: 'screenshot', description: 'Take screenshots of any URL and return the image', author: 'community', version: '0.3.0', tags: ['web', 'utility'], secrets: [] },
+        ];
+        buildTagButtons(allSkills);
+        renderSkills(allSkills);
+      });
+
+    // Search
+    var searchInput = document.getElementById('skills-search');
+    var searchTimeout;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(filterAndRender, 200);
+    });
+  })();
+  </script>
+</body>
+</html>

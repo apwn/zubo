@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Channel Setup — Zubo Docs</title>
+  <meta name="description" content="Set up messaging channels for Zubo: Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-mark">Z</div>
+        <span class="logo-wordmark">zubo</span>
+      </a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html" class="active">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="skills.html">Skill Development</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb">
+        <a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Channel Setup
+      </div>
+
+      <h1>Channel Setup</h1>
+      <p>Zubo supports six messaging channels. Each channel shares the same memory, personality, and tool access. Configure them in the <code>channels</code> section of <code>~/.zubo/config.json</code>.</p>
+
+      <h2>Web Chat</h2>
+      <p>Web Chat is enabled by default and requires no external setup. It provides the built-in dashboard at <code>http://localhost:&lt;port&gt;</code>.</p>
+<pre><code>{
+  "channels": {
+    "webchat": {
+      "enabled": true,
+      "port": 3000
+    }
+  }
+}</code></pre>
+      <p>Set <code>port</code> to <code>0</code> for an auto-assigned port.</p>
+
+      <h2>Telegram</h2>
+      <ol>
+        <li>Open Telegram and message <a href="https://t.me/BotFather">@BotFather</a></li>
+        <li>Send <code>/newbot</code> and follow the prompts to create your bot</li>
+        <li>Copy the bot token</li>
+        <li>Add the token to your config:</li>
+      </ol>
+<pre><code>{
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "123456789:ABCdef...",
+      "allowedUsers": [12345678]
+    }
+  }
+}</code></pre>
+      <blockquote><p><strong>Security:</strong> Set <code>allowedUsers</code> to an array of Telegram user IDs to restrict who can talk to your bot. Leave empty to allow anyone.</p></blockquote>
+
+      <h2>Discord</h2>
+      <ol>
+        <li>Go to the <a href="https://discord.com/developers/applications">Discord Developer Portal</a></li>
+        <li>Click "New Application" and name it</li>
+        <li>Navigate to Bot &rarr; click "Add Bot"</li>
+        <li><strong>Enable "Message Content Intent"</strong> under Privileged Gateway Intents</li>
+        <li>Copy the bot token</li>
+        <li>Generate an invite link under OAuth2 &rarr; URL Generator (select <code>bot</code> scope with "Send Messages" and "Read Message History" permissions)</li>
+        <li>Add the token to your config:</li>
+      </ol>
+<pre><code>{
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "botToken": "MTIzNDU2...",
+      "allowedUsers": []
+    }
+  }
+}</code></pre>
+
+      <h2>Slack</h2>
+      <ol>
+        <li>Create a new Slack app at <a href="https://api.slack.com/apps">api.slack.com/apps</a></li>
+        <li>Enable <strong>Socket Mode</strong> and generate an App-Level Token (<code>xapp-...</code>)</li>
+        <li>Under OAuth &amp; Permissions, add bot scopes: <code>chat:write</code>, <code>app_mentions:read</code>, <code>im:history</code></li>
+        <li>Install the app to your workspace and copy the Bot User OAuth Token (<code>xoxb-...</code>)</li>
+        <li>Enable Events: subscribe to <code>app_mention</code> and <code>message.im</code></li>
+        <li>Add tokens to your config:</li>
+      </ol>
+<pre><code>{
+  "channels": {
+    "slack": {
+      "enabled": true,
+      "botToken": "xoxb-...",
+      "appToken": "xapp-...",
+      "allowedUsers": []
+    }
+  }
+}</code></pre>
+
+      <h2>WhatsApp</h2>
+      <ol>
+        <li>Add the WhatsApp channel to your config:</li>
+      </ol>
+<pre><code>{
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "allowedNumbers": ["+1234567890"]
+    }
+  }
+}</code></pre>
+      <ol start="2">
+        <li>Start Zubo &mdash; a QR code will appear in the terminal</li>
+        <li>Open WhatsApp on your phone &rarr; Linked Devices &rarr; Link a Device</li>
+        <li>Scan the QR code</li>
+      </ol>
+      <blockquote><p><strong>Note:</strong> WhatsApp uses a local session. You'll need to re-authenticate if the session expires.</p></blockquote>
+
+      <h2>Signal</h2>
+      <ol>
+        <li>Install <a href="https://github.com/AsamK/signal-cli">signal-cli</a></li>
+        <li>Register a phone number: <code>signal-cli -u +1234567890 register</code></li>
+        <li>Verify with the code sent to you: <code>signal-cli -u +1234567890 verify CODE</code></li>
+        <li>Add to your config:</li>
+      </ol>
+<pre><code>{
+  "channels": {
+    "signal": {
+      "enabled": true,
+      "phoneNumber": "+1234567890",
+      "signalCliPath": "/usr/local/bin/signal-cli",
+      "allowedNumbers": ["+1234567890"]
+    }
+  }
+}</code></pre>
+
+      <h2>Multiple Channels</h2>
+      <p>You can enable as many channels as you want simultaneously. They all share the same agent, memory, and tools. Disable any channel by setting <code>enabled: false</code>.</p>
+
+      <div class="docs-page-nav">
+        <a href="config.html">
+          <span class="nav-dir">Previous</span>
+          <span class="nav-label">&larr; Configuration</span>
+        </a>
+        <a href="integrations.html">
+          <span class="nav-dir">Next</span>
+          <span class="nav-label">Integrations &rarr;</span>
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+</body>
+</html>

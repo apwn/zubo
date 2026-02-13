@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Development — Zubo Docs</title>
+  <meta name="description" content="Learn how to build custom skills for Zubo. SKILL.md format, handler.ts patterns, input schemas, and testing.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links"><a href="index.html">Overview</a><a href="config.html">Configuration</a></div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links"><a href="channels.html">Channel Setup</a><a href="integrations.html">Integrations</a><a href="skills.html" class="active">Skill Development</a></div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links"><a href="api.html">API Reference</a><a href="cli.html">CLI Commands</a></div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Skill Development</div>
+
+      <h1>Skill Development</h1>
+      <p>Skills are self-contained TypeScript modules that extend Zubo's capabilities. Each skill lives in its own directory under <code>~/.zubo/skills/</code> and consists of two files: <code>SKILL.md</code> (definition) and <code>handler.ts</code> (implementation).</p>
+
+      <h2>Quick Start</h2>
+<pre><code># Scaffold a new skill
+zubo skills new
+
+# This creates:
+# ~/.zubo/skills/my-skill/
+#   SKILL.md      — Skill definition
+#   handler.ts    — Implementation</code></pre>
+
+      <h2>SKILL.md Format</h2>
+      <p>The <code>SKILL.md</code> file declares your skill's metadata and input schema using Markdown:</p>
+<pre><code># weather
+
+Get current weather and forecasts for any location.
+
+## Input
+```json
+{
+  "location": { "type": "string", "required": true, "description": "City name or coordinates" },
+  "units": { "type": "string", "default": "metric", "description": "metric or imperial" }
+}
+```
+
+## Secrets
+- `OPENWEATHER_API_KEY` — Required for the OpenWeather API
+
+## Tags
+weather, api, utility</code></pre>
+
+      <h3>Sections</h3>
+      <table>
+        <thead><tr><th>Section</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code># name</code></td><td>Yes</td><td>Skill name (H1 heading)</td></tr>
+          <tr><td>Description</td><td>Yes</td><td>Text after the heading, before any H2</td></tr>
+          <tr><td><code>## Input</code></td><td>Yes</td><td>JSON schema for tool input parameters</td></tr>
+          <tr><td><code>## Secrets</code></td><td>No</td><td>List of required secrets</td></tr>
+          <tr><td><code>## Tags</code></td><td>No</td><td>Comma-separated tags for registry search</td></tr>
+        </tbody>
+      </table>
+
+      <h2>handler.ts Pattern</h2>
+      <p>The handler exports a default async function:</p>
+<pre><code>import type { SkillInput, SkillResult } from "zubo/types";
+
+export default async function handler(input: SkillInput): Promise&lt;SkillResult&gt; {
+  const { location, units = "metric" } = input.params;
+  const apiKey = input.secrets.OPENWEATHER_API_KEY;
+
+  if (!apiKey) {
+    return { error: "OPENWEATHER_API_KEY not set" };
+  }
+
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&amp;units=${units}&amp;appid=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  return {
+    result: `${data.name}: ${data.main.temp}°, ${data.weather[0].description}`,
+    data: data,
+  };
+}</code></pre>
+
+      <h3>SkillInput</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>params</code></td><td>Record&lt;string, any&gt;</td><td>Parsed input parameters from the LLM</td></tr>
+          <tr><td><code>secrets</code></td><td>Record&lt;string, string&gt;</td><td>Decrypted secrets the skill declared</td></tr>
+        </tbody>
+      </table>
+
+      <h3>SkillResult</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>result</code></td><td>string</td><td>Human-readable result text</td></tr>
+          <tr><td><code>data</code></td><td>any</td><td>Optional structured data</td></tr>
+          <tr><td><code>error</code></td><td>string</td><td>Error message (if failed)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Sandbox Behavior</h2>
+      <p>User-installed skills run in isolated subprocesses by default. This provides:</p>
+      <ul>
+        <li><strong>Memory isolation</strong> — skills cannot access the parent process memory</li>
+        <li><strong>Timeout enforcement</strong> — skills are killed after <code>sandbox.timeoutMs</code> (default: 30s)</li>
+        <li><strong>Controlled access</strong> — skills only receive declared secrets</li>
+      </ul>
+      <p>To disable sandboxing (not recommended), set <code>sandbox.enabled: false</code> in <code>config.json</code>.</p>
+
+      <h2>Secrets Access</h2>
+      <p>Skills only receive the secrets they declare in <code>SKILL.md</code>. Users set secrets via chat:</p>
+<pre><code>"Set my OPENWEATHER_API_KEY to abc123..."</code></pre>
+
+      <h2>Testing</h2>
+      <p>Test your skill by asking Zubo to use it:</p>
+<pre><code>"What's the weather in Tokyo?"</code></pre>
+      <p>Zubo's agent will automatically match the request to your skill based on its description and input schema. Check the dashboard logs for execution details.</p>
+
+      <h2>Publishing</h2>
+      <p>Share your skill with the community:</p>
+<pre><code># Validate and publish
+zubo publish</code></pre>
+      <p>This submits your skill to the <a href="../skills.html">Zubo skill registry</a>. Others can install it with:</p>
+<pre><code>zubo install weather</code></pre>
+
+      <div class="docs-page-nav">
+        <a href="integrations.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Integrations</span></a>
+        <a href="api.html"><span class="nav-dir">Next</span><span class="nav-label">API Reference &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+</body>
+</html>

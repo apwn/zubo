@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Reference — Zubo Docs</title>
+  <meta name="description" content="Complete API reference for Zubo. All endpoints with request/response formats.">
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><text x='50' y='72' font-size='65' font-weight='900' font-family='system-ui' fill='white' text-anchor='middle'>Z</text></svg>">
+</head>
+<body>
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><div class="logo-mark">Z</div><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/nicholasgriffintn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links"><a href="index.html">Overview</a><a href="config.html">Configuration</a></div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links"><a href="channels.html">Channel Setup</a><a href="integrations.html">Integrations</a><a href="skills.html">Skill Development</a></div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links"><a href="api.html" class="active">API Reference</a><a href="cli.html">CLI Commands</a></div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>API Reference</div>
+
+      <h1>API Reference</h1>
+      <p>All endpoints are served on the same port as the web dashboard. When <code>auth.enabled</code> is <code>true</code>, all <code>/api/*</code> endpoints require a <code>Authorization: Bearer &lt;key&gt;</code> header.</p>
+
+      <h2>Chat</h2>
+
+      <h3>POST /api/chat</h3>
+      <p>Send a message and receive a complete response.</p>
+<pre><code>// Request
+POST /api/chat
+Content-Type: application/json
+
+{ "message": "What's the weather in Tokyo?" }
+
+// Response
+{ "reply": "The weather in Tokyo is currently 22°C and sunny." }</code></pre>
+
+      <h3>POST /api/chat/stream</h3>
+      <p>Send a message and receive a streaming SSE response.</p>
+<pre><code>// Request
+POST /api/chat/stream
+Content-Type: application/json
+
+{ "message": "Tell me about Zubo" }
+
+// Response (SSE stream)
+event: delta
+data: {"text":"Zubo is"}
+
+event: tool
+data: {"name":"web_search","status":"start"}
+
+event: tool
+data: {"name":"web_search","status":"end"}
+
+event: delta
+data: {"text":" a self-hosted AI agent..."}
+
+event: done
+data: {"reply":"Zubo is a self-hosted AI agent..."}</code></pre>
+
+      <h3>POST /api/chat/voice</h3>
+      <p>Send audio for transcription and get a response.</p>
+<pre><code>// Request
+POST /api/chat/voice
+Content-Type: multipart/form-data
+
+audio: (binary audio file)
+tts: "true"  // optional
+
+// Response
+{
+  "transcript": "What's the weather?",
+  "reply": "Currently 22°C in your area.",
+  "audio": "base64-encoded-audio...",
+  "audioFormat": "mp3"
+}</code></pre>
+
+      <h2>File Upload</h2>
+
+      <h3>POST /api/upload</h3>
+      <p>Upload a document for memory indexing. Max 50MB. Supported: PDF, DOCX, TXT, MD, CSV, JSON, HTML, XML, YAML, TS, JS, PY, SH.</p>
+<pre><code>// Request
+POST /api/upload
+Content-Type: multipart/form-data
+
+file: (binary file)
+
+// Response
+{
+  "uploaded": true,
+  "filename": "report.pdf",
+  "size": 102400,
+  "chunks": 15,
+  "wordCount": 4200
+}</code></pre>
+
+      <h2>Dashboard</h2>
+
+      <h3>GET /api/dashboard/status</h3>
+      <p>Agent status overview.</p>
+<pre><code>{ "Provider": "anthropic/claude-sonnet-4-5", "Channels": "webchat, telegram", "Messages": "1234", "Memories": "567", "Status": "running" }</code></pre>
+
+      <h3>GET /api/dashboard/analytics/summary</h3>
+      <p>Usage analytics summary.</p>
+<pre><code>{ "totalTokens": 50000, "estimatedCostUsd": 1.23, "avgResponseTimeMs": 450, "sessionCount": 12 }</code></pre>
+
+      <h3>GET /api/dashboard/analytics/usage-over-time</h3>
+      <p>Token usage by day (last 7 days).</p>
+
+      <h3>GET /api/dashboard/analytics/tools</h3>
+      <p>Tool usage statistics.</p>
+
+      <h3>GET /api/dashboard/analytics/sessions</h3>
+      <p>Session breakdown by provider/model.</p>
+
+      <h3>GET /api/dashboard/analytics/perf-snapshots</h3>
+      <p>System performance snapshots (RSS, heap, DB size) over 7 days.</p>
+<pre><code>{ "snapshots": [{ "rss_mb": 120.5, "heap_mb": 85.2, "db_size_mb": 12.3, "created_at": "2026-02-10T12:00:00Z" }] }</code></pre>
+
+      <h3>GET /api/dashboard/analytics/cost-breakdown</h3>
+      <p>Cost aggregated by provider and model.</p>
+<pre><code>{ "breakdown": [{ "provider": "anthropic", "model": "claude-sonnet-4-5", "total_tokens": 50000, "total_cost": 1.23, "requests": 42 }] }</code></pre>
+
+      <h3>GET /api/dashboard/analytics/response-time-trend</h3>
+      <p>Daily avg/min/max response times over 7 days.</p>
+
+      <h3>GET /api/dashboard/analytics/top-models</h3>
+      <p>Top 10 models by total tokens.</p>
+
+      <h2>Memory</h2>
+      <h3>GET /api/dashboard/memory</h3>
+      <p>Read MEMORY.md contents.</p>
+
+      <h3>PUT /api/dashboard/memory</h3>
+      <p>Update MEMORY.md contents. Body: <code>{ "content": "..." }</code></p>
+
+      <h3>GET /api/dashboard/memory/recent</h3>
+      <p>Last 20 memory chunks.</p>
+
+      <h3>GET /api/dashboard/memory/search?q=...</h3>
+      <p>Full-text search over memory chunks.</p>
+
+      <h2>API Keys</h2>
+      <h3>POST /api/keys</h3>
+      <p>Create a new API key. Body: <code>{ "label": "my-key" }</code></p>
+
+      <h3>GET /api/keys</h3>
+      <p>List all API keys.</p>
+
+      <h3>DELETE /api/keys/:id</h3>
+      <p>Delete an API key by ID.</p>
+
+      <h2>Rate Limits</h2>
+      <p>When rate limited, endpoints return <code>429 Too Many Requests</code> with a <code>Retry-After</code> header (seconds). Default limits:</p>
+      <ul>
+        <li><strong>Chat:</strong> 60 requests/minute per IP</li>
+        <li><strong>Upload:</strong> 10 requests/minute per IP</li>
+      </ul>
+
+      <div class="docs-page-nav">
+        <a href="skills.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Skill Development</span></a>
+        <a href="cli.html"><span class="nav-dir">Next</span><span class="nav-label">CLI Commands &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+</body>
+</html>

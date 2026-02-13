@@ -323,7 +323,26 @@
   }
 
   /* ------------------------------------------
-     12. Smooth scroll for anchor links
+     12. Docs sidebar mobile toggle
+     ------------------------------------------ */
+  var docsSidebarToggle = document.getElementById('docs-sidebar-toggle');
+  var docsSidebar = document.getElementById('docs-sidebar');
+  if (docsSidebarToggle && docsSidebar) {
+    docsSidebarToggle.addEventListener('click', function () {
+      docsSidebar.classList.toggle('open');
+      docsSidebarToggle.textContent = docsSidebar.classList.contains('open') ? '\u2715' : '\u2630';
+    });
+    // Close sidebar when clicking a link
+    docsSidebar.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        docsSidebar.classList.remove('open');
+        docsSidebarToggle.textContent = '\u2630';
+      });
+    });
+  }
+
+  /* ------------------------------------------
+     13. Smooth scroll for anchor links
      ------------------------------------------ */
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     anchor.addEventListener('click', function (e) {
