@@ -1,5 +1,6 @@
 import { registerTool } from "../registry";
 import { addCronJob, removeCronJob, listCronJobs } from "../../scheduler/cron";
+import { parseNaturalSchedule } from "../../scheduler/natural-cron";
 import type { MessageRouter } from "../../channels/router";
 import type { ZuboConfig } from "../../config/schema";
 import type { LlmProvider } from "../../llm/provider";
@@ -15,7 +16,7 @@ export function registerCronTools(
     definition: {
       name: "cron_create",
       description:
-        "Create a scheduled task that runs on a cron schedule. The task is a natural language instruction that the agent will execute at the scheduled time. Optionally assign to a specific sub-agent.",
+        "Create a scheduled task that runs on a cron schedule. Schedule can be a cron expression (e.g. '0 9 * * 1-5') or natural language (e.g. 'every weekday at 9am', 'every 30 minutes', 'daily at noon'). The task is a natural language instruction that the agent will execute at the scheduled time. Optionally assign to a specific sub-agent.",
       input_schema: {
         type: "object",
         properties: {
@@ -27,7 +28,7 @@ export function registerCronTools(
           schedule: {
             type: "string",
             description:
-              "Cron expression (e.g., '0 9 * * 1-5' for weekdays at 9am, '0 9 * * 1' for Mondays at 9am, '*/30 * * * *' for every 30 minutes)",
+              "Cron expression (e.g., '0 9 * * 1-5') or natural language (e.g., 'every weekday at 9am', 'every monday and friday at noon', 'every 30 minutes', 'daily at 8:30am')",
           },
           task: {
             type: "string",
@@ -51,8 +52,21 @@ export function registerCronTools(
         agent?: string;
       };
       try {
-        addCronJob(db, name, schedule, task, router, config, agent, llm);
-        let msg = `Scheduled task "${name}" created.\nSchedule: ${schedule}\nTask: ${task}`;
+        let cronExpr = schedule;
+        let naturalParseError = "";
+        try {
+          cronExpr = parseNaturalSchedule(schedule);
+        } catch (parseErr: any) {
+          naturalParseError = parseErr.message;
+          // Only fall through if it looks like raw cron (5 space-separated fields)
+          if (!/^[\d*\/,\-]+(\s+[\d*\/,\-]+){4}$/.test(schedule.trim())) {
+            throw new Error(naturalParseError);
+          }
+        }
+        addCronJob(db, name, cronExpr, task, router, config, agent, llm);
+        let msg = `Scheduled task "${name}" created.\nSchedule: ${cronExpr}`;
+        if (cronExpr !== schedule) msg += ` (parsed from "${schedule}")`;
+        msg += `\nTask: ${task}`;
         if (agent) msg += `\nAgent: ${agent}`;
         return msg;
       } catch (err: any) {

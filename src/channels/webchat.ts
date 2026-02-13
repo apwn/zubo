@@ -525,6 +525,77 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     })() as any;
   }
 
+  // GET /api/dashboard/recipes
+  if (path === "/recipes" && req.method === "GET") {
+    return (async () => {
+      try {
+        const { WORKFLOW_RECIPES } = await import("../scheduler/recipes");
+        const db = getDb();
+        // Check which recipes are already installed as cron jobs
+        const installedJobs = db.query("SELECT name FROM cron_jobs").all() as { name: string }[];
+        const installedNames = new Set(installedJobs.map(j => j.name));
+
+        const recipes = WORKFLOW_RECIPES.map(r => ({
+          ...r,
+          installed: installedNames.has(r.id),
+        }));
+        return Response.json({ recipes });
+      } catch (err: any) {
+        return Response.json({ recipes: [], error: err.message });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/recipes/install
+  if (path === "/recipes/install" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { id?: string };
+        if (!body.id) return Response.json({ ok: false, error: "Recipe ID required" }, { status: 400 });
+
+        const { getRecipeById } = await import("../scheduler/recipes");
+        const recipe = getRecipeById(body.id);
+        if (!recipe) return Response.json({ ok: false, error: "Recipe not found" }, { status: 404 });
+
+        const db = getDb();
+        // Check if already installed
+        const existing = db.query("SELECT id FROM cron_jobs WHERE name = ?").get(recipe.id);
+        if (existing) return Response.json({ ok: false, error: "Recipe already installed" }, { status: 409 });
+
+        // Insert as a cron job
+        db.prepare(
+          "INSERT INTO cron_jobs (name, schedule, task) VALUES (?, ?, ?)"
+        ).run(recipe.id, recipe.schedule, recipe.task);
+
+        return Response.json({ ok: true, name: recipe.name });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/recipes/uninstall
+  if (path === "/recipes/uninstall" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { id?: string };
+        if (!body.id) return Response.json({ ok: false, error: "Recipe ID required" }, { status: 400 });
+
+        // Validate that this is a known recipe ID — prevent arbitrary cron job deletion
+        const { getRecipeById } = await import("../scheduler/recipes");
+        if (!getRecipeById(body.id)) {
+          return Response.json({ ok: false, error: "Unknown recipe ID" }, { status: 400 });
+        }
+
+        const db = getDb();
+        const result = db.prepare("DELETE FROM cron_jobs WHERE name = ?").run(body.id);
+        return Response.json({ ok: true, deleted: result.changes > 0 });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
   // POST /api/dashboard/export — JSON export
   if (path === "/export" && req.method === "POST") {
     try {
@@ -676,6 +747,243 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     }
   }
 
+  // --- Budget controls ---
+
+  // GET /api/dashboard/budget
+  if (path === "/budget" && req.method === "GET") {
+    try {
+      const db = getDb();
+      // Ensure table exists (migration may not have run yet)
+      db.run(`CREATE TABLE IF NOT EXISTS budget_config (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        daily_limit_usd REAL,
+        monthly_limit_usd REAL,
+        alert_threshold REAL DEFAULT 0.8,
+        paused INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )`);
+      db.run("INSERT OR IGNORE INTO budget_config (id) VALUES (1)");
+
+      const config = db.query("SELECT * FROM budget_config WHERE id = 1").get() as any;
+
+      // Calculate current spend
+      const todaySpend = db.query(
+        "SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE date(created_at) = date('now') AND cost_usd IS NOT NULL"
+      ).get() as any;
+
+      const monthSpend = db.query(
+        "SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE created_at >= datetime('now', 'start of month') AND cost_usd IS NOT NULL"
+      ).get() as any;
+
+      // Last 7 days daily breakdown
+      const dailyBreakdown = db.query(
+        `SELECT date(created_at) as day, COALESCE(SUM(cost_usd), 0) as cost, SUM(input_tokens + output_tokens) as tokens
+         FROM usage WHERE created_at >= datetime('now', '-7 days') AND cost_usd IS NOT NULL
+         GROUP BY day ORDER BY day`
+      ).all();
+
+      return Response.json({
+        daily_limit_usd: config?.daily_limit_usd ?? null,
+        monthly_limit_usd: config?.monthly_limit_usd ?? null,
+        alert_threshold: config?.alert_threshold ?? 0.8,
+        paused: config?.paused === 1,
+        today_spend_usd: Math.round((todaySpend?.total ?? 0) * 10000) / 10000,
+        month_spend_usd: Math.round((monthSpend?.total ?? 0) * 10000) / 10000,
+        daily_breakdown: dailyBreakdown,
+      });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // PUT /api/dashboard/budget
+  if (path === "/budget" && req.method === "PUT") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as {
+          daily_limit_usd?: number | null;
+          monthly_limit_usd?: number | null;
+          alert_threshold?: number;
+        };
+        const db = getDb();
+        db.run(`CREATE TABLE IF NOT EXISTS budget_config (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          daily_limit_usd REAL,
+          monthly_limit_usd REAL,
+          alert_threshold REAL DEFAULT 0.8,
+          paused INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )`);
+        db.run("INSERT OR IGNORE INTO budget_config (id) VALUES (1)");
+
+        db.prepare(
+          `UPDATE budget_config SET
+            daily_limit_usd = ?,
+            monthly_limit_usd = ?,
+            alert_threshold = ?,
+            paused = 0,
+            updated_at = datetime('now')
+          WHERE id = 1`
+        ).run(
+          body.daily_limit_usd ?? null,
+          body.monthly_limit_usd ?? null,
+          body.alert_threshold ?? 0.8
+        );
+        return Response.json({ ok: true });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // --- Privacy dashboard ---
+
+  // GET /api/dashboard/privacy/summary
+  if (path === "/privacy/summary" && req.method === "GET") {
+    try {
+      const db = getDb();
+
+      const memoryCount = (db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as any)?.c ?? 0;
+      const messageCount = (db.query("SELECT COUNT(*) as c FROM messages").get() as any)?.c ?? 0;
+      const sessionCount = (db.query("SELECT COUNT(DISTINCT session_id) as c FROM messages").get() as any)?.c ?? 0;
+      const secretCount = (db.query("SELECT COUNT(*) as c FROM secrets").get() as any)?.c ?? 0;
+      const cronCount = (db.query("SELECT COUNT(*) as c FROM cron_jobs").get() as any)?.c ?? 0;
+      const apiCallCount = (db.query("SELECT COUNT(*) as c FROM usage").get() as any)?.c ?? 0;
+      const toolCallCount = (db.query("SELECT COUNT(*) as c FROM tool_metrics").get() as any)?.c ?? 0;
+      const totalTokensSent = (db.query("SELECT COALESCE(SUM(input_tokens), 0) as t FROM usage").get() as any)?.t ?? 0;
+      const totalTokensReceived = (db.query("SELECT COALESCE(SUM(output_tokens), 0) as t FROM usage").get() as any)?.t ?? 0;
+
+      // Data by provider
+      const providerBreakdown = db.query(
+        "SELECT provider, COUNT(*) as calls, SUM(input_tokens) as tokens_sent FROM usage GROUP BY provider ORDER BY calls DESC"
+      ).all();
+
+      return Response.json({
+        memoryCount,
+        messageCount,
+        sessionCount,
+        secretCount,
+        cronCount,
+        apiCallCount,
+        toolCallCount,
+        totalTokensSent,
+        totalTokensReceived,
+        providerBreakdown,
+      });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // GET /api/dashboard/privacy/api-log
+  if (path === "/privacy/api-log" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const limit = parseInt(url.searchParams.get("limit") ?? "50", 10);
+      const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+
+      const rows = db.query(
+        `SELECT id, session_id, provider, model, input_tokens, output_tokens,
+                cost_usd, response_time_ms, created_at
+         FROM usage ORDER BY created_at DESC LIMIT ? OFFSET ?`
+      ).all(Math.min(limit, 100), offset);
+
+      const total = (db.query("SELECT COUNT(*) as c FROM usage").get() as any)?.c ?? 0;
+
+      return Response.json({ rows, total, limit, offset });
+    } catch (err: any) {
+      return Response.json({ rows: [], total: 0, error: err.message });
+    }
+  }
+
+  // GET /api/dashboard/privacy/tool-log
+  if (path === "/privacy/tool-log" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const limit = parseInt(url.searchParams.get("limit") ?? "50", 10);
+      const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+
+      const rows = db.query(
+        `SELECT id, tool_name, session_id, duration_ms, success, created_at
+         FROM tool_metrics ORDER BY created_at DESC LIMIT ? OFFSET ?`
+      ).all(Math.min(limit, 100), offset);
+
+      const total = (db.query("SELECT COUNT(*) as c FROM tool_metrics").get() as any)?.c ?? 0;
+
+      return Response.json({ rows, total, limit, offset });
+    } catch (err: any) {
+      return Response.json({ rows: [], total: 0, error: err.message });
+    }
+  }
+
+  // POST /api/dashboard/privacy/wipe-memories
+  if (path === "/privacy/wipe-memories" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { confirm?: string };
+        if (body.confirm !== "DELETE") return Response.json({ ok: false, error: "Confirmation required: send { confirm: \"DELETE\" }" }, { status: 400 });
+        const db = getDb();
+        db.run("DELETE FROM memory_chunks");
+        db.run("DELETE FROM memory_fts");
+        return Response.json({ ok: true, message: "All memories deleted" });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/privacy/wipe-messages
+  if (path === "/privacy/wipe-messages" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { confirm?: string };
+        if (body.confirm !== "DELETE") return Response.json({ ok: false, error: "Confirmation required: send { confirm: \"DELETE\" }" }, { status: 400 });
+        const db = getDb();
+        db.run("DELETE FROM messages");
+        return Response.json({ ok: true, message: "All messages deleted" });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/privacy/wipe-usage
+  if (path === "/privacy/wipe-usage" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { confirm?: string };
+        if (body.confirm !== "DELETE") return Response.json({ ok: false, error: "Confirmation required: send { confirm: \"DELETE\" }" }, { status: 400 });
+        const db = getDb();
+        db.run("DELETE FROM usage");
+        db.run("DELETE FROM tool_metrics");
+        return Response.json({ ok: true, message: "All usage data deleted" });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/privacy/wipe-all
+  if (path === "/privacy/wipe-all" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { confirm?: string };
+        if (body.confirm !== "DELETE_ALL") return Response.json({ ok: false, error: "Confirmation required: send { confirm: \"DELETE_ALL\" }" }, { status: 400 });
+        const db = getDb();
+        db.run("DELETE FROM memory_chunks");
+        db.run("DELETE FROM memory_fts");
+        db.run("DELETE FROM messages");
+        db.run("DELETE FROM usage");
+        db.run("DELETE FROM tool_metrics");
+        db.run("DELETE FROM secrets");
+        db.run("DELETE FROM cron_logs");
+        return Response.json({ ok: true, message: "All data wiped" });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
   // --- Secrets management ---
 
   // GET /api/dashboard/secrets — list all secrets (values masked) + config provider keys
@@ -792,6 +1100,15 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     }
     return (async () => {
       try {
+        // Budget enforcement — block webhooks when budget exceeded
+        const db = getDb();
+        try {
+          const budgetConfig = db.query("SELECT paused FROM budget_config WHERE id = 1").get() as { paused: number } | null;
+          if (budgetConfig?.paused) {
+            return Response.json({ error: "Budget exceeded — agent is paused" }, { status: 429 });
+          }
+        } catch { /* budget table may not exist */ }
+
         const payload = await req.json();
         const summary = JSON.stringify(payload).slice(0, 500);
         const message = `[Webhook: ${webhookName}] ${summary}`;

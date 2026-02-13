@@ -10,6 +10,11 @@ const KNOWN_BASE_URLS: Record<string, string> = {
   groq: "https://api.groq.com/openai/v1",
   together: "https://api.together.xyz/v1",
   openrouter: "https://openrouter.ai/api/v1",
+  deepseek: "https://api.deepseek.com/v1",
+  fireworks: "https://api.fireworks.ai/inference/v1",
+  cerebras: "https://api.cerebras.ai/v1",
+  perplexity: "https://api.perplexity.ai",
+  xai: "https://api.x.ai/v1",
   ollama: "http://localhost:11434/v1",
   lmstudio: "http://localhost:1234/v1",
 };

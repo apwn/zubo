@@ -281,6 +281,16 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   .card .value.ok { color: var(--green); border-left: 3px solid var(--green); padding-left: 8px; }
   .card .value.warn { color: var(--yellow); border-left: 3px solid var(--yellow); padding-left: 8px; }
 
+  /* Budget controls */
+  .budget-bar { width: 100%; height: 8px; background: var(--bg-hover); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .budget-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .budget-bar-fill.ok { background: var(--green); }
+  .budget-bar-fill.warn { background: var(--yellow); }
+  .budget-bar-fill.danger { background: var(--red); }
+  .budget-card-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .budget-card-value { font-family: var(--display); font-size: 28px; font-weight: 700; margin: 4px 0; }
+  .budget-card-sub { font-size: 12px; color: var(--text-secondary); }
+
   /* Quick action cards */
   .quick-actions {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -612,6 +622,34 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     .mobile-menu-btn { display: none; }
     .mobile-overlay { display: none !important; }
   }
+
+  /* ===== RECIPE CARDS ===== */
+  .recipe-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: all var(--transition);
+  }
+  .recipe-card:hover {
+    border-color: var(--accent-border);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  .recipe-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .recipe-card-icon { font-size: 24px; }
+  .recipe-card-title { font-family: var(--display); font-weight: 700; font-size: 15px; }
+  .recipe-card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+  .recipe-card-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .recipe-card-schedule { font-size: 11px; color: var(--text-muted); }
+  .recipe-card-requires { font-size: 10px; color: var(--yellow); }
+  .recipe-card .btn { font-size: 12px; padding: 5px 14px; }
+  .recipe-card .btn.installed { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
 </style>
 </head>
 <body>
@@ -656,6 +694,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <span class="nav-icon">\u{1F4DD}</span> Logs
     </a>
     <div class="sidebar-divider"></div>
+    <a href="#privacy" onclick="showPanel('privacy')">
+      <span class="nav-icon">\u{1F512}</span> Privacy
+    </a>
+    <a href="#budget" onclick="showPanel('budget')">
+      <span class="nav-icon">\u{1F4B0}</span> Budget
+    </a>
     <a href="#settings" onclick="showPanel('settings')">
       <span class="nav-icon">\u{2699}\u{FE0F}</span> Settings
     </a>
@@ -867,12 +911,22 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <!-- WORKFLOWS PANEL -->
     <div id="panel-workflows" class="panel">
       <div class="panel-body">
+        <div class="memory-section-title">
+          <span>Workflow Recipes</span>
+          <span class="badge" id="recipe-count"></span>
+        </div>
+        <p class="settings-desc" style="margin-bottom:16px;">Pre-built automations you can activate with one click.</p>
+        <div id="recipes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:32px;"></div>
+
+        <div class="memory-section-title" style="margin-top:28px;">
+          <span>Custom Workflows</span>
+        </div>
         <div class="editor-toolbar">
           <button class="btn btn-ghost" onclick="loadWorkflows()">Refresh</button>
           <span id="workflows-status" class="status-text"></span>
         </div>
         <div id="workflows-list" style="display:flex;flex-direction:column;gap:14px;"></div>
-        <p id="workflows-empty" class="empty-state" style="display:none;">No workflows defined. Ask Zubo to create a workflow in chat.</p>
+        <p id="workflows-empty" class="empty-state" style="display:none;">No custom workflows defined. Ask Zubo to create a workflow in chat.</p>
       </div>
     </div>
 
@@ -995,6 +1049,96 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       </div>
     </div>
 
+    <!-- BUDGET PANEL -->
+    <div id="panel-budget" class="panel">
+      <div class="panel-body">
+        <div class="cards" id="budget-summary-cards"></div>
+
+        <div class="settings-section" style="margin-top:24px;">
+          <h3 class="settings-title">Budget Limits</h3>
+          <p class="settings-desc">Set spending limits to control costs. The agent will pause when limits are reached.</p>
+          <div class="settings-grid">
+            <div class="settings-field">
+              <label class="settings-label" for="budget-daily">Daily Limit (USD)</label>
+              <input id="budget-daily" type="number" class="settings-input" min="0" step="0.01" placeholder="e.g. 5.00">
+            </div>
+            <div class="settings-field">
+              <label class="settings-label" for="budget-monthly">Monthly Limit (USD)</label>
+              <input id="budget-monthly" type="number" class="settings-input" min="0" step="0.01" placeholder="e.g. 50.00">
+            </div>
+            <div class="settings-field">
+              <label class="settings-label" for="budget-alert">Alert Threshold</label>
+              <select id="budget-alert" class="settings-select">
+                <option value="0.5">50%</option>
+                <option value="0.7">70%</option>
+                <option value="0.8" selected>80%</option>
+                <option value="0.9">90%</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-primary" onclick="saveBudget()">Save Limits</button>
+            <button class="btn btn-ghost" onclick="clearBudget()">Remove Limits</button>
+            <span id="budget-status" class="status-text"></span>
+          </div>
+        </div>
+
+        <div class="memory-section-title" style="margin-top:28px;">Daily Spend (Last 7 Days)</div>
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+          <div class="bar-chart" id="budget-chart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIVACY PANEL -->
+    <div id="panel-privacy" class="panel">
+      <div class="panel-body">
+        <div style="margin-bottom:20px;">
+          <h3 style="font-family:var(--display);font-weight:700;margin-bottom:4px;">Privacy &amp; Data</h3>
+          <p class="settings-desc">See exactly what data Zubo stores and what has been sent to AI providers. You own your data.</p>
+        </div>
+
+        <div class="cards" id="privacy-summary-cards"></div>
+
+        <div class="settings-section" style="margin-top:24px;">
+          <h3 class="settings-title">Data Sent to AI Providers</h3>
+          <p class="settings-desc">Every API call Zubo makes to LLM providers (Anthropic, OpenAI, etc.) is logged here.</p>
+          <div id="privacy-providers" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+          <table id="api-log-table">
+            <thead><tr><th>Time</th><th>Provider</th><th>Model</th><th>Tokens Sent</th><th>Tokens Received</th><th>Cost</th></tr></thead>
+            <tbody id="api-log-body"></tbody>
+          </table>
+          <div style="margin-top:10px;display:flex;gap:10px;">
+            <button class="btn btn-ghost" id="api-log-more" onclick="loadMoreApiLog()" style="display:none;">Load More</button>
+          </div>
+        </div>
+
+        <div class="settings-section" style="margin-top:24px;">
+          <h3 class="settings-title">Tool Executions</h3>
+          <p class="settings-desc">Log of every tool/skill Zubo has executed on your behalf.</p>
+          <table id="tool-log-table">
+            <thead><tr><th>Time</th><th>Tool</th><th>Duration</th><th>Status</th></tr></thead>
+            <tbody id="tool-log-body"></tbody>
+          </table>
+          <div style="margin-top:10px;display:flex;gap:10px;">
+            <button class="btn btn-ghost" id="tool-log-more" onclick="loadMoreToolLog()" style="display:none;">Load More</button>
+          </div>
+        </div>
+
+        <div class="settings-section" style="margin-top:24px;border-color:rgba(239,68,68,0.2);">
+          <h3 class="settings-title" style="color:var(--red);">Data Controls</h3>
+          <p class="settings-desc">Delete stored data. These actions cannot be undone.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost" onclick="wipeData('memories')" style="color:var(--yellow);">Delete All Memories</button>
+            <button class="btn btn-ghost" onclick="wipeData('messages')" style="color:var(--yellow);">Delete All Messages</button>
+            <button class="btn btn-ghost" onclick="wipeData('usage')" style="color:var(--yellow);">Delete Usage Data</button>
+            <button class="btn btn-ghost" onclick="wipeData('all')" style="color:var(--red);border-color:rgba(239,68,68,0.3);">Delete Everything</button>
+          </div>
+          <span id="wipe-status" class="status-text" style="display:block;margin-top:10px;"></span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1031,8 +1175,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <script>
 // --- Panel routing ---
-var panelNames = ['agent','status','analytics','system','memory','skills','registry','workflows','cron','logs','settings'];
-var panelTitles = { agent:'Agent', status:'Status', analytics:'Analytics', system:'System Prompt', memory:'Memory', skills:'Skills', registry:'Skill Registry', workflows:'Workflows', cron:'Cron Jobs', logs:'Logs', settings:'Settings' };
+var panelNames = ['agent','status','analytics','system','memory','skills','registry','workflows','cron','logs','privacy','budget','settings'];
+var panelTitles = { agent:'Agent', status:'Status', analytics:'Analytics', system:'System Prompt', memory:'Memory', skills:'Skills', registry:'Skill Registry', workflows:'Workflows', cron:'Cron Jobs', logs:'Logs', privacy:'Privacy & Data', budget:'Budget', settings:'Settings' };
 
 function showPanel(name) {
   if (panelNames.indexOf(name) === -1) name = 'agent';
@@ -1056,6 +1200,8 @@ function showPanel(name) {
   if (name === 'logs') loadLogs();
   if (name === 'settings') loadSettings();
   if (name === 'workflows') loadWorkflows();
+  if (name === 'budget') loadBudget();
+  if (name === 'privacy') loadPrivacy();
   closeMobileMenu();
 }
 
@@ -1076,6 +1222,13 @@ function toast(msg) {
 // --- API helper ---
 function api(path, opts) {
   return fetch('/api/dashboard' + path, opts).then(function(r) { return r.json(); });
+}
+
+// --- HTML escaping (XSS prevention) ---
+function esc(text) {
+  var d = document.createElement('div');
+  d.textContent = String(text);
+  return d.innerHTML;
 }
 
 // --- AGENT CHAT ---
@@ -1784,8 +1937,72 @@ function installRegistrySkill(name, btn) {
   });
 }
 
+// --- RECIPES ---
+function loadRecipes() {
+  api('/recipes').then(function(data) {
+    var grid = document.getElementById('recipes-grid');
+    var count = document.getElementById('recipe-count');
+    if (!grid || !data.recipes) return;
+
+    count.textContent = data.recipes.length;
+
+    grid.innerHTML = data.recipes.map(function(r) {
+      var safeId = esc(r.id).replace(/'/g, "\\\\'");
+      var requiresHtml = r.requires && r.requires.length > 0
+        ? '<div class="recipe-card-requires">Requires: ' + esc(r.requires.join(', ')) + '</div>'
+        : '';
+      var btnHtml = r.installed
+        ? '<button class="btn installed" onclick="uninstallRecipe(\'' + safeId + '\')">Installed \\u2713</button>'
+        : '<button class="btn btn-primary" onclick="installRecipe(\'' + safeId + '\')">Activate</button>';
+
+      return '<div class="recipe-card">' +
+        '<div class="recipe-card-header">' +
+        '<span class="recipe-card-icon">' + esc(r.icon) + '</span>' +
+        '<span class="recipe-card-title">' + esc(r.name) + '</span>' +
+        '</div>' +
+        '<div class="recipe-card-desc">' + esc(r.description) + '</div>' +
+        '<div class="recipe-card-meta">' +
+        '<span class="recipe-card-schedule">' + esc(r.scheduleHuman) + '</span>' +
+        requiresHtml +
+        btnHtml +
+        '</div></div>';
+    }).join('');
+  });
+}
+
+function installRecipe(id) {
+  api('/recipes/install', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: id })
+  }).then(function(r) {
+    if (r.ok) {
+      toast('Recipe activated: ' + (r.name || id));
+      loadRecipes();
+    } else {
+      toast(r.error || 'Failed to install');
+    }
+  });
+}
+
+function uninstallRecipe(id) {
+  api('/recipes/uninstall', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: id })
+  }).then(function(r) {
+    if (r.ok) {
+      toast('Recipe deactivated');
+      loadRecipes();
+    } else {
+      toast(r.error || 'Failed to uninstall');
+    }
+  });
+}
+
 // --- WORKFLOWS ---
 function loadWorkflows() {
+  loadRecipes();
   api('/workflows').then(function(data) {
     var container = document.getElementById('workflows-list');
     var empty = document.getElementById('workflows-empty');
@@ -1816,6 +2033,35 @@ function loadWorkflows() {
 }
 
 // --- CRON ---
+function cronToHuman(expr) {
+  var p = expr.split(' ');
+  if (p.length < 5) return expr;
+  var min = p[0], hour = p[1], dom = p[2], mon = p[3], dow = p[4];
+  var days = { '0':'Sun','1':'Mon','2':'Tue','3':'Wed','4':'Thu','5':'Fri','6':'Sat' };
+  var time = '';
+  if (hour !== '*' && min !== '*') {
+    var h = parseInt(hour, 10); var m = parseInt(min, 10);
+    if (isNaN(h) || isNaN(m)) return expr;
+    var ampm = h >= 12 ? 'pm' : 'am';
+    h = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+    time = h + (m > 0 ? ':' + String(m).padStart(2, '0') : '') + ampm;
+  }
+  if (dow === '1-5' && dom === '*') return time ? 'Weekdays at ' + time : 'Every weekday';
+  if (dow === '0,6' && dom === '*') return time ? 'Weekends at ' + time : 'Every weekend';
+  if (dow !== '*' && dom === '*') {
+    var dayNames = dow.split(',').map(function(d) { return days[d] || d; }).join(', ');
+    return time ? dayNames + ' at ' + time : 'Every ' + dayNames;
+  }
+  if (dow === '*' && dom === '*' && mon === '*') {
+    if (min.startsWith('*/')) return 'Every ' + min.slice(2) + ' min';
+    if (hour.startsWith('*/')) return 'Every ' + hour.slice(2) + ' hrs';
+    if (hour === '*') return 'Every minute';
+    return time ? 'Daily at ' + time : 'Daily';
+  }
+  if (dom !== '*' && mon === '*') return time ? 'Monthly on ' + dom + ' at ' + time : 'Monthly on day ' + dom;
+  return expr;
+}
+
 function loadCron() {
   api('/cron').then(function(data) {
     var body = document.getElementById('cron-body');
@@ -1825,8 +2071,17 @@ function loadCron() {
     empty.style.display = 'none';
     data.jobs.forEach(function(j) {
       var tr = document.createElement('tr');
-      var cells = [j.name, j.schedule, j.task, j.enabled ? 'Yes' : 'No', j.last_run || 'Never'];
-      cells.forEach(function(text) {
+      var scheduleTd = document.createElement('td');
+      var humanLabel = document.createTextNode(cronToHuman(j.schedule));
+      var rawSpan = document.createElement('span');
+      rawSpan.style.cssText = 'font-size:10px;color:var(--text-muted);';
+      rawSpan.textContent = j.schedule;
+      scheduleTd.appendChild(humanLabel);
+      scheduleTd.appendChild(document.createElement('br'));
+      scheduleTd.appendChild(rawSpan);
+      var cells = [j.name, null, j.task, j.enabled ? 'Yes' : 'No', j.last_run || 'Never'];
+      cells.forEach(function(text, i) {
+        if (i === 1) { tr.appendChild(scheduleTd); return; }
         var td = document.createElement('td');
         td.textContent = text;
         tr.appendChild(td);
@@ -1841,6 +2096,224 @@ function loadLogs() {
   api('/logs').then(function(data) {
     document.getElementById('log-content').textContent = data.content || 'No logs.';
     document.getElementById('logs-status').textContent = 'Last 100 lines';
+  });
+}
+
+// --- BUDGET ---
+function loadBudget() {
+  api('/budget').then(function(data) {
+    var cards = document.getElementById('budget-summary-cards');
+    if (!cards) return;
+
+    var dailyPct = data.daily_limit_usd ? Math.min(data.today_spend_usd / data.daily_limit_usd, 1) : 0;
+    var monthPct = data.monthly_limit_usd ? Math.min(data.month_spend_usd / data.monthly_limit_usd, 1) : 0;
+
+    function barClass(pct, hasLimit) {
+      if (!hasLimit) return 'ok';
+      if (pct >= 1) return 'danger';
+      if (pct >= (data.alert_threshold || 0.8)) return 'warn';
+      return 'ok';
+    }
+
+    cards.innerHTML = '<div class="card">' +
+      '<div class="budget-card-label">Today\\'s Spend</div>' +
+      '<div class="budget-card-value">$' + data.today_spend_usd.toFixed(2) + '</div>' +
+      '<div class="budget-card-sub">' + (data.daily_limit_usd ? 'Limit: $' + data.daily_limit_usd.toFixed(2) : 'No daily limit') + '</div>' +
+      (data.daily_limit_usd ? '<div class="budget-bar"><div class="budget-bar-fill ' + barClass(dailyPct, true) + '" style="width:' + Math.max(0, Math.min(100, dailyPct * 100)) + '%"></div></div>' : '') +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="budget-card-label">This Month</div>' +
+      '<div class="budget-card-value">$' + data.month_spend_usd.toFixed(2) + '</div>' +
+      '<div class="budget-card-sub">' + (data.monthly_limit_usd ? 'Limit: $' + data.monthly_limit_usd.toFixed(2) : 'No monthly limit') + '</div>' +
+      (data.monthly_limit_usd ? '<div class="budget-bar"><div class="budget-bar-fill ' + barClass(monthPct, true) + '" style="width:' + Math.max(0, Math.min(100, monthPct * 100)) + '%"></div></div>' : '') +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="budget-card-label">Status</div>' +
+      '<div class="budget-card-value" style="font-size:20px;">' + (data.paused ? '<span style="color:var(--red);">Paused</span>' : '<span style="color:var(--green);">Active</span>') + '</div>' +
+      '<div class="budget-card-sub">' + (data.paused ? 'Budget limit reached' : 'Within budget') + '</div>' +
+    '</div>';
+
+    // Fill in form values
+    if (data.daily_limit_usd) document.getElementById('budget-daily').value = data.daily_limit_usd;
+    if (data.monthly_limit_usd) document.getElementById('budget-monthly').value = data.monthly_limit_usd;
+    if (data.alert_threshold) document.getElementById('budget-alert').value = String(data.alert_threshold);
+
+    // Render chart
+    var chart = document.getElementById('budget-chart');
+    if (chart && data.daily_breakdown && data.daily_breakdown.length > 0) {
+      var maxCost = Math.max.apply(null, data.daily_breakdown.map(function(d) { return d.cost; }));
+      if (maxCost === 0) maxCost = 1;
+      chart.innerHTML = data.daily_breakdown.map(function(d) {
+        var pct = (d.cost / maxCost) * 100;
+        var dayLabel = d.day.slice(5); // MM-DD
+        return '<div class="bar-col"><div class="bar" style="height:' + Math.max(pct, 2) + '%;background:var(--gradient);border-radius:4px 4px 0 0;max-width:60px;" data-tooltip="$' + d.cost.toFixed(4) + '"></div><div class="bar-label">' + dayLabel + '</div></div>';
+      }).join('');
+    } else if (chart) {
+      chart.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:20px;">No spending data yet</div>';
+    }
+  });
+}
+
+function saveBudget() {
+  var daily = parseFloat(document.getElementById('budget-daily').value) || null;
+  var monthly = parseFloat(document.getElementById('budget-monthly').value) || null;
+  var threshold = parseFloat(document.getElementById('budget-alert').value) || 0.8;
+
+  api('/budget', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ daily_limit_usd: daily, monthly_limit_usd: monthly, alert_threshold: threshold })
+  }).then(function(r) {
+    var s = document.getElementById('budget-status');
+    if (r.ok) {
+      s.textContent = 'Budget saved';
+      s.style.color = 'var(--green)';
+      loadBudget();
+      toast('Budget limits saved');
+    } else {
+      s.textContent = r.error || 'Failed';
+      s.style.color = 'var(--red)';
+    }
+    setTimeout(function() { s.textContent = ''; }, 3000);
+  });
+}
+
+function clearBudget() {
+  api('/budget', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ daily_limit_usd: null, monthly_limit_usd: null })
+  }).then(function(r) {
+    document.getElementById('budget-daily').value = '';
+    document.getElementById('budget-monthly').value = '';
+    loadBudget();
+    toast('Budget limits removed');
+  });
+}
+
+// --- PRIVACY ---
+var apiLogOffset = 0;
+var toolLogOffset = 0;
+
+function loadPrivacy() {
+  apiLogOffset = 0;
+  toolLogOffset = 0;
+
+  api('/privacy/summary').then(function(data) {
+    var cards = document.getElementById('privacy-summary-cards');
+    if (!cards) return;
+
+    cards.innerHTML =
+      '<div class="card"><div class="label">Memories Stored</div><div class="value">' + (data.memoryCount || 0) + '</div></div>' +
+      '<div class="card"><div class="label">Messages</div><div class="value">' + (data.messageCount || 0) + '</div></div>' +
+      '<div class="card"><div class="label">API Calls Made</div><div class="value">' + (data.apiCallCount || 0) + '</div></div>' +
+      '<div class="card"><div class="label">Tokens Sent to Providers</div><div class="value">' + formatNum(data.totalTokensSent || 0) + '</div></div>' +
+      '<div class="card"><div class="label">Tool Executions</div><div class="value">' + (data.toolCallCount || 0) + '</div></div>' +
+      '<div class="card"><div class="label">Stored Secrets</div><div class="value">' + (data.secretCount || 0) + '</div></div>';
+
+    // Provider breakdown
+    var providers = document.getElementById('privacy-providers');
+    if (providers && data.providerBreakdown) {
+      providers.innerHTML = data.providerBreakdown.map(function(p) {
+        return '<div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;font-size:12px;">' +
+          '<div style="font-weight:600;color:var(--text);">' + esc(p.provider) + '</div>' +
+          '<div style="color:var(--text-muted);">' + parseInt(p.calls || 0) + ' calls &middot; ' + formatNum(p.tokens_sent || 0) + ' tokens sent</div>' +
+        '</div>';
+      }).join('');
+    }
+  });
+
+  loadApiLog();
+  loadToolLog();
+}
+
+function formatNum(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return String(n);
+}
+
+function loadApiLog() {
+  api('/privacy/api-log?limit=20&offset=' + apiLogOffset).then(function(data) {
+    var body = document.getElementById('api-log-body');
+    var more = document.getElementById('api-log-more');
+    if (!body) return;
+
+    if (apiLogOffset === 0) body.innerHTML = '';
+
+    body.innerHTML += data.rows.map(function(r) {
+      var time = r.created_at ? new Date(r.created_at + 'Z').toLocaleString() : '\u2014';
+      return '<tr>' +
+        '<td>' + esc(time) + '</td>' +
+        '<td>' + esc(r.provider || '\u2014') + '</td>' +
+        '<td style="font-size:11px;">' + esc(r.model || '\u2014') + '</td>' +
+        '<td>' + parseInt(r.input_tokens || 0) + '</td>' +
+        '<td>' + parseInt(r.output_tokens || 0) + '</td>' +
+        '<td>' + (r.cost_usd ? '$' + parseFloat(r.cost_usd).toFixed(4) : '\u2014') + '</td>' +
+      '</tr>';
+    }).join('');
+
+    if (more) more.style.display = (apiLogOffset + 20 < data.total) ? '' : 'none';
+  });
+}
+
+function loadMoreApiLog() {
+  apiLogOffset += 20;
+  loadApiLog();
+}
+
+function loadToolLog() {
+  api('/privacy/tool-log?limit=20&offset=' + toolLogOffset).then(function(data) {
+    var body = document.getElementById('tool-log-body');
+    var more = document.getElementById('tool-log-more');
+    if (!body) return;
+
+    if (toolLogOffset === 0) body.innerHTML = '';
+
+    body.innerHTML += data.rows.map(function(r) {
+      var time = r.created_at ? new Date(r.created_at + 'Z').toLocaleString() : '\u2014';
+      var status = r.success ? '<span style="color:var(--green);">OK</span>' : '<span style="color:var(--red);">Error</span>';
+      return '<tr>' +
+        '<td>' + esc(time) + '</td>' +
+        '<td>' + esc(r.tool_name || '\u2014') + '</td>' +
+        '<td>' + (r.duration_ms ? parseInt(r.duration_ms) + 'ms' : '\u2014') + '</td>' +
+        '<td>' + status + '</td>' +
+      '</tr>';
+    }).join('');
+
+    if (more) more.style.display = (toolLogOffset + 20 < data.total) ? '' : 'none';
+  });
+}
+
+function loadMoreToolLog() {
+  toolLogOffset += 20;
+  loadToolLog();
+}
+
+function wipeData(type) {
+  var msg = {
+    memories: 'Delete ALL stored memories? This cannot be undone.',
+    messages: 'Delete ALL conversation messages? This cannot be undone.',
+    usage: 'Delete ALL API usage logs and tool metrics? This cannot be undone.',
+    all: 'DELETE EVERYTHING? All memories, messages, usage data, and secrets will be permanently removed. This cannot be undone.'
+  };
+
+  if (!confirm(msg[type] || 'Are you sure?')) return;
+
+  var confirmToken = type === 'all' ? 'DELETE_ALL' : 'DELETE';
+  var endpoint = '/privacy/wipe-' + type;
+  api(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: confirmToken }) }).then(function(r) {
+    var s = document.getElementById('wipe-status');
+    if (r.ok) {
+      s.textContent = r.message || 'Data deleted';
+      s.style.color = 'var(--green)';
+      loadPrivacy();
+      toast('Data deleted successfully');
+    } else {
+      s.textContent = r.error || 'Failed';
+      s.style.color = 'var(--red)';
+    }
+    setTimeout(function() { s.textContent = ''; }, 3000);
   });
 }
 

@@ -29,8 +29,12 @@ export default async function (input: Record<string, unknown>): Promise<string> 
   }
   // Block private/internal IP ranges
   const hostname = parsedUrl.hostname;
+  const is172Private = hostname.startsWith("172.") && (() => {
+    const secondOctet = parseInt(hostname.split(".")[1], 10);
+    return secondOctet >= 16 && secondOctet <= 31;
+  })();
   if (hostname === "localhost" || hostname.startsWith("127.") || hostname.startsWith("10.") ||
-      hostname.startsWith("192.168.") || hostname.startsWith("172.") || hostname === "[::1]" ||
+      hostname.startsWith("192.168.") || is172Private || hostname === "[::1]" ||
       hostname.endsWith(".local") || hostname.endsWith(".internal")) {
     return JSON.stringify({ error: "jira_url must not point to internal/private addresses" });
   }
@@ -39,6 +43,15 @@ export default async function (input: Record<string, unknown>): Promise<string> 
     action: string; issue_key?: string; project_key?: string; summary?: string;
     description?: string; issue_type?: string; jql?: string; transition_id?: string;
   };
+
+  // Validate issue_key format to prevent path traversal (e.g. "PROJ-123")
+  if (issue_key && !/^[A-Z][A-Z0-9_]+-\d+$/i.test(issue_key)) {
+    return JSON.stringify({ error: "Invalid issue_key format. Expected format: PROJ-123" });
+  }
+  // Validate project_key format
+  if (project_key && !/^[A-Z][A-Z0-9_]*$/i.test(project_key)) {
+    return JSON.stringify({ error: "Invalid project_key format. Expected format: PROJ" });
+  }
 
   const api = parsedUrl.origin + parsedUrl.pathname.replace(/\/+$/, "") + "/rest/api/3";
   const auth = Buffer.from(`${email}:${token}`).toString("base64");

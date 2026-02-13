@@ -6,6 +6,42 @@ import { logger } from "../util/logger";
 import { recordError } from "../util/error-buffer";
 import { Database } from "bun:sqlite";
 
+/** Check if budget has been exceeded. Returns an error message if paused, null if OK. */
+function checkBudget(db: Database): string | null {
+  try {
+    const config = db.query("SELECT daily_limit_usd, monthly_limit_usd, paused FROM budget_config WHERE id = 1").get() as {
+      daily_limit_usd: number | null;
+      monthly_limit_usd: number | null;
+      paused: number;
+    } | null;
+    if (!config) return null;
+    if (config.paused) return "Budget exceeded — agent is paused. Adjust your budget limits in the dashboard to resume.";
+
+    if (config.daily_limit_usd) {
+      const daily = db.query(
+        "SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE date(created_at) = date('now') AND cost_usd IS NOT NULL"
+      ).get() as { total: number };
+      if (daily.total >= config.daily_limit_usd) {
+        db.run("UPDATE budget_config SET paused = 1 WHERE id = 1");
+        return `Daily budget limit ($${config.daily_limit_usd.toFixed(2)}) reached. Agent paused.`;
+      }
+    }
+
+    if (config.monthly_limit_usd) {
+      const monthly = db.query(
+        "SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE created_at >= datetime('now', 'start of month') AND cost_usd IS NOT NULL"
+      ).get() as { total: number };
+      if (monthly.total >= config.monthly_limit_usd) {
+        db.run("UPDATE budget_config SET paused = 1 WHERE id = 1");
+        return `Monthly budget limit ($${config.monthly_limit_usd.toFixed(2)}) reached. Agent paused.`;
+      }
+    }
+  } catch {
+    // Budget table may not exist yet — allow through
+  }
+  return null;
+}
+
 /** All channels share one session file since Zubo is a single-owner agent. */
 const UNIFIED_SESSION = "owner";
 
@@ -62,6 +98,13 @@ export function createRouter(
         sessionKey,
       });
 
+      // Budget enforcement
+      const budgetError = checkBudget(db);
+      if (budgetError) {
+        await reply(budgetError);
+        return;
+      }
+
       try {
         // Search memory for relevant context
         let memories = "";
@@ -91,6 +134,13 @@ export function createRouter(
       const { text } = message;
 
       logger.info(`Stream message from ${message.channel}:${message.userId}`);
+
+      // Budget enforcement
+      const budgetError = checkBudget(db);
+      if (budgetError) {
+        onDelta(budgetError);
+        return budgetError;
+      }
 
       let memories = "";
       try {

@@ -44,32 +44,39 @@ export class FailoverProvider implements LlmProvider {
   }
 
   async *chatStream(request: LlmRequest): AsyncIterable<LlmStreamEvent> {
-    // Try primary
-    if (this.primary.chatStream) {
+    // Collect all events from a stream — if it succeeds fully, yield them.
+    // This prevents partial output from a failing stream from corrupting state.
+    async function collectStream(provider: LlmProvider): Promise<LlmStreamEvent[] | null> {
+      if (!provider.chatStream) return null;
+      const events: LlmStreamEvent[] = [];
       try {
-        yield* this.primary.chatStream(request);
-        return;
+        for await (const event of provider.chatStream(request)) {
+          events.push(event);
+        }
+        return events;
       } catch (err: any) {
-        logger.warn(`Primary stream (${this.primary.providerName}) failed`, {
+        logger.warn(`Stream from ${provider.providerName} failed after ${events.length} events`, {
           error: err.message,
         });
+        return null;
       }
+    }
+
+    // Try primary
+    const primaryEvents = await collectStream(this.primary);
+    if (primaryEvents) {
+      for (const event of primaryEvents) yield event;
+      return;
     }
 
     // Try fallbacks
     for (const fb of this.fallbacks) {
-      if (fb.chatStream) {
-        try {
-          logger.info(`Trying stream fallback: ${fb.providerName}/${fb.model}`);
-          yield* fb.chatStream(request);
-          this.providerName = fb.providerName;
-          this.model = fb.model;
-          return;
-        } catch (fbErr: any) {
-          logger.warn(`Stream fallback ${fb.providerName} failed`, {
-            error: fbErr.message,
-          });
-        }
+      const fbEvents = await collectStream(fb);
+      if (fbEvents) {
+        this.providerName = fb.providerName;
+        this.model = fb.model;
+        for (const event of fbEvents) yield event;
+        return;
       }
     }
 

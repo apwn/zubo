@@ -19,10 +19,15 @@ export interface OpenAICompatOptions {
 }
 
 const DEFAULT_CONTEXT_WINDOWS: Record<string, number> = {
-  openai: 128_000,
+  openai: 1_000_000,      // GPT-4.1 supports 1M tokens
   groq: 128_000,
   together: 32_000,
-  openrouter: 128_000,
+  openrouter: 200_000,    // Varies by model; conservative default
+  deepseek: 64_000,
+  fireworks: 128_000,
+  cerebras: 128_000,
+  perplexity: 128_000,
+  xai: 131_072,           // Grok 4.1 supports up to 2M; safe default
   ollama: 8_000,
   lmstudio: 8_000,
 };
@@ -94,6 +99,10 @@ export class OpenAICompatProvider implements LlmProvider {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
+        ...(this.providerName === "openrouter" ? {
+          "HTTP-Referer": "https://zubo.dev",
+          "X-Title": "Zubo AI Agent",
+        } : {}),
       },
       body: JSON.stringify(body),
     });
@@ -266,6 +275,7 @@ export class OpenAICompatProvider implements LlmProvider {
       messages,
       max_tokens: request.maxTokens ?? this.maxTokens,
       stream: true,
+      stream_options: { include_usage: true },
     };
     if (tools) body.tools = tools;
 
@@ -274,6 +284,10 @@ export class OpenAICompatProvider implements LlmProvider {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
+        ...(this.providerName === "openrouter" ? {
+          "HTTP-Referer": "https://zubo.dev",
+          "X-Title": "Zubo AI Agent",
+        } : {}),
       },
       body: JSON.stringify(body),
     });

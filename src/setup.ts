@@ -43,10 +43,10 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     label: "OpenAI (GPT)",
     setup: async () => {
       const apiKey = await prompt("OpenAI API key (sk-...): ");
-      const model = await prompt("Model [gpt-4o]: ");
+      const model = await prompt("Model [gpt-4.1]: ");
       return {
         name: "openai",
-        config: { apiKey, model: model || "gpt-4o" },
+        config: { apiKey, model: model || "gpt-4.1" },
       };
     },
   },
@@ -113,6 +113,70 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
   },
   {
     key: "7",
+    label: "DeepSeek",
+    setup: async () => {
+      const apiKey = await prompt("DeepSeek API key: ");
+      const model = await prompt("Model [deepseek-chat]: ");
+      return {
+        name: "deepseek",
+        config: {
+          apiKey,
+          baseUrl: "https://api.deepseek.com/v1",
+          model: model || "deepseek-chat",
+        },
+      };
+    },
+  },
+  {
+    key: "8",
+    label: "xAI (Grok)",
+    setup: async () => {
+      const apiKey = await prompt("xAI API key: ");
+      const model = await prompt("Model [grok-4.1-fast]: ");
+      return {
+        name: "xai",
+        config: {
+          apiKey,
+          baseUrl: "https://api.x.ai/v1",
+          model: model || "grok-4.1-fast",
+        },
+      };
+    },
+  },
+  {
+    key: "9",
+    label: "Fireworks AI",
+    setup: async () => {
+      const apiKey = await prompt("Fireworks API key: ");
+      const model = await prompt("Model [accounts/fireworks/models/llama-v3p3-70b-instruct]: ");
+      return {
+        name: "fireworks",
+        config: {
+          apiKey,
+          baseUrl: "https://api.fireworks.ai/inference/v1",
+          model: model || "accounts/fireworks/models/llama-v3p3-70b-instruct",
+        },
+      };
+    },
+  },
+  {
+    key: "10",
+    label: "Cerebras",
+    setup: async () => {
+      const apiKey = await prompt("Cerebras API key: ");
+      const model = await prompt("Model [llama-3.3-70b]: ");
+      return {
+        name: "cerebras",
+        config: {
+          apiKey,
+          baseUrl: "https://api.cerebras.ai/v1",
+          model: model || "llama-3.3-70b",
+        },
+      };
+    },
+  },
+  {
+    key: "11",
     label: "LM Studio (local)",
     setup: async () => {
       const baseUrl = await prompt("LM Studio URL [http://localhost:1234/v1]: ");
@@ -128,7 +192,7 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     },
   },
   {
-    key: "8",
+    key: "12",
     label: "Other (OpenAI-compatible)",
     setup: async () => {
       const name = await prompt("Provider name: ");

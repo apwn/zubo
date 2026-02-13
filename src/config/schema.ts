@@ -102,6 +102,13 @@ export const configSchema = z.object({
     enabled: z.boolean().default(true),
     timeoutMs: z.number().default(30_000),
   }).optional(),
+
+  // Budget controls
+  budget: z.object({
+    dailyLimitUsd: z.number().optional(),
+    monthlyLimitUsd: z.number().optional(),
+    alertThreshold: z.number().min(0).max(1).default(0.8),
+  }).optional(),
 });
 
 export type ZuboConfig = z.infer<typeof configSchema>;

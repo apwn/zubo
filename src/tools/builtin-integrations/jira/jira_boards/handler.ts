@@ -28,13 +28,21 @@ export default async function (input: Record<string, unknown>): Promise<string> 
     return JSON.stringify({ error: "jira_url must use HTTPS" });
   }
   const hostname = parsedUrl.hostname;
+  const is172Private = hostname.startsWith("172.") && (() => {
+    const secondOctet = parseInt(hostname.split(".")[1], 10);
+    return secondOctet >= 16 && secondOctet <= 31;
+  })();
   if (hostname === "localhost" || hostname.startsWith("127.") || hostname.startsWith("10.") ||
-      hostname.startsWith("192.168.") || hostname.startsWith("172.") || hostname === "[::1]" ||
+      hostname.startsWith("192.168.") || is172Private || hostname === "[::1]" ||
       hostname.endsWith(".local") || hostname.endsWith(".internal")) {
     return JSON.stringify({ error: "jira_url must not point to internal/private addresses" });
   }
 
   const { action, board_id } = input as { action: string; board_id?: number };
+  // Validate board_id is a positive integer to prevent injection
+  if (board_id !== undefined && (!Number.isInteger(board_id) || board_id <= 0)) {
+    return JSON.stringify({ error: "board_id must be a positive integer" });
+  }
   const api = parsedUrl.origin + parsedUrl.pathname.replace(/\/+$/, "") + "/rest/agile/1.0";
   const auth = Buffer.from(`${email}:${token}`).toString("base64");
   const headers: Record<string, string> = {
