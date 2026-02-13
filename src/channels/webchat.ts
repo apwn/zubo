@@ -7,7 +7,7 @@ import { getDb } from "../db/connection";
 import { getHeartbeatMinutes, restartHeartbeat } from "../scheduler/heartbeat";
 import { logger } from "../util/logger";
 import { DASHBOARD_HTML } from "./dashboard.html";
-import { parseSkillMd } from "../tools/skill-loader";
+import { parseSkillMd, parseSkillExport } from "../tools/skill-loader";
 import { RateLimiter } from "../util/rate-limiter";
 import { initAuth, validateRequest, createApiKey, listApiKeys, deleteApiKey, generateSessionToken } from "../util/auth";
 import { exportDatabase, backupDatabase, importDatabase, getDbStats, getDbSizeBytes } from "../db/export";
@@ -116,13 +116,25 @@ function getSkillsData(): { name: string; description: string; status: string; p
       const skillMdPath = join(dirPath, "SKILL.md");
       const handlerPath = join(dirPath, "handler.ts");
 
-      if (!existsSync(skillMdPath)) continue;
+      if (!existsSync(handlerPath)) continue;
 
-      const mdContent = readFileSync(skillMdPath, "utf-8");
-      const parsed = parseSkillMd(mdContent, dirPath);
+      let parsed = null;
+      if (existsSync(skillMdPath)) {
+        const mdContent = readFileSync(skillMdPath, "utf-8");
+        parsed = parseSkillMd(mdContent, dirPath);
+      } else {
+        // Try single-file format: check for exported skill config via regex
+        try {
+          const handlerContent = readFileSync(handlerPath, "utf-8");
+          const nameMatch = handlerContent.match(/name\s*:\s*["']([^"']+)["']/);
+          const descMatch = handlerContent.match(/description\s*:\s*["']([^"']+)["']/);
+          if (nameMatch && descMatch) {
+            parsed = { name: nameMatch[1], description: descMatch[1] };
+          }
+        } catch {}
+      }
 
-      const hasHandler = existsSync(handlerPath);
-      const status = parsed && hasHandler ? "ok" : "error";
+      const status = parsed ? "ok" : "error";
       const name = parsed?.name ?? entry;
       const description = parsed?.description?.split("\n")[0].slice(0, 100) ?? "";
 
@@ -650,6 +662,108 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     }
   }
 
+  // --- Secrets management ---
+
+  // GET /api/dashboard/secrets — list all secrets (values masked) + config provider keys
+  if (path === "/secrets" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const rows = db.query("SELECT name, service, updated_at FROM secrets ORDER BY name").all() as { name: string; service: string | null; updated_at: string }[];
+
+      // Also surface provider API keys from config (read-only)
+      const configKeys: { name: string; service: string; updated_at: string; source: string }[] = [];
+      try {
+        const cfg = JSON.parse(readFileSync(paths.config, "utf-8"));
+        if (cfg.providers) {
+          for (const [provider, pCfg] of Object.entries(cfg.providers)) {
+            const pc = pCfg as Record<string, unknown>;
+            if (pc.apiKey && typeof pc.apiKey === "string") {
+              configKeys.push({
+                name: `${provider}_api_key`,
+                service: provider,
+                updated_at: "",
+                source: "config",
+              });
+            }
+          }
+        }
+      } catch {}
+
+      const secrets = [
+        ...configKeys,
+        ...rows.map(r => ({ ...r, source: "secrets" })),
+      ];
+      return Response.json({ secrets });
+    } catch {
+      return Response.json({ secrets: [] });
+    }
+  }
+
+  // GET /api/dashboard/secrets/:name — reveal a single secret value
+  if (path.startsWith("/secrets/") && req.method === "GET") {
+    const secretName = decodeURIComponent(path.replace("/secrets/", ""));
+    if (!secretName || !/^[a-z0-9_]+$/.test(secretName)) {
+      return Response.json({ error: "Invalid secret name" }, { status: 400 });
+    }
+    try {
+      // Check config provider keys first
+      if (secretName.endsWith("_api_key")) {
+        const provider = secretName.replace(/_api_key$/, "");
+        try {
+          const cfg = JSON.parse(readFileSync(paths.config, "utf-8"));
+          if (cfg.providers?.[provider]?.apiKey) {
+            return Response.json({ name: secretName, value: cfg.providers[provider].apiKey, source: "config" });
+          }
+        } catch {}
+      }
+      const db = getDb();
+      const row = db.query("SELECT value FROM secrets WHERE name = ?").get(secretName) as { value: string } | null;
+      if (!row) return Response.json({ error: "Not found" }, { status: 404 });
+      return Response.json({ name: secretName, value: row.value });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // POST /api/dashboard/secrets — create or update a secret
+  if (path === "/secrets" && req.method === "POST") {
+    return (async () => {
+      const body = (await req.json()) as { name?: string; value?: string; service?: string };
+      if (!body.name || !/^[a-z0-9_]+$/.test(body.name)) {
+        return Response.json({ error: "Name must match [a-z0-9_]+" }, { status: 400 });
+      }
+      if (!body.value) {
+        return Response.json({ error: "Value is required" }, { status: 400 });
+      }
+      try {
+        const db = getDb();
+        db.prepare(
+          `INSERT INTO secrets (name, value, service, updated_at)
+           VALUES (?, ?, ?, datetime('now'))
+           ON CONFLICT(name) DO UPDATE SET value = excluded.value, service = excluded.service, updated_at = datetime('now')`
+        ).run(body.name, body.value, body.service ?? null);
+        return Response.json({ ok: true });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/secrets/:name — delete a secret
+  if (path.startsWith("/secrets/") && req.method === "DELETE") {
+    const secretName = decodeURIComponent(path.replace("/secrets/", ""));
+    if (!secretName || !/^[a-z0-9_]+$/.test(secretName)) {
+      return Response.json({ error: "Invalid secret name" }, { status: 400 });
+    }
+    try {
+      const db = getDb();
+      const result = db.prepare("DELETE FROM secrets WHERE name = ?").run(secretName);
+      return Response.json({ deleted: result.changes > 0 });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
   return null;
 }
 
@@ -723,6 +837,11 @@ export function createWebChatAdapter(
         port,
         async fetch(req) {
           const url = new URL(req.url);
+
+          // Health check
+          if (url.pathname === "/health") {
+            return Response.json({ status: "ok", uptime: Math.floor(process.uptime()) });
+          }
 
           // Unified UI (Agent chat + Dashboard)
           if (url.pathname === "/" || url.pathname === "/index.html") {
@@ -800,6 +919,28 @@ export function createWebChatAdapter(
                 { error: "Rate limit exceeded" },
                 { status: 429, headers: { "Retry-After": String(Math.ceil((check.retryAfterMs ?? 1000) / 1000)) } }
               );
+            }
+          }
+
+          // Chat history — load last N messages for the web UI
+          if (url.pathname === "/api/chat/history" && req.method === "GET") {
+            try {
+              const { loadSession } = await import("../agent/session");
+              const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "50", 10) || 50, 200);
+              const messages = loadSession("owner", limit);
+              // Map to a simpler format for the UI
+              const history = messages.map((m) => ({
+                role: m.role,
+                content: Array.isArray(m.content)
+                  ? m.content
+                      .filter((b: any) => b.type === "text")
+                      .map((b: any) => b.text ?? "")
+                      .join("\n")
+                  : String(m.content),
+              })).filter((m) => m.content.trim());
+              return Response.json({ messages: history });
+            } catch {
+              return Response.json({ messages: [] });
             }
           }
 

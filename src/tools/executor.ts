@@ -1,6 +1,7 @@
 import { getTool } from "./registry";
 import { getToolPermission } from "./permissions";
 import { logger } from "../util/logger";
+import { recordError } from "../util/error-buffer";
 import { executeSandboxed } from "./sandbox";
 
 export interface ToolResult {
@@ -171,6 +172,7 @@ export async function executeTool(
   } catch (err: any) {
     const durationMs = Date.now() - startTime;
     logger.error(`Tool error: ${name}`, { error: err.message });
+    recordError(`tool:${name}`, err.message);
 
     // Record failed tool metrics
     try {

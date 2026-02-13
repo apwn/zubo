@@ -3,6 +3,7 @@ import type { InboundMessage, ChannelAdapter } from "./adapter";
 import { agentLoop, agentLoopStream, type StreamCallbacks } from "../agent/loop";
 import { searchMemory } from "../memory/engine";
 import { logger } from "../util/logger";
+import { recordError } from "../util/error-buffer";
 import { Database } from "bun:sqlite";
 
 /** All channels share one session file since Zubo is a single-owner agent. */
@@ -81,6 +82,7 @@ export function createRouter(
         }
       } catch (err: any) {
         logger.error("Agent loop error", { error: err.message });
+        recordError("agent-loop", err.message);
         await reply("Sorry, I encountered an error. Please try again.");
       }
     },
