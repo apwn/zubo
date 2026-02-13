@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, existsSync, rmSync } from "fs";
 import { join } from "path";
 import { mkdirSync, writeFileSync } from "fs";
 import { paths } from "./config/paths";
-import { parseSkillMd } from "./tools/skill-loader";
+import { parseSkillMd, parseSkillExport } from "./tools/skill-loader";
 import { getBuiltinSkillNames, reinstallBuiltinSkill } from "./tools/skill-installer";
 
 async function prompt(question: string): Promise<string> {
@@ -30,15 +30,36 @@ function getInstalledSkills(): { name: string; status: string; description: stri
     const skillMdPath = join(dirPath, "SKILL.md");
     const handlerPath = join(dirPath, "handler.ts");
 
-    if (!existsSync(skillMdPath)) continue;
-
-    const mdContent = readFileSync(skillMdPath, "utf-8");
-    const parsed = parseSkillMd(mdContent, dirPath);
-
     const hasHandler = existsSync(handlerPath);
-    const status = parsed && hasHandler ? "ok" : "error";
-    const name = parsed?.name ?? entry;
-    const desc = parsed?.description?.split("\n")[0] ?? "—";
+    const hasSkillMd = existsSync(skillMdPath);
+
+    if (!hasHandler && !hasSkillMd) continue;
+
+    let name = entry;
+    let desc = "—";
+    let status = "error";
+
+    if (hasSkillMd) {
+      const mdContent = readFileSync(skillMdPath, "utf-8");
+      const parsed = parseSkillMd(mdContent, dirPath);
+      if (parsed) {
+        name = parsed.name;
+        desc = parsed.description?.split("\n")[0] ?? "—";
+        status = hasHandler ? "ok" : "error";
+      }
+    } else if (hasHandler) {
+      // Single-file skill: try to read the exported skill config via regex
+      try {
+        const handlerContent = readFileSync(handlerPath, "utf-8");
+        const nameMatch = handlerContent.match(/name\s*:\s*["']([^"']+)["']/);
+        const descMatch = handlerContent.match(/description\s*:\s*["']([^"']+)["']/);
+        if (nameMatch) name = nameMatch[1];
+        if (descMatch) desc = descMatch[1];
+        status = "ok";
+      } catch {
+        status = "error";
+      }
+    }
 
     skills.push({ name, status, description: desc.slice(0, 60), folder: entry });
   }
@@ -54,7 +75,7 @@ function listSkills() {
   if (skills.length === 0) {
     console.log("  No skills installed.\n");
     console.log("  Drop skill folders into ~/.zubo/workspace/skills/");
-    console.log("  Each folder needs SKILL.md + handler.ts\n");
+    console.log("  Each folder needs a handler.ts file\n");
     return;
   }
 
@@ -93,8 +114,7 @@ async function createSkillWizard() {
   }
 
   // Collect parameters
-  const properties: Record<string, { type: string; description: string }> = {};
-  const required: string[] = [];
+  const params: Record<string, { type: string; description: string; required?: boolean }> = {};
 
   console.log("\n  Add parameters (press Enter with empty name to finish):\n");
 
@@ -106,46 +126,42 @@ async function createSkillWizard() {
     const paramDesc = await prompt("    Description: ");
     const paramReq = await prompt("    Required? (y/N): ");
 
-    properties[paramName] = {
+    params[paramName] = {
       type: paramType || "string",
       description: paramDesc || "",
     };
     if (paramReq.toLowerCase() === "y") {
-      required.push(paramName);
+      params[paramName].required = true;
     }
     console.log("");
   }
 
-  const inputSchema = {
-    type: "object",
-    properties,
-    required,
-  };
+  // Build params block for the skill config
+  const paramEntries = Object.entries(params);
+  let paramsBlock = "{}";
+  if (paramEntries.length > 0) {
+    const paramLines = paramEntries.map(([p, def]) => {
+      const parts = [`type: "${def.type}"`];
+      if (def.description) parts.push(`description: "${def.description}"`);
+      if (def.required) parts.push("required: true");
+      return `    ${p}: { ${parts.join(", ")} }`;
+    });
+    paramsBlock = `{\n${paramLines.join(",\n")}\n  }`;
+  }
 
-  // Generate SKILL.md
-  const skillMd = `# ${name}
-
-${description}
-
-## Input Schema
-
-\`\`\`json
-${JSON.stringify(inputSchema, null, 2)}
-\`\`\`
-
-## Usage Hints
-
-Use this tool when the user asks to ${description.toLowerCase()}.
-`;
-
-  // Generate handler.ts template
-  const paramEntries = Object.entries(properties);
-  const paramLines = paramEntries
+  // Generate single-file handler.ts
+  const extractLines = paramEntries
     .map(([p, def]) => `  const ${p} = input.${p} as ${def.type === "number" ? "number" : "string"};`)
     .join("\n");
 
-  const handlerTs = `export default async function (input: Record<string, unknown>): Promise<string> {
-${paramLines || "  // Access parameters from input"}
+  const handlerTs = `export const skill = {
+  name: "${name}",
+  description: "${description}",
+  params: ${paramsBlock}
+};
+
+export default async function (input: Record<string, unknown>): Promise<string> {
+${extractLines || "  // Access parameters from input"}
 
   // TODO: Implement your skill logic here
 
@@ -155,13 +171,11 @@ ${paramLines || "  // Access parameters from input"}
 
   // Write files
   mkdirSync(destDir, { recursive: true });
-  writeFileSync(join(destDir, "SKILL.md"), skillMd);
   writeFileSync(join(destDir, "handler.ts"), handlerTs);
 
   console.log(`\n  Skill created at ~/.zubo/workspace/skills/${name}/`);
   console.log("  Files:");
-  console.log(`    SKILL.md    — tool definition`);
-  console.log(`    handler.ts  — implement your logic here`);
+  console.log(`    handler.ts  — skill config + implementation`);
   console.log(`\n  Restart Zubo to load the new skill.\n`);
 }
 

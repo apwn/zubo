@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, mkdirSync, writeFileSync, rmSync
 import { join } from "path";
 import { paths } from "../../config/paths";
 import { registerTool, unregisterTool, getTool } from "../registry";
-import { parseSkillMd } from "../skill-loader";
+import { parseSkillMd, parseSkillExport, paramsToJsonSchema } from "../skill-loader";
 import { logger } from "../../util/logger";
 
 export function registerManageSkillsTool() {
@@ -10,7 +10,7 @@ export function registerManageSkillsTool() {
     definition: {
       name: "manage_skills",
       description:
-        "Create, list, or remove skills (custom tools) at runtime. Use this when the user asks you to create a new tool/skill, list installed skills, or remove one. Created skills are available immediately without restarting.",
+        'Create, list, or remove skills (custom tools) at runtime. Use this when the user asks you to build, create, or make a new tool, skill, or utility — including phrases like "build a skill that...", "make me a tool to...", "create a skill for...". Also use for listing installed skills or removing one. Created skills are available immediately without restarting.',
       input_schema: {
         type: "object",
         properties: {
@@ -30,7 +30,12 @@ export function registerManageSkillsTool() {
           input_schema: {
             type: "object",
             description:
-              "JSON Schema for the tool's input parameters. Should have type, properties, and required fields. Required for create.",
+              "JSON Schema for the tool's input parameters. Should have type, properties, and required fields. Use this OR params (simplified format).",
+          },
+          params: {
+            type: "object",
+            description:
+              'Simplified parameter definitions. Each key is a param name with {type, description, required} fields. E.g. { "query": { "type": "string", "required": true } }. Use this OR input_schema.',
           },
           handler_code: {
             type: "string",
@@ -61,7 +66,8 @@ export function registerManageSkillsTool() {
 async function createSkill(input: Record<string, unknown>): Promise<string> {
   const name = input.name as string;
   const description = input.description as string;
-  const inputSchema = input.input_schema as Record<string, unknown>;
+  const inputSchema = input.input_schema as Record<string, unknown> | undefined;
+  const params = input.params as Record<string, { type: string; description?: string; required?: boolean }> | undefined;
   const handlerCode = input.handler_code as string;
 
   if (!name || !/^[a-z0-9_]+$/.test(name)) {
@@ -70,11 +76,18 @@ async function createSkill(input: Record<string, unknown>): Promise<string> {
   if (!description) {
     return JSON.stringify({ error: "Description is required." });
   }
-  if (!inputSchema) {
-    return JSON.stringify({ error: "input_schema is required." });
-  }
   if (!handlerCode) {
     return JSON.stringify({ error: "handler_code is required." });
+  }
+
+  // Resolve the final input schema — accept either params shorthand or full input_schema
+  let resolvedSchema: Record<string, unknown>;
+  if (params) {
+    resolvedSchema = paramsToJsonSchema(params);
+  } else if (inputSchema) {
+    resolvedSchema = inputSchema;
+  } else {
+    return JSON.stringify({ error: "Either params or input_schema is required." });
   }
 
   // Check for existing tool (built-in or skill)
@@ -84,22 +97,45 @@ async function createSkill(input: Record<string, unknown>): Promise<string> {
 
   const destDir = join(paths.skills, name);
 
-  // Generate SKILL.md
-  const skillMd = `# ${name}
+  // Build params block for the skill config
+  const escParam = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  let paramsLiteral = "{}";
+  if (params) {
+    const lines = Object.entries(params).map(([key, def]) => {
+      const parts = [`type: "${def.type || "string"}"`];
+      if (def.description) parts.push(`description: "${escParam(def.description)}"`);
+      if (def.required) parts.push("required: true");
+      return `    ${key}: { ${parts.join(", ")} }`;
+    });
+    paramsLiteral = `{\n${lines.join(",\n")}\n  }`;
+  } else if (inputSchema) {
+    // Convert full JSON Schema back to params shorthand for the file
+    const props = (inputSchema as any).properties || {};
+    const req = (inputSchema as any).required || [];
+    const lines = Object.entries(props).map(([key, def]: [string, any]) => {
+      const parts = [`type: "${escParam(Array.isArray(def.type) ? def.type[0] : (def.type || "string"))}"`];
+      if (def.description) parts.push(`description: "${escParam(def.description)}"`);
+      if (req.includes(key)) parts.push("required: true");
+      return `    ${key}: { ${parts.join(", ")} }`;
+    });
+    paramsLiteral = lines.length ? `{\n${lines.join(",\n")}\n  }` : "{}";
+  }
 
-${description}
+  // Generate single-file handler.ts with skill config prepended
+  const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const skillHeader = `export const skill = {
+  name: "${esc(name)}",
+  description: "${esc(description)}",
+  params: ${paramsLiteral}
+};
 
-## Input Schema
-
-\`\`\`json
-${JSON.stringify(inputSchema, null, 2)}
-\`\`\`
 `;
+
+  const fullHandler = skillHeader + handlerCode;
 
   // Write files
   mkdirSync(destDir, { recursive: true });
-  writeFileSync(join(destDir, "SKILL.md"), skillMd);
-  writeFileSync(join(destDir, "handler.ts"), handlerCode);
+  writeFileSync(join(destDir, "handler.ts"), fullHandler);
 
   // Hot-reload: dynamically import and register
   try {
@@ -118,7 +154,7 @@ ${JSON.stringify(inputSchema, null, 2)}
       definition: {
         name,
         description,
-        input_schema: inputSchema,
+        input_schema: resolvedSchema,
       },
       execute: handler,
     });
@@ -157,17 +193,35 @@ function listSkills(): string {
     const skillMdPath = join(dirPath, "SKILL.md");
     const handlerPath = join(dirPath, "handler.ts");
 
-    if (!existsSync(skillMdPath)) continue;
-
-    const mdContent = readFileSync(skillMdPath, "utf-8");
-    const parsed = parseSkillMd(mdContent, dirPath);
     const hasHandler = existsSync(handlerPath);
+    const hasSkillMd = existsSync(skillMdPath);
 
-    skills.push({
-      name: parsed?.name ?? entry,
-      description: parsed?.description?.split("\n")[0] ?? "",
-      status: parsed && hasHandler ? "ok" : "error",
-    });
+    if (!hasHandler && !hasSkillMd) continue;
+
+    let name = entry;
+    let description = "";
+    let status = "error";
+
+    if (hasSkillMd) {
+      const mdContent = readFileSync(skillMdPath, "utf-8");
+      const parsed = parseSkillMd(mdContent, dirPath);
+      name = parsed?.name ?? entry;
+      description = parsed?.description?.split("\n")[0] ?? "";
+      status = parsed && hasHandler ? "ok" : "error";
+    } else if (hasHandler) {
+      try {
+        const content = readFileSync(handlerPath, "utf-8");
+        const nameMatch = content.match(/name\s*:\s*["']([^"']+)["']/);
+        const descMatch = content.match(/description\s*:\s*["']([^"']+)["']/);
+        if (nameMatch) name = nameMatch[1];
+        if (descMatch) description = descMatch[1];
+        status = "ok";
+      } catch {
+        status = "error";
+      }
+    }
+
+    skills.push({ name, description, status });
   }
 
   return JSON.stringify({ skills, count: skills.length });
@@ -195,13 +249,31 @@ function removeSkill(input: Record<string, unknown>): string {
   for (const entry of entries) {
     const dirPath = join(paths.skills, entry);
     const skillMdPath = join(dirPath, "SKILL.md");
-    if (!existsSync(skillMdPath)) continue;
+    const handlerPath = join(dirPath, "handler.ts");
 
-    const mdContent = readFileSync(skillMdPath, "utf-8");
-    const parsed = parseSkillMd(mdContent, dirPath);
-    if (parsed?.name === name || entry === name) {
+    if (entry === name) {
       targetFolder = entry;
       break;
+    }
+
+    if (existsSync(skillMdPath)) {
+      const mdContent = readFileSync(skillMdPath, "utf-8");
+      const parsed = parseSkillMd(mdContent, dirPath);
+      if (parsed?.name === name) {
+        targetFolder = entry;
+        break;
+      }
+    } else if (existsSync(handlerPath)) {
+      try {
+        const content = readFileSync(handlerPath, "utf-8");
+        const nameMatch = content.match(/name\s*:\s*["']([^"']+)["']/);
+        if (nameMatch && nameMatch[1] === name) {
+          targetFolder = entry;
+          break;
+        }
+      } catch {
+        // skip
+      }
     }
   }
 

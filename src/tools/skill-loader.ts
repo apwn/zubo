@@ -10,6 +10,39 @@ export interface SkillDef {
   dirPath: string;
 }
 
+export interface SkillParamDef {
+  type: string;
+  description?: string;
+  required?: boolean;
+}
+
+export function paramsToJsonSchema(params: Record<string, SkillParamDef>): Record<string, unknown> {
+  const properties: Record<string, { type: string; description?: string }> = {};
+  const required: string[] = [];
+
+  for (const [key, def] of Object.entries(params)) {
+    properties[key] = { type: def.type || "string" };
+    if (def.description) properties[key].description = def.description;
+    if (def.required) required.push(key);
+  }
+
+  return { type: "object", properties, required };
+}
+
+export function parseSkillExport(
+  skillConfig: { name: string; description: string; params?: Record<string, SkillParamDef> },
+  dirPath: string
+): SkillDef | null {
+  const { name, description, params } = skillConfig;
+
+  if (!name || !/^[a-z0-9_]+$/.test(name)) return null;
+  if (!description) return null;
+
+  const inputSchema = params ? paramsToJsonSchema(params) : { type: "object", properties: {}, required: [] };
+
+  return { name, description, inputSchema, dirPath };
+}
+
 export function parseSkillMd(content: string, dirPath: string): SkillDef | null {
   const lines = content.split("\n");
 
@@ -92,16 +125,38 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
     const skillMdPath = join(dirPath, "SKILL.md");
     const handlerPath = join(dirPath, "handler.ts");
 
-    if (!existsSync(skillMdPath) || !existsSync(handlerPath)) continue;
+    if (!existsSync(handlerPath)) continue;
 
     try {
-      const mdContent = readFileSync(skillMdPath, "utf-8");
-      const skill = parseSkillMd(mdContent, dirPath);
-      if (!skill) {
-        logger.warn(
-          `Skipping skill in ${entry}: invalid SKILL.md (name must match [a-z0-9_], description required)`
-        );
-        continue;
+      let skill: SkillDef | null = null;
+      let handler: ((input: Record<string, unknown>) => Promise<string>) | undefined;
+
+      // Try SKILL.md first (backward compat)
+      if (existsSync(skillMdPath)) {
+        const mdContent = readFileSync(skillMdPath, "utf-8");
+        skill = parseSkillMd(mdContent, dirPath);
+        if (!skill) {
+          logger.warn(
+            `Skipping skill in ${entry}: invalid SKILL.md (name must match [a-z0-9_], description required)`
+          );
+          continue;
+        }
+      } else {
+        // Single-file: read metadata from handler.ts exports
+        const mod = await import(handlerPath);
+        if (mod.skill && typeof mod.skill === "object") {
+          skill = parseSkillExport(mod.skill, dirPath);
+          handler = mod.default;
+          if (!skill) {
+            logger.warn(
+              `Skipping skill in ${entry}: invalid skill export (name must match [a-z0-9_], description required)`
+            );
+            continue;
+          }
+        } else {
+          logger.warn(`Skipping skill in ${entry}: no SKILL.md and no exported skill config`);
+          continue;
+        }
       }
 
       // Warn on name collision
@@ -110,13 +165,26 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
         continue;
       }
 
-      // Dynamically import handler
-      const mod = await import(handlerPath);
-      const handler = mod.default;
+      // Dynamically import handler (if not already loaded from single-file path)
+      if (!handler) {
+        const mod = await import(handlerPath);
+        handler = mod.default;
+      }
       if (typeof handler !== "function") {
         logger.warn(`Skipping skill "${skill.name}": handler.ts must export a default function`);
         continue;
       }
+
+      // Wrap handler with validation: ensure it returns a string
+      const rawHandler = handler;
+      const safeHandler = async (input: Record<string, unknown>): Promise<string> => {
+        const result = await rawHandler(input);
+        if (typeof result !== "string") {
+          logger.warn(`Skill "${skill.name}" returned ${typeof result}, expected string. Coercing to JSON.`);
+          return JSON.stringify(result);
+        }
+        return result;
+      };
 
       registerTool({
         definition: {
@@ -124,7 +192,7 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
           description: skill.description,
           input_schema: skill.inputSchema,
         },
-        execute: handler,
+        execute: safeHandler,
       }, true);
 
       loaded.push(skill.name);
