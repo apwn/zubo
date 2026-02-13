@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Getting Started — Zubo Docs</title>
-  <meta name="description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 35+ tools, sub-agent delegation, and workflow automation.">
+  <meta name="description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 20+ tools, sub-agent delegation, and workflow automation.">
   <meta name="theme-color" content="#060608">
   <link rel="canonical" href="https://zubo.bot/docs/">
   <meta property="og:title" content="Getting Started — Zubo Docs">
-  <meta property="og:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 35+ tools, sub-agent delegation, and workflow automation.">
+  <meta property="og:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 20+ tools, sub-agent delegation, and workflow automation.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://zubo.bot/docs/">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Getting Started — Zubo Docs">
-  <meta name="twitter:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, 35+ tools, and workflow automation.">
+  <meta name="twitter:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, 20+ tools, and workflow automation.">
   <meta name="twitter:image" content="https://zubo.bot/og-image.png">
   <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,7 +87,7 @@
       <h1>Getting Started with Zubo</h1>
 
       <p>
-        Zubo is a self-hosted AI agent with persistent semantic memory, multi-channel presence across Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat, over 35 smart built-in tools, sub-agent delegation, and workflow automation. It runs entirely on your machine &mdash; your data never leaves your infrastructure. Whether you need a personal assistant that remembers everything, an automation hub that connects your services, or an AI copilot embedded in every chat platform you use, Zubo handles it from a single process with a single configuration file.
+        Zubo is a self-hosted AI agent with persistent semantic memory, multi-channel presence across Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat, 20+ smart built-in tools, sub-agent delegation, and workflow automation. It runs entirely on your machine &mdash; your data never leaves your infrastructure. Whether you need a personal assistant that remembers everything, an automation hub that connects your services, or an AI copilot embedded in every chat platform you use, Zubo handles it from a single process with a single configuration file.
       </p>
 
       <!-- ================================================================ -->
@@ -125,7 +125,7 @@
 
       <h3>Tools</h3>
       <ul>
-        <li><strong>35+ built-in tools</strong> including shell command execution, file I/O (read, write, list, search), web search (DuckDuckGo, Brave, Google), HTTP requests, memory read/write/search, secrets management, and cron job scheduling.</li>
+        <li><strong>20+ built-in tools</strong> including shell command execution, file I/O (read, write, list, search), web search (DuckDuckGo, Brave, Google), HTTP requests, memory read/write/search, secrets management, and cron job scheduling.</li>
         <li>Tools are permission-gated with three levels: <code>safe</code>, <code>sensitive</code>, and <code>dangerous</code>. Dangerous operations require explicit confirmation tokens.</li>
       </ul>
 
@@ -200,21 +200,69 @@
       <!-- ================================================================ -->
       <h2 id="installation">Installation</h2>
 
+      <p>Choose the installation method that fits your platform.</p>
+
+      <h3 id="install-mac-linux">macOS &amp; Linux</h3>
+
       <p>Zubo requires <strong>Bun v1.0+</strong> as its runtime. If you do not have Bun installed, visit <a href="https://bun.sh" target="_blank" rel="noopener">bun.sh</a> and run the one-line installer.</p>
 
-      <h3>Step 1: Install Zubo</h3>
+      <p><strong>One-liner (recommended):</strong></p>
 
-      <p>Install Zubo globally using Bun (recommended) or npm:</p>
+<pre><code>curl -fsSL https://zubo.bot/install.sh | bash</code></pre>
+
+      <p>This installs Bun (if needed), installs Zubo globally, and runs the setup wizard automatically.</p>
+
+      <p><strong>Manual install:</strong></p>
 
 <pre><code># Using Bun (recommended)
 bun add -g zubo
 
 # Or using npm
-npm i -g zubo</code></pre>
+npm i -g zubo
 
-      <p>This places the <code>zubo</code> binary on your PATH, making it available from any terminal session.</p>
+# Then run the setup wizard
+zubo setup</code></pre>
 
-      <h3>Step 2: Run the Setup Wizard</h3>
+      <h3 id="install-windows">Windows (via WSL)</h3>
+
+      <p>Zubo runs on Windows through the Windows Subsystem for Linux (WSL). This gives you full compatibility with zero workarounds.</p>
+
+      <p><strong>Step 1:</strong> Install WSL (requires Windows 10 version 2004+ or Windows 11):</p>
+
+<pre><code>wsl --install</code></pre>
+
+      <p>Restart your computer when prompted. This installs Ubuntu by default.</p>
+
+      <p><strong>Step 2:</strong> Open the Ubuntu terminal from the Start Menu and install Zubo:</p>
+
+<pre><code>curl -fsSL https://zubo.bot/install.sh | bash</code></pre>
+
+      <p>That's it. Zubo runs inside WSL with full access to all features. The web dashboard is accessible from your Windows browser at <code>http://localhost:3000</code>.</p>
+
+      <h3 id="install-docker">Docker</h3>
+
+      <p>Run Zubo as a container with no local dependencies.</p>
+
+<pre><code># Clone the repo
+git clone https://github.com/apwn/zubo.git &amp;&amp; cd zubo
+
+# Copy the example env and add your API key
+cp .env.example .env
+
+# Start Zubo
+docker compose up -d</code></pre>
+
+      <p>The container exposes port <code>8787</code> for the web dashboard and mounts <code>~/.zubo</code> for persistent data. Stop with <code>docker compose down</code>.</p>
+
+      <p>To configure, edit <code>.env</code> or mount your own <code>config.json</code>:</p>
+
+<pre><code>volumes:
+  - ~/.zubo:/root/.zubo
+  - ./my-config.json:/root/.zubo/config.json</code></pre>
+
+      <h3 id="setup-wizard">The Setup Wizard</h3>
+
+      <p>After installing (on any platform), run the setup wizard:</p>
 
 <pre><code>zubo setup</code></pre>
 
@@ -228,7 +276,7 @@ npm i -g zubo</code></pre>
         <li>Create a default <code>SYSTEM.md</code> system prompt that you can customize later.</li>
       </ul>
 
-      <h3>Step 3: Start Zubo</h3>
+      <h3 id="starting">Starting Zubo</h3>
 
 <pre><code># Start in foreground (logs to stdout)
 zubo start

@@ -440,25 +440,128 @@
         <h2 class="section-title">Running in <span class="gradient-text">60 seconds</span>.</h2>
       </div>
 
-      <div class="qs-terminal glow-border reveal">
-        <div class="qs-chrome">
-          <div class="terminal-dots">
-            <span class="td td-r"></span>
-            <span class="td td-y"></span>
-            <span class="td td-g"></span>
+      <!-- OS toggle -->
+      <div class="os-toggle reveal">
+        <button class="os-btn active" data-os="mac" onclick="switchOS('mac')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          macOS / Linux
+        </button>
+        <button class="os-btn" data-os="windows" onclick="switchOS('windows')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+          Windows
+        </button>
+        <button class="os-btn" data-os="docker" onclick="switchOS('docker')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.186.186 0 00-.185.186v1.887c0 .102.083.185.185.185zm-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.186.186 0 00-.185.185v1.888c0 .102.082.185.185.186zm0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.186.186 0 00-.185.185v1.887c0 .102.082.186.185.186zm-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.186.186 0 00-.185.185v1.887c0 .102.083.186.185.186zm-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.186.186 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.186.186.186zm5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.186v1.887c0 .102.082.185.185.185zm-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.186v1.887c0 .102.083.185.185.185zm-2.964 0h2.119a.186.186 0 00.185-.185V9.006a.186.186 0 00-.185-.186H5.136a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185zm-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185zM23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.687 11.687 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.33 12.33 0 003.544-1.372 10.078 10.078 0 002.506-2.053c1.076-1.223 1.718-2.58 2.198-3.794h.19c1.18 0 1.907-.482 2.31-.882.265-.26.478-.57.625-.916l.087-.252z"/></svg>
+          Docker
+        </button>
+      </div>
+
+      <!-- macOS / Linux terminal -->
+      <div class="os-content active" data-os-content="mac">
+        <div class="qs-terminal glow-border reveal">
+          <div class="qs-chrome">
+            <div class="terminal-dots">
+              <span class="td td-r"></span>
+              <span class="td td-y"></span>
+              <span class="td td-g"></span>
+            </div>
+            <div class="qs-tabs">
+              <button class="qs-tab active" data-tab="one-liner">One-liner</button>
+              <button class="qs-tab" data-tab="bun">bun</button>
+              <button class="qs-tab" data-tab="npm">npm</button>
+            </div>
+            <div class="qs-chrome-spacer"></div>
           </div>
-          <div class="qs-tabs">
-            <button class="qs-tab active" data-tab="one-liner">One-liner</button>
-            <button class="qs-tab" data-tab="bun">bun</button>
-            <button class="qs-tab" data-tab="npm">npm</button>
+          <div class="qs-body">
+            <div class="qs-pane active" id="qs-one-liner">
+              <div class="qs-line">
+                <span class="qs-comment"># Install and launch in one shot</span>
+              </div>
+              <div class="qs-line qs-cmd">
+                <span class="qs-prompt">$</span>
+                <span class="qs-text">curl -fsSL https://zubo.bot/install.sh | bash</span>
+                <button class="copy-btn" data-copy="curl -fsSL https://zubo.bot/install.sh | bash" aria-label="Copy command">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="qs-pane" id="qs-bun">
+              <div class="qs-line">
+                <span class="qs-comment"># Install Zubo</span>
+              </div>
+              <div class="qs-line qs-cmd">
+                <span class="qs-prompt">$</span>
+                <span class="qs-text">bun add -g zubo</span>
+                <button class="copy-btn" data-copy="bun add -g zubo" aria-label="Copy command">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <div class="qs-line qs-spacer"></div>
+              <div class="qs-line">
+                <span class="qs-comment"># Meet your new agent</span>
+              </div>
+              <div class="qs-line qs-cmd">
+                <span class="qs-prompt">$</span>
+                <span class="qs-text">zubo setup</span>
+                <button class="copy-btn" data-copy="zubo setup" aria-label="Copy command">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="qs-pane" id="qs-npm">
+              <div class="qs-line">
+                <span class="qs-comment"># Install Zubo</span>
+              </div>
+              <div class="qs-line qs-cmd">
+                <span class="qs-prompt">$</span>
+                <span class="qs-text">npm i -g zubo</span>
+                <button class="copy-btn" data-copy="npm i -g zubo" aria-label="Copy command">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <div class="qs-line qs-spacer"></div>
+              <div class="qs-line">
+                <span class="qs-comment"># Meet your new agent</span>
+              </div>
+              <div class="qs-line qs-cmd">
+                <span class="qs-prompt">$</span>
+                <span class="qs-text">zubo setup</span>
+                <button class="copy-btn" data-copy="zubo setup" aria-label="Copy command">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="qs-chrome-spacer"></div>
         </div>
-        <div class="qs-body">
-          <!-- one-liner tab -->
-          <div class="qs-pane active" id="qs-one-liner">
+        <p class="qs-note reveal">Works on macOS &amp; Linux. The installer sets up Bun and everything else for you.</p>
+      </div>
+
+      <!-- Windows terminal -->
+      <div class="os-content" data-os-content="windows">
+        <div class="qs-terminal glow-border reveal">
+          <div class="qs-chrome">
+            <div class="terminal-dots">
+              <span class="td td-r"></span>
+              <span class="td td-y"></span>
+              <span class="td td-g"></span>
+            </div>
+            <div class="terminal-title">PowerShell</div>
+            <div class="qs-chrome-spacer"></div>
+          </div>
+          <div class="qs-body">
             <div class="qs-line">
-              <span class="qs-comment"># Install and launch in one shot</span>
+              <span class="qs-comment"># Install WSL (one-time, requires restart)</span>
+            </div>
+            <div class="qs-line qs-cmd">
+              <span class="qs-prompt">&gt;</span>
+              <span class="qs-text">wsl --install</span>
+              <button class="copy-btn" data-copy="wsl --install" aria-label="Copy command">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
+            <div class="qs-line qs-spacer"></div>
+            <div class="qs-line">
+              <span class="qs-comment"># Then open WSL and install Zubo</span>
             </div>
             <div class="qs-line qs-cmd">
               <span class="qs-prompt">$</span>
@@ -468,58 +571,48 @@
               </button>
             </div>
           </div>
-          <!-- bun tab -->
-          <div class="qs-pane" id="qs-bun">
-            <div class="qs-line">
-              <span class="qs-comment"># Install Zubo</span>
+        </div>
+        <p class="qs-note reveal">Runs inside WSL (Windows Subsystem for Linux). Full performance, native experience.</p>
+      </div>
+
+      <!-- Docker terminal -->
+      <div class="os-content" data-os-content="docker">
+        <div class="qs-terminal glow-border reveal">
+          <div class="qs-chrome">
+            <div class="terminal-dots">
+              <span class="td td-r"></span>
+              <span class="td td-y"></span>
+              <span class="td td-g"></span>
             </div>
-            <div class="qs-line qs-cmd">
-              <span class="qs-prompt">$</span>
-              <span class="qs-text">bun add -g zubo</span>
-              <button class="copy-btn" data-copy="bun add -g zubo" aria-label="Copy command">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              </button>
-            </div>
-            <div class="qs-line qs-spacer"></div>
-            <div class="qs-line">
-              <span class="qs-comment"># Meet your new agent</span>
-            </div>
-            <div class="qs-line qs-cmd">
-              <span class="qs-prompt">$</span>
-              <span class="qs-text">zubo setup</span>
-              <button class="copy-btn" data-copy="zubo setup" aria-label="Copy command">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              </button>
-            </div>
+            <div class="terminal-title">Terminal</div>
+            <div class="qs-chrome-spacer"></div>
           </div>
-          <!-- npm tab -->
-          <div class="qs-pane" id="qs-npm">
+          <div class="qs-body">
             <div class="qs-line">
-              <span class="qs-comment"># Install Zubo</span>
+              <span class="qs-comment"># Clone and start with Docker</span>
             </div>
             <div class="qs-line qs-cmd">
               <span class="qs-prompt">$</span>
-              <span class="qs-text">npm i -g zubo</span>
-              <button class="copy-btn" data-copy="npm i -g zubo" aria-label="Copy command">
+              <span class="qs-text">git clone https://github.com/apwn/zubo.git &amp;&amp; cd zubo</span>
+              <button class="copy-btn" data-copy="git clone https://github.com/apwn/zubo.git && cd zubo" aria-label="Copy command">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </button>
             </div>
             <div class="qs-line qs-spacer"></div>
             <div class="qs-line">
-              <span class="qs-comment"># Meet your new agent</span>
+              <span class="qs-comment"># Launch Zubo in a container</span>
             </div>
             <div class="qs-line qs-cmd">
               <span class="qs-prompt">$</span>
-              <span class="qs-text">zubo setup</span>
-              <button class="copy-btn" data-copy="zubo setup" aria-label="Copy command">
+              <span class="qs-text">docker compose up -d</span>
+              <button class="copy-btn" data-copy="docker compose up -d" aria-label="Copy command">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </button>
             </div>
           </div>
         </div>
+        <p class="qs-note reveal">Works on any OS with Docker. Dashboard at <strong>localhost:8787</strong>.</p>
       </div>
-
-      <p class="qs-note reveal">Works on macOS &amp; Linux. The installer sets up Bun and everything else for you.</p>
     </div>
   </section>
 

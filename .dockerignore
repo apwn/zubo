@@ -1,0 +1,12 @@
+node_modules
+dist
+desktop
+site
+.env
+.env.*
+.zubo
+.git
+.DS_Store
+*.db
+*.db-wal
+*.db-shm

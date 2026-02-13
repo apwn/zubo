@@ -3,6 +3,16 @@
    Vanilla JS, zero dependencies
    ============================================ */
 
+/* OS toggle — must be global for inline onclick handlers */
+function switchOS(os) {
+  document.querySelectorAll('.os-btn').forEach(function (b) { b.classList.remove('active'); });
+  document.querySelectorAll('.os-content').forEach(function (c) { c.classList.remove('active'); });
+  var btn = document.querySelector('.os-btn[data-os="' + os + '"]');
+  if (btn) btn.classList.add('active');
+  var content = document.querySelector('[data-os-content="' + os + '"]');
+  if (content) content.classList.add('active');
+}
+
 (function () {
   'use strict';
 
@@ -231,14 +241,13 @@
   });
 
   /* ------------------------------------------
-     6. Quick Start tab switching
+     6. Quick Start tab switching (within macOS/Linux)
      ------------------------------------------ */
   document.querySelectorAll('.qs-tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
-      // Deactivate all tabs and panes
-      document.querySelectorAll('.qs-tab').forEach(function (t) { t.classList.remove('active'); });
-      document.querySelectorAll('.qs-pane').forEach(function (p) { p.classList.remove('active'); });
-      // Activate clicked tab and matching pane
+      var parent = tab.closest('.os-content') || document;
+      parent.querySelectorAll('.qs-tab').forEach(function (t) { t.classList.remove('active'); });
+      parent.querySelectorAll('.qs-pane').forEach(function (p) { p.classList.remove('active'); });
       tab.classList.add('active');
       var paneId = 'qs-' + tab.getAttribute('data-tab');
       var pane = document.getElementById(paneId);
