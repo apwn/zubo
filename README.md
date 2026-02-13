@@ -46,12 +46,18 @@
 curl -fsSL https://zubo.bot/install.sh | bash
 ```
 
-Or manually:
+Or install via package manager:
 
 ```bash
-bun install
-zubo setup
-zubo start
+bun add -g zubo    # recommended
+npm i -g zubo      # also works
+```
+
+Then:
+
+```bash
+zubo setup         # interactive config wizard
+zubo start         # launch the agent
 ```
 
 The web dashboard opens automatically at `http://localhost:<port>`.
