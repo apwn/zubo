@@ -1,21 +1,24 @@
 # Zubo
 
+[zubo.bot](https://zubo.bot)
+
 A personal AI agent that remembers you, runs tasks, and connects to your favorite services. Built with Bun, TypeScript, and SQLite.
 
 ## Features
 
-- **Multi-provider LLM** — Claude, OpenAI-compatible, with automatic failover
+- **Multi-provider LLM** — Anthropic, OpenAI, Google Gemini, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, and any OpenAI-compatible endpoint. Smart routing sends simple queries to fast models automatically.
 - **Multi-channel** — Telegram, Discord, Slack, WhatsApp, Signal, Web Chat
 - **Persistent memory** — Vector + full-text hybrid search (ONNX embeddings, FTS5)
 - **Tool system** — Built-in tools, extensible skills, skill registry
 - **Integrations** — GitHub, Google (Gmail, Calendar, Docs, Drive, Sheets), Notion, Linear, Jira, Slack, Twitter
 - **Workflows** — Multi-agent pipelines with delegation
-- **Scheduling** — Cron jobs, heartbeat, proactive tasks
+- **Scheduling** — Natural language scheduling ('every weekday at 9am'), cron jobs, heartbeat, proactive tasks
 - **Voice** — Speech-to-text (Whisper) and text-to-speech (OpenAI, ElevenLabs)
 - **Dashboard** — Built-in web UI with analytics, memory management, and settings
 - **Document ingestion** — Upload PDF, DOCX, TXT, CSV, JSON, and more
 - **API authentication** — Bearer token auth with key management
 - **Rate limiting** — Per-IP sliding window protection
+- **Budget controls** — Daily/monthly spending limits with per-model cost tracking
 - **Skill sandboxing** — User-installed skills run in isolated subprocesses
 - **Database backup** — Export/import JSON, atomic SQLite backups
 
@@ -65,6 +68,9 @@ Configuration is stored in `~/.zubo/config.json`. Key fields:
 | `auth.enabled` | Enable API key authentication |
 | `rateLimit.chatPerMinute` | Chat rate limit (default: 60) |
 | `rateLimit.uploadPerMinute` | Upload rate limit (default: 10) |
+| `smartRouting.enabled` | Enable smart query routing (default: false) |
+| `budget.dailyLimit` | Daily spending limit in USD |
+| `budget.monthlyLimit` | Monthly spending limit in USD |
 | `sandbox.enabled` | Enable skill sandboxing (default: true) |
 | `sandbox.timeoutMs` | Sandbox timeout (default: 30000) |
 

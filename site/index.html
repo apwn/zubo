@@ -6,10 +6,18 @@
   <title>Zubo — The AI Agent That Never Forgets</title>
   <meta name="description" content="Zubo is a self-hosted AI agent with persistent memory, multi-channel presence, smart tools, and sub-agent delegation. Open source. Runs locally. No cloud required.">
   <meta name="theme-color" content="#060608">
+  <link rel="canonical" href="https://zubo.bot/">
   <meta property="og:title" content="Zubo — The AI Agent That Never Forgets">
   <meta property="og:description" content="Self-hosted AI agent with persistent memory, multi-channel presence, and 20+ smart tools. Open source, runs locally.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://zubo.bot/">
+  <meta property="og:image" content="https://zubo.bot/og-image.png">
+  <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Zubo — The AI Agent That Never Forgets">
+  <meta name="twitter:description" content="Self-hosted AI agent with persistent memory, multi-channel presence, and 20+ smart tools. Open source, runs locally.">
+  <meta name="twitter:image" content="https://zubo.bot/og-image.png">
+  <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -502,8 +510,8 @@
             </div>
             <div class="qs-line qs-cmd">
               <span class="qs-prompt">$</span>
-              <span class="qs-text">curl -fsSL https://zubo.dev/install.sh | bash</span>
-              <button class="copy-btn" data-copy="curl -fsSL https://zubo.dev/install.sh | bash" aria-label="Copy command">
+              <span class="qs-text">curl -fsSL https://zubo.bot/install.sh | bash</span>
+              <button class="copy-btn" data-copy="curl -fsSL https://zubo.bot/install.sh | bash" aria-label="Copy command">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </button>
             </div>
@@ -597,11 +605,34 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2026 Zubo. MIT License. Built with care.</p>
+        <p>&copy; 2026 Zubo. MIT License. Created in the jungle by <a href="https://x.com/thomaskanze" target="_blank" rel="noopener">@thomaskanze</a>.</p>
       </div>
     </div>
   </footer>
 
   <script src="script.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Zubo",
+    "description": "A self-hosted AI agent with persistent semantic memory, multi-channel presence, 35+ smart tools, sub-agent delegation, and workflow automation. Open source, runs locally.",
+    "url": "https://zubo.bot",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "macOS, Linux, Windows",
+    "license": "https://opensource.org/licenses/MIT",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Thomas Kanze",
+      "url": "https://x.com/thomaskanze"
+    }
+  }
+  </script>
 </body>
 </html>

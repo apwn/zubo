@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Zubo Installer
-# Usage: curl -fsSL https://zubo.dev/install.sh | bash
+# Usage: curl -fsSL https://zubo.bot/install.sh | bash
 
 BOLD='\033[1m'
 DIM='\033[2m'
@@ -94,5 +94,5 @@ echo -e "  ${CYAN}1.${RESET} Run the setup wizard:    ${BOLD}zubo setup${RESET}"
 echo -e "  ${CYAN}2.${RESET} Start your agent:        ${BOLD}zubo start${RESET}"
 echo -e "  ${CYAN}3.${RESET} Open the dashboard:      ${BOLD}zubo dashboard${RESET}"
 echo ""
-echo -e "  ${DIM}Docs: https://zubo.dev/docs${RESET}"
+echo -e "  ${DIM}Docs: https://zubo.bot/docs${RESET}"
 echo ""
