@@ -260,18 +260,7 @@ h1, h2, h3, h4,
   font-size: 18px;
   letter-spacing: -0.02em;
 }
-.logo-mark {
-  width: 32px;
-  height: 32px;
-  background: var(--gradient);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-size: 16px;
-  color: #fff;
-}
+.logo-mark { display: none; }
 .logo-wordmark { color: #fff; }
 .nav-links {
   display: flex;

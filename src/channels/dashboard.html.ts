@@ -72,12 +72,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     padding: 20px 20px 16px; display: flex; align-items: center; gap: 10px;
     border-bottom: 1px solid var(--border);
   }
-  .sidebar-logo .logo-icon {
-    width: 28px; height: 28px; background: var(--gradient); border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 13px; color: #fff; letter-spacing: -0.5px;
-    box-shadow: 0 0 12px rgba(124,58,237,0.3);
-  }
+  .sidebar-logo .logo-icon { display: none; }
   .sidebar-logo span { font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--text); letter-spacing: -0.3px; }
 
   .sidebar-section {
