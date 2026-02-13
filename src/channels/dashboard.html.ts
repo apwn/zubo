@@ -999,6 +999,32 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         </div>
 
         <div class="settings-section">
+          <h3 class="settings-title" data-tooltip="Route simple queries to a cheaper/faster model">Smart Routing</h3>
+          <p class="settings-desc">Automatically route simple queries to a fast, cheap model and complex ones to your primary model. Saves cost without sacrificing quality.</p>
+          <div class="settings-grid">
+            <div class="settings-field">
+              <label class="settings-label" for="sr-enabled">Enabled</label>
+              <select id="sr-enabled" class="settings-select">
+                <option value="false">Disabled</option>
+                <option value="true">Enabled</option>
+              </select>
+            </div>
+            <div class="settings-field">
+              <label class="settings-label" for="sr-fast-provider">Fast Provider</label>
+              <select id="sr-fast-provider" class="settings-select"></select>
+            </div>
+            <div class="settings-field">
+              <label class="settings-label" for="sr-fast-model">Fast Model</label>
+              <input id="sr-fast-model" type="text" class="settings-input" placeholder="e.g. gpt-4.1-mini">
+            </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-primary" onclick="saveSmartRouting()">Save</button>
+            <span id="sr-status" class="status-text"></span>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <h3 class="settings-title">Data</h3>
           <p class="settings-desc">Export, backup, or import your Zubo database.</p>
           <div id="db-stats" style="font-size:12px;color:var(--text-muted);margin-bottom:16px;"></div>
@@ -1947,13 +1973,13 @@ function loadRecipes() {
     count.textContent = data.recipes.length;
 
     grid.innerHTML = data.recipes.map(function(r) {
-      var safeId = esc(r.id).replace(/'/g, "\\\\'");
+      var safeId = esc(r.id);
       var requiresHtml = r.requires && r.requires.length > 0
         ? '<div class="recipe-card-requires">Requires: ' + esc(r.requires.join(', ')) + '</div>'
         : '';
       var btnHtml = r.installed
-        ? '<button class="btn installed" onclick="uninstallRecipe(\'' + safeId + '\')">Installed \\u2713</button>'
-        : '<button class="btn btn-primary" onclick="installRecipe(\'' + safeId + '\')">Activate</button>';
+        ? '<button class="btn installed" onclick="uninstallRecipe(&#39;' + safeId + '&#39;)">Installed \u2713</button>'
+        : '<button class="btn btn-primary" onclick="installRecipe(&#39;' + safeId + '&#39;)">Activate</button>';
 
       return '<div class="recipe-card">' +
         '<div class="recipe-card-header">' +
@@ -2342,6 +2368,7 @@ function loadSettings() {
   loadChannelStatus();
   loadDbStats();
   loadSecrets();
+  loadSmartRouting();
 }
 
 function onProviderChange() {
@@ -2406,6 +2433,50 @@ function saveHeartbeat() {
       toast('Heartbeat updated to ' + data.minutes + ' min');
     } else {
       document.getElementById('heartbeat-status').textContent = data.error || 'Error';
+    }
+  });
+}
+
+// --- Smart Routing ---
+function loadSmartRouting() {
+  api('/smart-routing').then(function(data) {
+    document.getElementById('sr-enabled').value = data.enabled ? 'true' : 'false';
+    var fpSel = document.getElementById('sr-fast-provider');
+    fpSel.replaceChildren();
+    var emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = '-- Select --';
+    fpSel.appendChild(emptyOpt);
+    settingsProviders.forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = p.name;
+      if (p.name === data.fastProvider) opt.selected = true;
+      fpSel.appendChild(opt);
+    });
+    document.getElementById('sr-fast-model').value = data.fastModel || '';
+    document.getElementById('sr-status').textContent = '';
+  });
+}
+
+function saveSmartRouting() {
+  var enabled = document.getElementById('sr-enabled').value === 'true';
+  var fastProvider = document.getElementById('sr-fast-provider').value;
+  var fastModel = document.getElementById('sr-fast-model').value.trim();
+  if (enabled && !fastProvider) {
+    document.getElementById('sr-status').textContent = 'Select a fast provider';
+    return;
+  }
+  api('/smart-routing', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ enabled: enabled, fastProvider: fastProvider, fastModel: fastModel })
+  }).then(function(data) {
+    if (data.ok) {
+      document.getElementById('sr-status').textContent = 'Saved \u2014 restart Zubo to apply';
+      toast('Smart routing ' + (enabled ? 'enabled' : 'disabled'));
+    } else {
+      document.getElementById('sr-status').textContent = data.error || 'Error';
     }
   });
 }

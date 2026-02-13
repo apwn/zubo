@@ -44,6 +44,8 @@ export class FailoverProvider implements LlmProvider {
   }
 
   async *chatStream(request: LlmRequest): AsyncIterable<LlmStreamEvent> {
+    const MAX_STREAM_EVENTS = 50_000;
+
     // Collect all events from a stream — if it succeeds fully, yield them.
     // This prevents partial output from a failing stream from corrupting state.
     async function collectStream(provider: LlmProvider): Promise<LlmStreamEvent[] | null> {
@@ -51,6 +53,9 @@ export class FailoverProvider implements LlmProvider {
       const events: LlmStreamEvent[] = [];
       try {
         for await (const event of provider.chatStream(request)) {
+          if (events.length >= MAX_STREAM_EVENTS) {
+            throw new Error(`Stream exceeded maximum event limit (${MAX_STREAM_EVENTS})`);
+          }
           events.push(event);
         }
         return events;

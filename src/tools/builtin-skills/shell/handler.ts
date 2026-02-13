@@ -24,6 +24,16 @@ const SENSITIVE_ENV_KEYS = [
   "GITHUB_TOKEN",
   "NPM_TOKEN",
   "DATABASE_URL",
+  "IFS",
+  "PS4",
+  "BASH_ENV",
+  "ENV",
+  "SHELLOPTS",
+  "BASHOPTS",
+  "CDPATH",
+  "GLOBIGNORE",
+  "LD_PRELOAD",
+  "LD_LIBRARY_PATH",
 ];
 
 function sanitizeEnv(): Record<string, string | undefined> {

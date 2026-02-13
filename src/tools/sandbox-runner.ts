@@ -6,7 +6,8 @@
  */
 export {};
 
-import { resolve, join } from "path";
+import { join } from "path";
+import { realpathSync } from "fs";
 
 const [handlerPath, inputJson] = process.argv.slice(2);
 
@@ -15,9 +16,16 @@ if (!handlerPath || !inputJson) {
   process.exit(1);
 }
 
-// Validate handler path is within the user's skills directory
-const resolvedHandler = resolve(handlerPath);
-const skillsDir = resolve(join(process.env.HOME ?? "", ".zubo", "workspace", "skills"));
+// Validate handler path is within the user's skills directory (resolve symlinks)
+let resolvedHandler: string;
+let skillsDir: string;
+try {
+  resolvedHandler = realpathSync(handlerPath);
+  skillsDir = realpathSync(join(process.env.HOME ?? "", ".zubo", "workspace", "skills"));
+} catch {
+  console.error("Handler path does not exist or is not accessible");
+  process.exit(1);
+}
 if (!resolvedHandler.startsWith(skillsDir + "/")) {
   console.error("Handler path must be within the skills directory");
   process.exit(1);

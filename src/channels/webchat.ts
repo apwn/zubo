@@ -343,19 +343,67 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     })() as any;
   }
 
+  // GET /api/dashboard/smart-routing
+  if (path === "/smart-routing" && req.method === "GET") {
+    try {
+      const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+      return Response.json({
+        enabled: config.smartRouting?.enabled ?? false,
+        fastProvider: config.smartRouting?.fastProvider ?? "",
+        fastModel: config.smartRouting?.fastModel ?? "",
+      });
+    } catch {
+      return Response.json({ enabled: false, fastProvider: "", fastModel: "" });
+    }
+  }
+
+  // PUT /api/dashboard/smart-routing
+  if (path === "/smart-routing" && req.method === "PUT") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as {
+          enabled?: boolean;
+          fastProvider?: string;
+          fastModel?: string;
+        };
+        const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+        if (!config.smartRouting) {
+          config.smartRouting = {};
+        }
+        if (typeof body.enabled === "boolean") {
+          config.smartRouting.enabled = body.enabled;
+        }
+        if (body.fastProvider !== undefined) {
+          config.smartRouting.fastProvider = body.fastProvider;
+        }
+        if (body.fastModel !== undefined) {
+          config.smartRouting.fastModel = body.fastModel;
+        }
+        writeFileSync(paths.config, JSON.stringify(config, null, 2) + "\n");
+        return Response.json({ ok: true });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
   // GET /api/dashboard/analytics/summary
   if (path === "/analytics/summary" && req.method === "GET") {
     try {
       const db = getDb();
-      const totalTokens = db.query("SELECT COALESCE(SUM(input_tokens + output_tokens), 0) as total FROM usage").get() as any;
-      const totalCost = db.query("SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE cost_usd IS NOT NULL").get() as any;
-      const avgResponse = db.query("SELECT COALESCE(AVG(response_time_ms), 0) as avg FROM usage WHERE response_time_ms IS NOT NULL").get() as any;
-      const sessionCount = db.query("SELECT COUNT(DISTINCT session_id) as count FROM usage").get() as any;
+      const summary = db.query(`
+        SELECT
+          COALESCE(SUM(input_tokens + output_tokens), 0) as totalTokens,
+          COALESCE(SUM(cost_usd), 0) as totalCost,
+          COALESCE(AVG(CASE WHEN response_time_ms IS NOT NULL THEN response_time_ms END), 0) as avgResponse,
+          COUNT(DISTINCT session_id) as sessionCount
+        FROM usage
+      `).get() as any;
       return Response.json({
-        totalTokens: totalTokens?.total ?? 0,
-        estimatedCostUsd: Math.round((totalCost?.total ?? 0) * 10000) / 10000,
-        avgResponseTimeMs: Math.round(avgResponse?.avg ?? 0),
-        sessionCount: sessionCount?.count ?? 0,
+        totalTokens: summary.totalTokens,
+        estimatedCostUsd: Math.round(summary.totalCost * 10000) / 10000,
+        avgResponseTimeMs: Math.round(summary.avgResponse),
+        sessionCount: summary.sessionCount,
       });
     } catch {
       return Response.json({ totalTokens: 0, estimatedCostUsd: 0, avgResponseTimeMs: 0, sessionCount: 0 });
@@ -1474,6 +1522,11 @@ export function createWebChatAdapter(
                 return Response.json({ error: "No message" }, { status: 400 });
               }
 
+              // Validate threadId format to prevent path traversal
+              if (body.threadId && !/^[a-f0-9-]{36}$/.test(body.threadId)) {
+                return Response.json({ error: "Invalid thread ID" }, { status: 400 });
+              }
+
               // Use provided threadId as session, falling back to the shared session
               const effectiveSessionKey = body.threadId ?? sessionKey;
 
@@ -1574,6 +1627,9 @@ export function createWebChatAdapter(
               const ext = file.name.includes(".") ? "." + file.name.split(".").pop()!.toLowerCase() : "";
               if (!ALLOWED_EXTENSIONS.has(ext)) {
                 return Response.json({ error: `Unsupported file type: ${ext}` }, { status: 400 });
+              }
+              if (!ALLOWED_MIME_TYPES.has(file.type) && file.type !== "application/octet-stream") {
+                return Response.json({ error: "File type not allowed: " + file.type }, { status: 400 });
               }
 
               const { parseDocument, guessMimeType } = await import("../memory/document-parser");

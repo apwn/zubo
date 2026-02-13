@@ -3,6 +3,7 @@ import type { LlmProvider } from "./provider";
 import { ClaudeProvider } from "./claude";
 import { OpenAICompatProvider } from "./openai-compat";
 import { FailoverProvider } from "./failover";
+import { SmartRouterProvider } from "./smart-router";
 import { logger } from "../util/logger";
 
 const KNOWN_BASE_URLS: Record<string, string> = {
@@ -65,6 +66,7 @@ export function createProvider(config: ZuboConfig): LlmProvider {
     logger.info(`LLM provider: ${primary.providerName}/${primary.model}`);
 
     // Build failover chain
+    let provider: LlmProvider = primary;
     if (config.failover?.length) {
       const fallbacks: LlmProvider[] = [];
       for (const fbName of config.failover) {
@@ -77,11 +79,27 @@ export function createProvider(config: ZuboConfig): LlmProvider {
         }
       }
       if (fallbacks.length) {
-        return new FailoverProvider(primary, fallbacks);
+        provider = new FailoverProvider(primary, fallbacks);
       }
     }
 
-    return primary;
+    // Wrap in smart router if enabled
+    if (config.smartRouting?.enabled) {
+      const fastProviderName = config.smartRouting.fastProvider;
+      if (fastProviderName && config.providers[fastProviderName]) {
+        const fastCfg = { ...config.providers[fastProviderName] };
+        if (config.smartRouting.fastModel) {
+          fastCfg.model = config.smartRouting.fastModel;
+        }
+        const fast = buildSingleProvider(fastProviderName, fastCfg);
+        logger.info(`Smart routing enabled: fast=${fast.providerName}/${fast.model}`);
+        provider = new SmartRouterProvider(provider, fast, true);
+      } else {
+        logger.warn("Smart routing enabled but fastProvider not configured, skipping");
+      }
+    }
+
+    return provider;
   }
 
   // Legacy config: anthropicApiKey + model at top level

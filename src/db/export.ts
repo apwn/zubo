@@ -12,6 +12,10 @@ interface ExportData {
   tables: Record<string, any[]>;
 }
 
+function quoteId(name: string): string {
+  return '"' + name.replace(/"/g, '""') + '"';
+}
+
 // Tables to include in export (skip FTS virtual tables and internal sqlite tables)
 // Tables to include in export — secrets and api_keys are excluded by default
 // to prevent accidental credential exposure
@@ -40,7 +44,7 @@ export function exportDatabase(db: Database, outputPath: string): void {
 
   for (const table of EXPORT_TABLES) {
     try {
-      const rows = db.query(`SELECT * FROM ${table}`).all();
+      const rows = db.query(`SELECT * FROM ${quoteId(table)}`).all();
       if (rows.length > 0) {
         data.tables[table] = rows;
       }
@@ -75,7 +79,7 @@ export function importDatabase(db: Database, inputPath: string): { imported: num
     if (!tableCheck) continue;
 
     // Validate column names against actual table schema to prevent SQL injection
-    const tableInfo = db.query(`PRAGMA table_info(${table})`).all() as { name: string }[];
+    const tableInfo = db.query(`PRAGMA table_info(${quoteId(table)})`).all() as { name: string }[];
     const validColumns = new Set(tableInfo.map((c) => c.name));
 
     for (const row of rows) {
@@ -85,7 +89,7 @@ export function importDatabase(db: Database, inputPath: string): { imported: num
       const values = columns.map((c) => row[c]);
       try {
         db.prepare(
-          `INSERT OR IGNORE INTO ${table} (${columns.join(", ")}) VALUES (${placeholders})`
+          `INSERT OR IGNORE INTO ${quoteId(table)} (${columns.map(quoteId).join(", ")}) VALUES (${placeholders})`
         ).run(...values);
         imported++;
       } catch {
@@ -125,7 +129,7 @@ export function getDbStats(db: Database): { tables: Record<string, number>; size
 
   for (const table of EXPORT_TABLES) {
     try {
-      const row = db.query(`SELECT COUNT(*) as c FROM ${table}`).get() as any;
+      const row = db.query(`SELECT COUNT(*) as c FROM ${quoteId(table)}`).get() as any;
       stats[table] = row?.c ?? 0;
     } catch {
       // Table doesn't exist

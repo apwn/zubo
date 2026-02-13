@@ -103,6 +103,13 @@ export const configSchema = z.object({
     timeoutMs: z.number().default(30_000),
   }).optional(),
 
+  // Smart model routing
+  smartRouting: z.object({
+    enabled: z.boolean().default(false),
+    fastProvider: z.string().optional(),
+    fastModel: z.string().optional(),
+  }).optional(),
+
   // Budget controls
   budget: z.object({
     dailyLimitUsd: z.number().optional(),

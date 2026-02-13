@@ -139,6 +139,11 @@ export async function initEmbedder(): Promise<boolean> {
     const modelDir = await ensureModel();
     const modelPath = join(modelDir, "model.onnx");
 
+    // Dispose existing session to prevent memory leak on re-initialization
+    if (session) {
+      try { (session as any).dispose?.(); } catch { /* ignore */ }
+    }
+
     session = await InferenceSession.create(modelPath, {
       executionProviders: ["cpu"],
     });

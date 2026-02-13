@@ -8,7 +8,18 @@ const BLOCKED_HOST_PATTERNS = [
   /^\[?::1\]?$/,
   /^0\.0\.0\.0$/,
   /^metadata\.google\.internal$/i,
+  /^metadata\.azure\.com$/i,
+  /^fe80:/i,
+  /^fc00:/i,
 ];
+
+function isBlockedHost(hostname: string): boolean {
+  const normalized = hostname.replace(/^\[|\]$/g, "");
+  for (const pattern of BLOCKED_HOST_PATTERNS) {
+    if (pattern.test(normalized)) return true;
+  }
+  return false;
+}
 
 function validateUrl(raw: string): void {
   let parsed: URL;
@@ -18,11 +29,8 @@ function validateUrl(raw: string): void {
     throw new Error(`Invalid URL: ${raw}`);
   }
 
-  const hostname = parsed.hostname.replace(/^\[|\]$/g, "");
-  for (const pattern of BLOCKED_HOST_PATTERNS) {
-    if (pattern.test(hostname)) {
-      throw new Error(`Blocked: requests to internal/private addresses are not allowed`);
-    }
+  if (isBlockedHost(parsed.hostname)) {
+    throw new Error(`Blocked: requests to internal/private addresses are not allowed`);
   }
 }
 
@@ -40,7 +48,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       "User-Agent": "Zubo/1.0",
       ...headers,
     },
-    redirect: "follow",
+    redirect: "manual",
     signal: AbortSignal.timeout(30000),
   };
 
@@ -51,7 +59,23 @@ export default async function (input: Record<string, unknown>): Promise<string> 
     }
   }
 
-  const res = await fetch(url, opts);
+  let res = await fetch(url, opts);
+  let redirectCount = 0;
+  const MAX_REDIRECTS = 5;
+
+  while (res.status >= 300 && res.status < 400 && redirectCount < MAX_REDIRECTS) {
+    const location = res.headers.get("location");
+    if (!location) break;
+
+    const redirectUrl = new URL(location, url);
+    if (isBlockedHost(redirectUrl.hostname)) {
+      return JSON.stringify({ error: "Redirect to blocked host", status: 0 });
+    }
+
+    res = await fetch(redirectUrl.toString(), { ...opts, redirect: "manual" });
+    redirectCount++;
+  }
+
   const responseText = await res.text();
 
   return JSON.stringify({
