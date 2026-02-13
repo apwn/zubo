@@ -1695,7 +1695,7 @@ export function createWebChatAdapter(
 
               const stt = getSttProvider();
               if (!stt) {
-                return Response.json({ error: "STT not configured" }, { status: 400 });
+                return Response.json({ error: "Voice not configured. Add voice settings to your config:\n\nzubo config set voice.stt.provider whisper\nzubo config set voice.stt.apiKey YOUR_OPENAI_API_KEY\n\nThen restart Zubo." }, { status: 400 });
               }
 
               // Transcribe
