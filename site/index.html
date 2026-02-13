@@ -448,15 +448,28 @@
             <span class="td td-g"></span>
           </div>
           <div class="qs-tabs">
-            <button class="qs-tab active" data-tab="bun">bun</button>
+            <button class="qs-tab active" data-tab="one-liner">One-liner</button>
+            <button class="qs-tab" data-tab="bun">bun</button>
             <button class="qs-tab" data-tab="npm">npm</button>
-            <button class="qs-tab" data-tab="one-liner">One-liner</button>
           </div>
           <div class="qs-chrome-spacer"></div>
         </div>
         <div class="qs-body">
+          <!-- one-liner tab -->
+          <div class="qs-pane active" id="qs-one-liner">
+            <div class="qs-line">
+              <span class="qs-comment"># Install and launch in one shot</span>
+            </div>
+            <div class="qs-line qs-cmd">
+              <span class="qs-prompt">$</span>
+              <span class="qs-text">curl -fsSL https://zubo.bot/install.sh | bash</span>
+              <button class="copy-btn" data-copy="curl -fsSL https://zubo.bot/install.sh | bash" aria-label="Copy command">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
+          </div>
           <!-- bun tab -->
-          <div class="qs-pane active" id="qs-bun">
+          <div class="qs-pane" id="qs-bun">
             <div class="qs-line">
               <span class="qs-comment"># Install Zubo</span>
             </div>
@@ -499,19 +512,6 @@
               <span class="qs-prompt">$</span>
               <span class="qs-text">zubo setup</span>
               <button class="copy-btn" data-copy="zubo setup" aria-label="Copy command">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              </button>
-            </div>
-          </div>
-          <!-- one-liner tab -->
-          <div class="qs-pane" id="qs-one-liner">
-            <div class="qs-line">
-              <span class="qs-comment"># Install and launch in one shot</span>
-            </div>
-            <div class="qs-line qs-cmd">
-              <span class="qs-prompt">$</span>
-              <span class="qs-text">curl -fsSL https://zubo.bot/install.sh | bash</span>
-              <button class="copy-btn" data-copy="curl -fsSL https://zubo.bot/install.sh | bash" aria-label="Copy command">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </button>
             </div>
