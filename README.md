@@ -154,3 +154,7 @@ zubo import <path>      Import database from JSON
 ## License
 
 MIT
+
+---
+
+Created by [@thomaskanze](https://x.com/thomaskanze)
