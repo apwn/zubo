@@ -164,6 +164,8 @@
         <li><strong>Jira</strong> &mdash; issues, projects, sprints.</li>
         <li><strong>Slack</strong> &mdash; channels, messages, users (beyond the chat channel).</li>
         <li><strong>Twitter</strong> &mdash; post tweets, read timelines.</li>
+        <li><strong>Claude Code</strong> &mdash; delegate tasks to Claude Code CLI, use it as an LLM provider, or run Zubo as an MCP server so Claude Code can access Zubo's tools.</li>
+        <li><strong>OpenAI Codex</strong> &mdash; delegate coding tasks to Codex CLI, use it as an LLM provider, or run Zubo as an MCP server so Codex can use Zubo's memory and integrations.</li>
         <li><strong>OAuth 2.0 support</strong> &mdash; connect Google, GitHub, Notion, Linear, and Slack via OAuth for short-lived tokens with automatic refresh. More secure than raw API keys, with a dashboard UI for managing connections and an <code>oauth_manage</code> tool for programmatic control. Falls back to API keys gracefully when no OAuth token is configured.</li>
       </ul>
 
@@ -173,6 +175,7 @@
         <li><strong>JSON-RPC over stdio</strong> &mdash; each MCP server runs as a subprocess. Zubo handles the full protocol: initialization, tool discovery, and tool execution.</li>
         <li><strong>Automatic tool registration</strong> &mdash; on boot, Zubo connects to each configured MCP server, discovers available tools, and registers them with a server-name prefix to avoid conflicts (e.g., <code>filesystem__read_file</code>).</li>
         <li><strong>Configure in JSON</strong> &mdash; add MCP servers via the <code>mcp.servers</code> config array. Example: <code>{ "name": "filesystem", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"] }</code></li>
+        <li><strong>MCP server mode</strong> &mdash; run Zubo itself as an MCP server with <code>zubo mcp-serve</code>. External tools like Claude Code and OpenAI Codex can then use Zubo's memory, knowledge graph, integrations, and scheduling as MCP tools.</li>
       </ul>
 
       <h3>Scheduling</h3>

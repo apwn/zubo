@@ -234,6 +234,32 @@ switch (command) {
     console.log(`Imported ${result.imported} rows (${result.skipped} skipped)`);
     break;
   }
+  case "mcp-serve": {
+    // Start Zubo as an MCP server (for Claude Code / Codex integration)
+    // Minimal initialization: DB + tools (no channels, no LLM)
+    const { ensureDirectories, paths: mcpPaths } = await import("./config/paths");
+    ensureDirectories();
+    const { getDb: getMcpDb } = await import("./db/connection");
+    const { runMigrations: runMcpMigrations } = await import("./db/migrations");
+    const mcpDb = getMcpDb();
+    runMcpMigrations(mcpDb);
+    // Register core tools
+    const { registerDatetimeTool } = await import("./tools/builtin/datetime");
+    const { registerMemoryWriteTool } = await import("./tools/builtin/memory-write");
+    const { registerMemorySearchTool } = await import("./tools/builtin/memory-search");
+    const { registerSecretTools } = await import("./tools/builtin/secrets");
+    registerDatetimeTool();
+    registerMemoryWriteTool();
+    registerMemorySearchTool(mcpDb);
+    registerSecretTools();
+    // Load skills
+    const { loadSkills } = await import("./tools/skill-loader");
+    try { await loadSkills(mcpPaths.skills); } catch {}
+    // Start MCP server
+    const { startMcpServer } = await import("./tools/mcp-server");
+    await startMcpServer();
+    process.exit(0);
+  }
   default:
     console.log("Usage: zubo <command>\n");
     console.log("Commands:");
@@ -263,5 +289,6 @@ switch (command) {
     console.log("  export             Export database as JSON");
     console.log("  export --format sqlite  Backup as SQLite file");
     console.log("  import <path>      Import data from JSON export");
+    console.log("  mcp-serve          Start as MCP server (for Claude Code / Codex)");
     process.exit(1);
 }

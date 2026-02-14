@@ -165,6 +165,33 @@ zubo export --output backup.json # Custom output path
 zubo import &lt;path&gt;               # Import from JSON</code></pre>
       <p>The JSON export includes conversations, memory chunks, settings, analytics, and uploaded file metadata. The SQLite backup creates a copy of the raw database file. Import restores data from a previously exported JSON file.</p>
 
+      <h2 id="mcp-serve">MCP Server</h2>
+<pre><code>zubo mcp-serve              # Start MCP server over stdio
+zubo mcp-serve --port 9800  # Start MCP server over HTTP (SSE)</code></pre>
+      <p>Runs Zubo as an <strong>MCP (Model Context Protocol) server</strong>, exposing all of Zubo's tools to external MCP clients such as Claude Code or OpenAI Codex. By default, the server communicates over <strong>stdio</strong> using JSON-RPC. Use the <code>--port</code> flag to start an HTTP-based server with Server-Sent Events instead.</p>
+      <p>When an MCP client connects, it can discover and call any of Zubo's built-in tools and installed skill tools &mdash; including memory search, knowledge graph queries, calendar access, GitHub operations, scheduling, and more.</p>
+      <h3>Example: Claude Code</h3>
+      <p>Add Zubo to your Claude Code MCP config (<code>~/.claude/claude_desktop_config.json</code>):</p>
+<pre><code>{
+  "mcpServers": {
+    "zubo": {
+      "command": "zubo",
+      "args": ["mcp-serve"]
+    }
+  }
+}</code></pre>
+      <h3>Example: OpenAI Codex</h3>
+      <p>Add Zubo to your Codex MCP configuration:</p>
+<pre><code>{
+  "mcpServers": {
+    "zubo": {
+      "command": "zubo",
+      "args": ["mcp-serve"]
+    }
+  }
+}</code></pre>
+      <p>See <a href="integrations.html#mcp-server-mode">Integrations &rarr; MCP Server Mode</a> for a full list of exposed tools.</p>
+
       <h2>Command Summary</h2>
       <table>
         <thead><tr><th>Command</th><th>Description</th></tr></thead>
@@ -195,6 +222,8 @@ zubo import &lt;path&gt;               # Import from JSON</code></pre>
           <tr><td><code>zubo export</code></td><td>Export JSON</td></tr>
           <tr><td><code>zubo export --format sqlite</code></td><td>Backup SQLite</td></tr>
           <tr><td><code>zubo import &lt;path&gt;</code></td><td>Import JSON</td></tr>
+          <tr><td><code>zubo mcp-serve</code></td><td>Start MCP server (stdio)</td></tr>
+          <tr><td><code>zubo mcp-serve --port &lt;n&gt;</code></td><td>Start MCP server (HTTP/SSE)</td></tr>
         </tbody>
       </table>
 

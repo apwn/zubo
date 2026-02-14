@@ -1,6 +1,8 @@
 import type { ZuboConfig, ProviderConfig } from "../config/schema";
 import type { LlmProvider } from "./provider";
 import { ClaudeProvider } from "./claude";
+import { ClaudeCodeProvider } from "./claude-code";
+import { CodexProvider } from "./codex";
 import { OpenAICompatProvider } from "./openai-compat";
 import { FailoverProvider } from "./failover";
 import { SmartRouterProvider } from "./smart-router";
@@ -31,6 +33,18 @@ function buildSingleProvider(
       throw new Error("Anthropic provider requires an apiKey");
     }
     const provider = new ClaudeProvider(providerCfg.apiKey, providerCfg.model);
+    if (providerCfg.contextWindow) provider.contextWindow = providerCfg.contextWindow;
+    return provider;
+  }
+
+  if (name === "claude-code") {
+    const provider = new ClaudeCodeProvider(providerCfg.model);
+    if (providerCfg.contextWindow) provider.contextWindow = providerCfg.contextWindow;
+    return provider;
+  }
+
+  if (name === "codex") {
+    const provider = new CodexProvider(providerCfg.model);
     if (providerCfg.contextWindow) provider.contextWindow = providerCfg.contextWindow;
     return provider;
   }

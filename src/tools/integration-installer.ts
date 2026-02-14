@@ -17,6 +17,8 @@ const SERVICE_SECRETS: Record<string, string> = {
   linear: "linear_token",
   jira: "jira_token",
   twitter: "twitter_bearer_token",
+  "claude-code": "claude_code_cli",  // Uses Claude Code CLI's own auth — no Zubo secret needed
+  codex: "codex_cli",  // Uses Codex CLI's own auth — no Zubo secret needed
 };
 
 /**
