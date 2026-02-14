@@ -50,8 +50,9 @@ class ImapClient {
         this.socket = connect({ host: this.config.host, port: this.config.port }, onConnect);
       }
 
-      this.socket.setEncoding("utf-8");
-      this.socket.on("data", (data: string) => {
+      const sock = this.socket!;
+      sock.setEncoding("utf-8");
+      sock.on("data", (data: string) => {
         this.buffer += data;
         if (this.pendingResolve) {
           const resolve = this.pendingResolve;
@@ -61,12 +62,12 @@ class ImapClient {
         }
       });
 
-      this.socket.on("error", (err) => {
+      sock.on("error", (err) => {
         logger.warn("IMAP socket error", { error: err.message });
         reject(err);
       });
 
-      this.socket.setTimeout(30000);
+      sock.setTimeout(30000);
     });
   }
 

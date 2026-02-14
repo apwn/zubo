@@ -164,7 +164,7 @@ export class McpClient {
     // Kill process
     if (this.process) {
       try {
-        if (this.process.stdin) {
+        if (this.process.stdin && typeof this.process.stdin !== "number") {
           this.process.stdin.end();
         }
         this.process.kill();
@@ -220,7 +220,7 @@ export class McpClient {
   }
 
   private writeMessage(message: JsonRpcRequest): void {
-    if (!this.process?.stdin) {
+    if (!this.process?.stdin || typeof this.process.stdin === "number") {
       throw new Error("MCP process not running");
     }
     const json = JSON.stringify(message);
@@ -229,7 +229,7 @@ export class McpClient {
   }
 
   private async readStream(): Promise<void> {
-    if (!this.process?.stdout) return;
+    if (!this.process?.stdout || typeof this.process.stdout === "number") return;
 
     const reader = this.process.stdout.getReader();
 
@@ -259,10 +259,10 @@ export class McpClient {
   }
 
   private async readStderr(): Promise<void> {
-    if (!this.process?.stderr) return;
+    if (!this.process?.stderr || typeof this.process.stderr === "number") return;
 
     try {
-      const text = await new Response(this.process.stderr).text();
+      const text = await new Response(this.process.stderr as ReadableStream).text();
       if (text.trim()) {
         logger.debug(`MCP "${this.config.name}" stderr: ${text.slice(0, 500)}`);
       }

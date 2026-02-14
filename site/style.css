@@ -942,9 +942,14 @@ h1, h2, h3, h4,
   background: linear-gradient(90deg, transparent, var(--border-light), transparent);
 }
 .integrations-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
+}
+.integrations-grid .integration-card {
+  flex: 0 1 calc(25% - 12px);
+  min-width: 220px;
 }
 .integration-card {
   background: var(--bg-card);
@@ -1539,8 +1544,9 @@ h1, h2, h3, h4,
     grid-template-columns: repeat(2, 1fr);
   }
   .bento-lg { grid-column: span 2; }
-  .integrations-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .integrations-grid .integration-card {
+    flex: 0 1 calc(50% - 8px);
+    min-width: 180px;
   }
 }
 
@@ -1601,8 +1607,11 @@ h1, h2, h3, h4,
   .bento-lg { grid-column: span 1; }
 
   .integrations-grid {
-    grid-template-columns: 1fr;
     gap: 12px;
+  }
+  .integrations-grid .integration-card {
+    flex: 0 1 100%;
+    min-width: 0;
   }
 
   .channels-grid {
@@ -1676,6 +1685,7 @@ h1, h2, h3, h4,
   .os-btn { padding: 8px 10px; font-size: 12px; gap: 4px; }
 
   .integrations-grid { gap: 10px; }
+  .integrations-grid .integration-card { flex: 0 1 100%; }
 
   .qs-body { padding: 16px; font-size: 12px; line-height: 2; }
   .qs-chrome { padding: 12px 14px; gap: 10px; }
