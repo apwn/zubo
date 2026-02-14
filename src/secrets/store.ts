@@ -62,3 +62,15 @@ export function exposeGoogleTokenRuntime(
   if (!g.Zubo) g.Zubo = {};
   g.Zubo.getGoogleToken = getGoogleAccessToken;
 }
+
+/**
+ * Exposes getOAuthToken on globalThis.Zubo so skill handlers can get
+ * a valid OAuth access token for any configured provider.
+ */
+export function exposeOAuthTokenRuntime(
+  getOAuthToken: (provider: string) => Promise<string | null>
+): void {
+  const g = globalThis as any;
+  if (!g.Zubo) g.Zubo = {};
+  g.Zubo.getOAuthToken = getOAuthToken;
+}

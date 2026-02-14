@@ -12,6 +12,11 @@ import { RateLimiter } from "../util/rate-limiter";
 import { initAuth, validateRequest, createApiKey, listApiKeys, deleteApiKey, generateSessionToken } from "../util/auth";
 import { exportDatabase, backupDatabase, importDatabase, getDbStats, getDbSizeBytes } from "../db/export";
 
+/** Escape HTML to prevent XSS in OAuth error pages */
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 // Dashboard API helpers
 function readFileOr(path: string, fallback: string): string {
   try {
@@ -1271,6 +1276,45 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     })() as any;
   }
 
+  // --- OAuth management API ---
+
+  // GET /api/dashboard/oauth/status — list all OAuth connections
+  if (path === "/oauth/status" && req.method === "GET") {
+    return (async () => {
+      try {
+        const { listConnections, isProviderConfigured, listSupportedProviders } = await import("../tools/oauth");
+        const connections = listConnections();
+        const supported = listSupportedProviders();
+        return Response.json({
+          supported,
+          connections: connections.map((c: any) => ({
+            ...c,
+            configured: isProviderConfigured(c.provider),
+          })),
+        });
+      } catch (err: any) {
+        return Response.json({ supported: [], connections: [], error: err.message });
+      }
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/oauth/:provider — revoke connection
+  if (path.startsWith("/oauth/") && req.method === "DELETE") {
+    const provider = path.replace("/oauth/", "");
+    if (!provider || !/^[a-z]+$/.test(provider)) {
+      return Response.json({ error: "Invalid provider name" }, { status: 400 });
+    }
+    return (async () => {
+      try {
+        const { revokeToken } = await import("../tools/oauth");
+        const removed = await revokeToken(provider);
+        return Response.json({ ok: removed, provider });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
   return null;
 }
 
@@ -1378,6 +1422,69 @@ export function createWebChatAdapter(
               status: 302,
               headers: { Location: "/#status" },
             });
+          }
+
+          // --- OAuth routes (no auth required — part of OAuth flow) ---
+
+          // GET /oauth/:provider/authorize — redirect user to provider's auth page
+          const ALLOWED_OAUTH_PROVIDERS = new Set(["google", "github", "notion", "linear", "slack"]);
+          if (url.pathname.match(/^\/oauth\/[a-z]+\/authorize$/) && req.method === "GET") {
+            const provider = url.pathname.split("/")[2];
+            if (!ALLOWED_OAUTH_PROVIDERS.has(provider)) {
+              return Response.json({ error: "Unknown OAuth provider" }, { status: 400 });
+            }
+            try {
+              const { getAuthUrl } = await import("../tools/oauth");
+              const actualPort = server?.port ?? port;
+              const redirectUri = `http://localhost:${actualPort}/oauth/${provider}/callback`;
+              const { url: authUrl } = await getAuthUrl(provider, redirectUri);
+              return new Response(null, {
+                status: 302,
+                headers: { Location: authUrl },
+              });
+            } catch (err: any) {
+              return new Response(
+                `<html><body><h2>OAuth Error</h2><p>${escapeHtml(err.message)}</p><p><a href="/">Back to dashboard</a></p></body></html>`,
+                { status: 400, headers: { "Content-Type": "text/html" } }
+              );
+            }
+          }
+
+          // GET /oauth/:provider/callback — handle callback from provider
+          if (url.pathname.match(/^\/oauth\/[a-z]+\/callback$/) && req.method === "GET") {
+            const provider = url.pathname.split("/")[2];
+            const code = url.searchParams.get("code");
+            const state = url.searchParams.get("state");
+            const error = url.searchParams.get("error");
+
+            if (error) {
+              const errorDesc = url.searchParams.get("error_description") || error;
+              return new Response(
+                `<html><head><title>OAuth Error</title><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#060608;color:#f0f0f5;}.card{background:#111116;border:1px solid #1e1e26;border-radius:12px;padding:32px;max-width:400px;text-align:center;}.err{color:#ef4444;}</style></head><body><div class="card"><h2 class="err">Authorization Failed</h2><p>${escapeHtml(errorDesc)}</p><p style="margin-top:16px"><a href="/" style="color:#7c3aed;">Back to Dashboard</a></p></div></body></html>`,
+                { headers: { "Content-Type": "text/html" } }
+              );
+            }
+
+            if (!code || !state) {
+              return new Response(
+                `<html><head><title>OAuth Error</title><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#060608;color:#f0f0f5;}.card{background:#111116;border:1px solid #1e1e26;border-radius:12px;padding:32px;max-width:400px;text-align:center;}.err{color:#ef4444;}</style></head><body><div class="card"><h2 class="err">Missing Parameters</h2><p>Authorization code or state parameter is missing.</p><p style="margin-top:16px"><a href="/" style="color:#7c3aed;">Back to Dashboard</a></p></div></body></html>`,
+                { status: 400, headers: { "Content-Type": "text/html" } }
+              );
+            }
+
+            try {
+              const { handleCallback } = await import("../tools/oauth");
+              await handleCallback(provider, code, state);
+              return new Response(
+                `<html><head><title>Connected!</title><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#060608;color:#f0f0f5;}.card{background:#111116;border:1px solid #1e1e26;border-radius:12px;padding:32px;max-width:400px;text-align:center;}.ok{color:#10b981;}</style></head><body><div class="card"><h2 class="ok">${provider.charAt(0).toUpperCase() + provider.slice(1)} Connected!</h2><p>You have successfully authorized ${provider}. This window will close automatically.</p><script>setTimeout(function(){window.close()},3000);</script><p style="margin-top:16px"><a href="/#integrations" style="color:#7c3aed;">Back to Dashboard</a></p></div></body></html>`,
+                { headers: { "Content-Type": "text/html" } }
+              );
+            } catch (err: any) {
+              return new Response(
+                `<html><head><title>OAuth Error</title><style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#060608;color:#f0f0f5;}.card{background:#111116;border:1px solid #1e1e26;border-radius:12px;padding:32px;max-width:400px;text-align:center;}.err{color:#ef4444;}</style></head><body><div class="card"><h2 class="err">Connection Failed</h2><p>${escapeHtml(err.message)}</p><p style="margin-top:16px"><a href="/" style="color:#7c3aed;">Back to Dashboard</a></p></div></body></html>`,
+                { status: 500, headers: { "Content-Type": "text/html" } }
+              );
+            }
           }
 
           // Health check (no auth required)

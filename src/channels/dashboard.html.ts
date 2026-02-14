@@ -694,6 +694,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <span class="nav-icon">\u{1F4DD}</span> Logs
     </a>
     <div class="sidebar-divider"></div>
+    <a href="#integrations" onclick="showPanel('integrations')">
+      <span class="nav-icon">\u{1F517}</span> Integrations
+    </a>
     <a href="#privacy" onclick="showPanel('privacy')">
       <span class="nav-icon">\u{1F512}</span> Privacy
     </a>
@@ -1116,6 +1119,38 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       </div>
     </div>
 
+    <!-- INTEGRATIONS PANEL -->
+    <div id="panel-integrations" class="panel">
+      <div class="panel-body">
+        <div style="margin-bottom:20px;">
+          <h3 style="font-family:var(--display);font-weight:700;margin-bottom:4px;">OAuth Integrations</h3>
+          <p class="settings-desc">Connect third-party services via OAuth. Zubo will securely store tokens and automatically refresh them.</p>
+        </div>
+
+        <div id="oauth-connections-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+        <div class="settings-section" style="margin-top:24px;">
+          <h3 class="settings-title">Setup Guide</h3>
+          <p class="settings-desc">To use OAuth, add provider credentials to your Zubo config file:</p>
+          <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:var(--mono);font-size:12px;overflow-x:auto;color:var(--text-secondary);margin-top:8px;">{
+  "oauth": {
+    "providers": {
+      "google": {
+        "clientId": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+        "clientSecret": "GOCSPX-YOUR_SECRET"
+      },
+      "github": {
+        "clientId": "YOUR_GITHUB_CLIENT_ID",
+        "clientSecret": "YOUR_GITHUB_SECRET"
+      }
+    }
+  }
+}</pre>
+          <p class="settings-desc" style="margin-top:12px;">Supported providers: Google (Calendar, Gmail, Drive, Docs, Sheets), GitHub, Notion, Linear, Slack.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- PRIVACY PANEL -->
     <div id="panel-privacy" class="panel">
       <div class="panel-body">
@@ -1201,8 +1236,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <script>
 // --- Panel routing ---
-var panelNames = ['agent','status','analytics','system','memory','skills','registry','workflows','cron','logs','privacy','budget','settings'];
-var panelTitles = { agent:'Agent', status:'Status', analytics:'Analytics', system:'System Prompt', memory:'Memory', skills:'Skills', registry:'Skill Registry', workflows:'Workflows', cron:'Cron Jobs', logs:'Logs', privacy:'Privacy & Data', budget:'Budget', settings:'Settings' };
+var panelNames = ['agent','status','analytics','system','memory','skills','registry','workflows','cron','logs','integrations','privacy','budget','settings'];
+var panelTitles = { agent:'Agent', status:'Status', analytics:'Analytics', system:'System Prompt', memory:'Memory', skills:'Skills', registry:'Skill Registry', workflows:'Workflows', cron:'Cron Jobs', logs:'Logs', integrations:'Integrations', privacy:'Privacy & Data', budget:'Budget', settings:'Settings' };
 
 function showPanel(name) {
   if (panelNames.indexOf(name) === -1) name = 'agent';
@@ -1227,6 +1262,7 @@ function showPanel(name) {
   if (name === 'settings') loadSettings();
   if (name === 'workflows') loadWorkflows();
   if (name === 'budget') loadBudget();
+  if (name === 'integrations') loadIntegrations();
   if (name === 'privacy') loadPrivacy();
   closeMobileMenu();
 }
@@ -2220,6 +2256,140 @@ function clearBudget() {
 // --- PRIVACY ---
 var apiLogOffset = 0;
 var toolLogOffset = 0;
+
+// --- Integrations (OAuth) ---
+var providerLabels = {
+  google: { name: 'Google', icon: '\u{1F310}', desc: 'Calendar, Gmail, Drive, Docs, Sheets' },
+  github: { name: 'GitHub', icon: '\u{1F4BB}', desc: 'Issues, PRs, Repos' },
+  notion: { name: 'Notion', icon: '\u{1F4D3}', desc: 'Pages, Databases, Search' },
+  linear: { name: 'Linear', icon: '\u{1F4CB}', desc: 'Issues, Projects' },
+  slack: { name: 'Slack', icon: '\u{1F4AC}', desc: 'Messages, Channels' }
+};
+
+function loadIntegrations() {
+  fetch('/api/dashboard/oauth/status')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var container = document.getElementById('oauth-connections-list');
+      if (!container) return;
+      // Clear existing content safely
+      while (container.firstChild) container.removeChild(container.firstChild);
+
+      var supported = data.supported || [];
+      var connMap = {};
+      (data.connections || []).forEach(function(c) { connMap[c.provider] = c; });
+
+      if (!supported.length) {
+        var emptyMsg = document.createElement('div');
+        emptyMsg.style.cssText = 'text-align:center;color:var(--text-muted);padding:40px;';
+        emptyMsg.textContent = 'No OAuth providers available. Add provider credentials to your config to get started.';
+        container.appendChild(emptyMsg);
+        return;
+      }
+
+      supported.forEach(function(provider) {
+        var conn = connMap[provider] || { connected: false, configured: false, token_valid: false };
+        var label = providerLabels[provider] || { name: provider, icon: '\u{1F517}', desc: '' };
+        var statusColor = conn.connected ? (conn.token_valid ? 'var(--green)' : 'var(--yellow)') : 'var(--text-faint)';
+        var statusText = conn.connected ? (conn.token_valid ? 'Connected' : 'Token Expired') : (conn.configured ? 'Not Connected' : 'Not Configured');
+        var statusBg = conn.connected ? (conn.token_valid ? 'var(--green-bg)' : 'var(--yellow-bg)') : 'transparent';
+
+        var row = document.createElement('div');
+        row.style.cssText = 'background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;justify-content:space-between;';
+
+        var leftDiv = document.createElement('div');
+        leftDiv.style.cssText = 'display:flex;align-items:center;gap:12px;';
+
+        var iconSpan = document.createElement('span');
+        iconSpan.style.fontSize = '24px';
+        iconSpan.textContent = label.icon;
+        leftDiv.appendChild(iconSpan);
+
+        var infoDiv = document.createElement('div');
+        var nameDiv = document.createElement('div');
+        nameDiv.style.cssText = 'font-weight:600;font-size:14px;';
+        nameDiv.textContent = label.name;
+        infoDiv.appendChild(nameDiv);
+        var descDiv = document.createElement('div');
+        descDiv.style.cssText = 'font-size:12px;color:var(--text-secondary);';
+        descDiv.textContent = label.desc;
+        infoDiv.appendChild(descDiv);
+        leftDiv.appendChild(infoDiv);
+        row.appendChild(leftDiv);
+
+        var rightDiv = document.createElement('div');
+        rightDiv.style.cssText = 'display:flex;align-items:center;gap:10px;';
+
+        var badge = document.createElement('span');
+        badge.style.cssText = 'font-size:11px;padding:3px 8px;border-radius:20px;background:' + statusBg + ';color:' + statusColor + ';border:1px solid ' + statusColor + '30;';
+        badge.textContent = statusText;
+        rightDiv.appendChild(badge);
+
+        if (conn.connected) {
+          var disconnectBtn = document.createElement('button');
+          disconnectBtn.className = 'btn btn-ghost';
+          disconnectBtn.style.cssText = 'font-size:12px;padding:4px 12px;color:var(--red);';
+          disconnectBtn.textContent = 'Disconnect';
+          disconnectBtn.setAttribute('data-provider', provider);
+          disconnectBtn.addEventListener('click', function() { disconnectOAuth(this.getAttribute('data-provider')); });
+          rightDiv.appendChild(disconnectBtn);
+        } else if (conn.configured) {
+          var connectBtn = document.createElement('button');
+          connectBtn.className = 'btn btn-primary';
+          connectBtn.style.cssText = 'font-size:12px;padding:4px 12px;';
+          connectBtn.textContent = 'Connect';
+          connectBtn.setAttribute('data-provider', provider);
+          connectBtn.addEventListener('click', function() { connectOAuth(this.getAttribute('data-provider')); });
+          rightDiv.appendChild(connectBtn);
+        } else {
+          var hint = document.createElement('span');
+          hint.style.cssText = 'font-size:11px;color:var(--text-muted);';
+          hint.textContent = 'Add credentials to config';
+          rightDiv.appendChild(hint);
+        }
+
+        row.appendChild(rightDiv);
+        container.appendChild(row);
+      });
+    })
+    .catch(function(err) {
+      var container = document.getElementById('oauth-connections-list');
+      if (container) {
+        while (container.firstChild) container.removeChild(container.firstChild);
+        var errDiv = document.createElement('div');
+        errDiv.style.color = 'var(--red)';
+        errDiv.textContent = 'Failed to load integrations: ' + err.message;
+        container.appendChild(errDiv);
+      }
+    });
+}
+
+function connectOAuth(provider) {
+  var popup = window.open('/oauth/' + provider + '/authorize', '_blank', 'width=600,height=700');
+  if (!popup || popup.closed) {
+    alert('Popup was blocked. Please allow popups for this site and try again.');
+    return;
+  }
+  // Poll for connection status after a delay
+  setTimeout(function() { loadIntegrations(); }, 5000);
+  setTimeout(function() { loadIntegrations(); }, 10000);
+  setTimeout(function() { loadIntegrations(); }, 20000);
+}
+
+function disconnectOAuth(provider) {
+  if (!confirm('Disconnect ' + (providerLabels[provider] ? providerLabels[provider].name : provider) + '? This will revoke the stored OAuth tokens.')) return;
+  fetch('/api/dashboard/oauth/' + provider, { method: 'DELETE' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.ok) {
+        toast(provider + ' disconnected');
+      } else {
+        toast('Failed to disconnect: ' + (data.error || 'Unknown error'));
+      }
+      loadIntegrations();
+    })
+    .catch(function(err) { toast('Error: ' + err.message); });
+}
 
 function loadPrivacy() {
   apiLogOffset = 0;

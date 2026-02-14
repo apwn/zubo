@@ -167,6 +167,35 @@ export const configSchema = z.object({
       enabled: z.boolean().default(true),
     })),
   }).optional(),
+
+  // OAuth integrations
+  oauth: z.object({
+    providers: z.object({
+      google: z.object({
+        clientId: z.string().min(1),
+        clientSecret: z.string().min(1),
+        scopes: z.array(z.string()).optional(),
+      }).optional(),
+      notion: z.object({
+        clientId: z.string().min(1),
+        clientSecret: z.string().min(1),
+      }).optional(),
+      linear: z.object({
+        clientId: z.string().min(1),
+        clientSecret: z.string().min(1),
+      }).optional(),
+      github: z.object({
+        clientId: z.string().min(1),
+        clientSecret: z.string().min(1),
+        scopes: z.array(z.string()).optional(),
+      }).optional(),
+      slack: z.object({
+        clientId: z.string().min(1),
+        clientSecret: z.string().min(1),
+        scopes: z.array(z.string()).optional(),
+      }).optional(),
+    }).optional(),
+  }).optional(),
 });
 
 export type ZuboConfig = z.infer<typeof configSchema>;

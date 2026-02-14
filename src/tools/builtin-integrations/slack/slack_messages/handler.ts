@@ -12,9 +12,17 @@ function safeExceptionError(err: any, service: string): string {
 const API = "https://slack.com/api";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
-  const token = (globalThis as any).Zubo?.getSecret?.("slack_token");
+  // Try OAuth token first, then fall back to API key
+  let token: string | null = null;
+  try {
+    const { getOAuthTokenForIntegration } = await import("../../../oauth");
+    token = await getOAuthTokenForIntegration("slack");
+  } catch {}
   if (!token) {
-    return JSON.stringify({ error: "Slack is not connected. Tell me your Slack Bot Token (starts with xoxb-) and I'll set it up." });
+    token = (globalThis as any).Zubo?.getSecret?.("slack_token") ?? null;
+  }
+  if (!token) {
+    return JSON.stringify({ error: "Slack is not connected. Use oauth_manage with provider 'slack' to connect via OAuth, or tell me your Slack Bot Token (starts with xoxb-) and I'll set it up." });
   }
 
   const { action, channel, text, query, limit } = input as {

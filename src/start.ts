@@ -18,7 +18,7 @@ import { registerDelegateTaskTool } from "./tools/builtin/delegate-task";
 import { registerDiagnoseTool } from "./tools/builtin/diagnose";
 import { registerGoogleOAuthTool } from "./tools/builtin/google-oauth";
 import { registerManageAgentsTool } from "./tools/builtin/manage-agents";
-import { exposeSecretsRuntime, exposeGoogleTokenRuntime } from "./secrets/store";
+import { exposeSecretsRuntime, exposeGoogleTokenRuntime, exposeOAuthTokenRuntime } from "./secrets/store";
 import { registerTool } from "./tools/registry";
 import { loadSkills, watchSkills } from "./tools/skill-loader";
 import { createRouter, type MessageRouter } from "./channels/router";
@@ -214,6 +214,10 @@ export async function startZubo(isDaemon = false) {
   const { getGoogleAccessToken } = await import("./util/google-tokens");
   exposeGoogleTokenRuntime(getGoogleAccessToken);
 
+  // Expose multi-provider OAuth token helper for skill handlers
+  const { getOAuthTokenForIntegration } = await import("./tools/oauth");
+  exposeOAuthTokenRuntime(getOAuthTokenForIntegration);
+
   registerConnectServiceTool();
 
   // Register skill registry tool
@@ -251,6 +255,37 @@ export async function startZubo(isDaemon = false) {
 
   // Register Google OAuth tool
   registerGoogleOAuthTool();
+
+  // Register OAuth management tool (multi-provider)
+  const oauthManageHandler = (await import("./tools/builtin-skills/oauth-manage/handler")).default;
+  registerTool({
+    definition: {
+      name: "oauth_manage",
+      description:
+        "Manage OAuth connections for third-party integrations (Google, GitHub, Notion, Linear, Slack). " +
+        "Use action 'list' to see all connections and their status. " +
+        "Use 'connect' with a provider name to get an authorization URL. " +
+        "Use 'disconnect' to revoke access. Use 'status' to check a specific provider.",
+      input_schema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["list", "connect", "disconnect", "status"],
+            description: "The action to perform.",
+          },
+          provider: {
+            type: "string",
+            enum: ["google", "github", "notion", "linear", "slack"],
+            description: "The OAuth provider name. Required for connect, disconnect, and status.",
+          },
+        },
+        required: ["action"],
+      },
+    },
+    execute: oauthManageHandler,
+  });
+  logger.info("OAuth management tool registered");
 
   // Register workflow + team tools
   const { registerManageWorkflowsTool } = await import("./tools/builtin/manage-workflows");

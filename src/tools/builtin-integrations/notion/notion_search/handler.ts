@@ -12,10 +12,18 @@ function safeExceptionError(err: any, service: string): string {
 const API = "https://api.notion.com/v1";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
-  const token = (globalThis as any).Zubo?.getSecret?.("notion_token");
+  // Try OAuth token first, then fall back to API key
+  let token: string | null = null;
+  try {
+    const { getOAuthTokenForIntegration } = await import("../../../oauth");
+    token = await getOAuthTokenForIntegration("notion");
+  } catch {}
+  if (!token) {
+    token = (globalThis as any).Zubo?.getSecret?.("notion_token") ?? null;
+  }
   if (!token) {
     return JSON.stringify({
-      error: "Notion token not configured. Use secret_set to store a 'notion_token' or connect_service to set up Notion.",
+      error: "Notion is not connected. Use oauth_manage with provider 'notion' to connect via OAuth, or use secret_set to store a 'notion_token'.",
     });
   }
 

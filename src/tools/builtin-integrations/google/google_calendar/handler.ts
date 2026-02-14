@@ -1,6 +1,13 @@
 const API = "https://www.googleapis.com/calendar/v3";
 
 async function getToken(): Promise<string> {
+  // Try the new multi-provider OAuth system first
+  try {
+    const { getOAuthTokenForIntegration } = await import("../../../oauth");
+    const oauthToken = await getOAuthTokenForIntegration("google");
+    if (oauthToken) return oauthToken;
+  } catch {}
+  // Fall back to existing Google-specific OAuth
   const Zubo = (globalThis as any).Zubo;
   if (Zubo?.getGoogleToken) return Zubo.getGoogleToken();
   throw new Error("Google is not connected. Ask me to set up Google and I'll walk you through it.");

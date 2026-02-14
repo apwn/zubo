@@ -21,8 +21,16 @@ async function gql(token: string, query: string, variables?: any): Promise<any> 
 }
 
 export default async function (input: Record<string, unknown>): Promise<string> {
-  const token = (globalThis as any).Zubo?.getSecret?.("linear_token");
-  if (!token) return JSON.stringify({ error: "Linear is not connected. Tell me your Linear API key and I'll set it up. You can create one at linear.app/settings/api." });
+  // Try OAuth token first, then fall back to API key
+  let token: string | null = null;
+  try {
+    const { getOAuthTokenForIntegration } = await import("../../../oauth");
+    token = await getOAuthTokenForIntegration("linear");
+  } catch {}
+  if (!token) {
+    token = (globalThis as any).Zubo?.getSecret?.("linear_token") ?? null;
+  }
+  if (!token) return JSON.stringify({ error: "Linear is not connected. Use oauth_manage with provider 'linear' to connect via OAuth, or tell me your Linear API key and I'll set it up." });
 
   const { action, issue_id, title, description, team_id, query, assignee_id, priority } = input as {
     action: string; issue_id?: string; title?: string; description?: string;

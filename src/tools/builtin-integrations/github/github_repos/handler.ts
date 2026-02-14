@@ -12,10 +12,18 @@ function safeExceptionError(err: any, service: string): string {
 const API = "https://api.github.com";
 
 export default async function (input: Record<string, unknown>): Promise<string> {
-  const token = (globalThis as any).Zubo?.getSecret?.("github_token");
+  // Try OAuth token first, then fall back to API key
+  let token: string | null = null;
+  try {
+    const { getOAuthTokenForIntegration } = await import("../../../oauth");
+    token = await getOAuthTokenForIntegration("github");
+  } catch {}
+  if (!token) {
+    token = (globalThis as any).Zubo?.getSecret?.("github_token") ?? null;
+  }
   if (!token) {
     return JSON.stringify({
-      error: "GitHub token not configured. Use secret_set to store a 'github_token' or connect_service to set up GitHub.",
+      error: "GitHub is not connected. Use oauth_manage with provider 'github' to connect via OAuth, or use secret_set to store a 'github_token'.",
     });
   }
 

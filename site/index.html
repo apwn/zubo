@@ -320,7 +320,7 @@
       <div class="section-header reveal">
         <span class="section-badge">Integrations</span>
         <h2 class="section-title">Connects to your <span class="gradient-text">entire stack</span>.</h2>
-        <p class="section-subtitle">Zubo plugs into the tools your team already uses. Manage issues, read docs, post updates, and automate workflows &mdash; all through natural conversation.</p>
+        <p class="section-subtitle">Zubo plugs into the tools your team already uses via API keys or OAuth 2.0. Manage issues, read docs, post updates, and automate workflows &mdash; all through natural conversation.</p>
       </div>
 
       <div class="integrations-grid reveal-stagger">
@@ -370,6 +370,14 @@
           </div>
           <h4>X / Twitter</h4>
           <p>Post tweets, read timelines, track mentions. Social media on autopilot.</p>
+        </div>
+
+        <div class="integration-card tilt-card">
+          <div class="integration-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+          </div>
+          <h4>OAuth 2.0</h4>
+          <p>Secure token-based auth with automatic refresh. Connect Google, GitHub, Notion, Linear, and Slack with one click.</p>
         </div>
       </div>
     </div>
@@ -421,7 +429,7 @@
         </div>
 
         <div class="channel-card tilt-card">
-          <div class="channel-icon channel-email">
+          <div class="channel-icon channel-email" aria-label="Email">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           </div>
           <span>Email</span>
@@ -661,12 +669,18 @@
           </a>
         </div>
         <p class="cta-subtext">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Free &amp; open source
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          No cloud required
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Works with any LLM
+          <span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Free &amp; open source
+          </span>
+          <span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            No cloud required
+          </span>
+          <span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Works with any LLM
+          </span>
         </p>
       </div>
     </div>
@@ -716,7 +730,7 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Zubo",
-    "description": "Open-source AI agent with persistent semantic memory, multi-channel presence, 20+ smart tools, sub-agent delegation, and workflow automation. Runs locally on your machine.",
+    "description": "Open-source AI agent with persistent semantic memory, multi-channel presence, 25+ smart tools, sub-agent delegation, OAuth integrations, and workflow automation. Runs locally on your machine.",
     "url": "https://zubo.bot",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "macOS, Linux, Windows",

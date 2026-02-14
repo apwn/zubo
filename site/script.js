@@ -17,21 +17,37 @@ function switchOS(os) {
   'use strict';
 
   /* ------------------------------------------
+     Utility: detect touch/mobile
+     ------------------------------------------ */
+  var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ------------------------------------------
      1. Navigation
      ------------------------------------------ */
   var nav = document.getElementById('nav');
   var navToggle = document.getElementById('nav-toggle');
   var navLinks = document.getElementById('nav-links');
+  var lastScrollY = 0;
+  var scrollTicking = false;
 
   function handleScroll() {
-    if (window.scrollY > 20) {
+    var currentScrollY = window.scrollY;
+    if (currentScrollY > 20) {
       nav.classList.add('scrolled');
     } else {
       nav.classList.remove('scrolled');
     }
+    lastScrollY = currentScrollY;
+    scrollTicking = false;
   }
 
-  window.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('scroll', function () {
+    if (!scrollTicking) {
+      requestAnimationFrame(handleScroll);
+      scrollTicking = true;
+    }
+  }, { passive: true });
   handleScroll();
 
   if (navToggle && navLinks) {
@@ -51,23 +67,32 @@ function switchOS(os) {
   /* ------------------------------------------
      2. Scroll-triggered reveal animations
      ------------------------------------------ */
-  var revealElements = document.querySelectorAll('.reveal');
+  if (!prefersReducedMotion) {
+    var revealElements = document.querySelectorAll('.reveal');
+    var revealObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -60px 0px' }
+    );
 
-  var revealObserver = new IntersectionObserver(
-    function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
-  );
-
-  revealElements.forEach(function (el) {
-    revealObserver.observe(el);
-  });
+    revealElements.forEach(function (el) {
+      revealObserver.observe(el);
+    });
+  } else {
+    // If reduced motion, make everything visible immediately
+    document.querySelectorAll('.reveal').forEach(function (el) {
+      el.classList.add('visible');
+    });
+    document.querySelectorAll('.reveal-stagger').forEach(function (el) {
+      el.classList.add('visible');
+    });
+  }
 
   /* ------------------------------------------
      3. Stat counter animation
@@ -81,15 +106,15 @@ function switchOS(os) {
 
     statNumbers.forEach(function (el) {
       var target = parseInt(el.getAttribute('data-target'), 10);
-      var duration = 1500;
+      var duration = 1800;
       var start = 0;
       var startTime = null;
 
       function step(timestamp) {
         if (!startTime) startTime = timestamp;
         var progress = Math.min((timestamp - startTime) / duration, 1);
-        // Ease out cubic
-        var eased = 1 - Math.pow(1 - progress, 3);
+        // Ease out expo for snappier feel
+        var eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
         var current = Math.round(start + (target - start) * eased);
         el.textContent = current;
         if (progress < 1) {
@@ -128,13 +153,13 @@ function switchOS(os) {
     var text = element.getAttribute('data-text');
     if (!text) { if (callback) callback(); return; }
     var i = 0;
-    var speed = 25;
+    var speed = 22;
 
     function typeChar() {
       if (i < text.length) {
         element.textContent += text.charAt(i);
         i++;
-        setTimeout(typeChar, speed + Math.random() * 20);
+        setTimeout(typeChar, speed + Math.random() * 18);
       } else {
         if (callback) callback();
       }
@@ -145,7 +170,16 @@ function switchOS(os) {
 
   function showElement(id) {
     var el = document.getElementById(id);
-    if (el) el.style.display = '';
+    if (el) {
+      el.style.display = '';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(6px)';
+      // Trigger reflow then animate
+      el.offsetHeight;
+      el.style.transition = 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }
   }
 
   function runTerminalDemo() {
@@ -258,65 +292,98 @@ function switchOS(os) {
   /* ------------------------------------------
      7. Bento card mouse glow effect
      ------------------------------------------ */
-  document.querySelectorAll('.bento-card').forEach(function (card) {
-    card.addEventListener('mousemove', function (e) {
-      var rect = card.getBoundingClientRect();
-      var x = e.clientX - rect.left;
-      var y = e.clientY - rect.top;
-      card.style.setProperty('--mouse-x', x + 'px');
-      card.style.setProperty('--mouse-y', y + 'px');
+  if (!isTouchDevice) {
+    document.querySelectorAll('.bento-card').forEach(function (card) {
+      card.addEventListener('mousemove', function (e) {
+        var rect = card.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', x + 'px');
+        card.style.setProperty('--mouse-y', y + 'px');
+      });
     });
-  });
+  }
 
   /* ------------------------------------------
-     8. Scroll progress bar
+     8. Scroll progress bar (performant)
      ------------------------------------------ */
   var progressBar = document.getElementById('scroll-progress');
+  var progressTicking = false;
+
+  function updateProgress() {
+    var h = document.documentElement;
+    var progress = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    var pct = Math.min(progress * 100, 100);
+    progressBar.style.width = pct + '%';
+    progressTicking = false;
+  }
+
   if (progressBar) {
     window.addEventListener('scroll', function () {
-      var h = document.documentElement;
-      var progress = h.scrollTop / (h.scrollHeight - h.clientHeight);
-      progressBar.style.setProperty('--progress', Math.min(progress, 1));
+      if (!progressTicking) {
+        requestAnimationFrame(updateProgress);
+        progressTicking = true;
+      }
     }, { passive: true });
   }
 
   /* ------------------------------------------
      9. Stagger reveal observer
      ------------------------------------------ */
-  var staggerElements = document.querySelectorAll('.reveal-stagger');
-  var staggerObserver = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        staggerObserver.unobserve(entry.target);
-      }
+  if (!prefersReducedMotion) {
+    var staggerElements = document.querySelectorAll('.reveal-stagger');
+    var staggerObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          staggerObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    staggerElements.forEach(function (el) {
+      staggerObserver.observe(el);
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-  staggerElements.forEach(function (el) {
-    staggerObserver.observe(el);
-  });
+  }
 
   /* ------------------------------------------
-     10. Card tilt effect
+     10. Card tilt effect (desktop only)
      ------------------------------------------ */
-  document.querySelectorAll('.tilt-card').forEach(function (card) {
-    card.addEventListener('mousemove', function (e) {
-      var rect = card.getBoundingClientRect();
-      var x = e.clientX - rect.left;
-      var y = e.clientY - rect.top;
-      var centerX = rect.width / 2;
-      var centerY = rect.height / 2;
-      var tiltX = ((y - centerY) / centerY) * -4;
-      var tiltY = ((x - centerX) / centerX) * 4;
-      card.style.transform = 'perspective(800px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg)';
+  if (!isTouchDevice && !prefersReducedMotion) {
+    var tiltCards = document.querySelectorAll('.tilt-card');
+    tiltCards.forEach(function (card) {
+      card.addEventListener('mousemove', function (e) {
+        var rect = card.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        var centerX = rect.width / 2;
+        var centerY = rect.height / 2;
+        var tiltX = ((y - centerY) / centerY) * -3;
+        var tiltY = ((x - centerX) / centerX) * 3;
+        card.style.transform = 'perspective(900px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg) translateZ(4px)';
+      });
+      card.addEventListener('mouseleave', function () {
+        card.style.transform = 'perspective(900px) rotateX(0) rotateY(0) translateZ(0)';
+      });
     });
-    card.addEventListener('mouseleave', function () {
-      card.style.transform = 'perspective(800px) rotateX(0) rotateY(0)';
-    });
-  });
+  }
 
   /* ------------------------------------------
-     11. Animated gradient border angle
+     11. Button ripple position tracking
+     ------------------------------------------ */
+  if (!isTouchDevice) {
+    document.querySelectorAll('.btn').forEach(function (btn) {
+      btn.addEventListener('mousemove', function (e) {
+        var rect = btn.getBoundingClientRect();
+        var x = ((e.clientX - rect.left) / rect.width) * 100;
+        var y = ((e.clientY - rect.top) / rect.height) * 100;
+        btn.style.setProperty('--ripple-x', x + '%');
+        btn.style.setProperty('--ripple-y', y + '%');
+      });
+    });
+  }
+
+  /* ------------------------------------------
+     12. Animated gradient border angle
      ------------------------------------------ */
   var glowBorders = document.querySelectorAll('.glow-border');
   if (glowBorders.length > 0 && !CSS.supports('animation-timeline', 'auto')) {
@@ -332,7 +399,7 @@ function switchOS(os) {
   }
 
   /* ------------------------------------------
-     12. Docs sidebar mobile toggle
+     13. Docs sidebar mobile toggle
      ------------------------------------------ */
   var docsSidebarToggle = document.getElementById('docs-sidebar-toggle');
   var docsSidebar = document.getElementById('docs-sidebar');
@@ -351,7 +418,7 @@ function switchOS(os) {
   }
 
   /* ------------------------------------------
-     13. Smooth scroll for anchor links
+     14. Smooth scroll for anchor links
      ------------------------------------------ */
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     anchor.addEventListener('click', function (e) {
@@ -366,5 +433,65 @@ function switchOS(os) {
       }
     });
   });
+
+  /* ------------------------------------------
+     15. Parallax on hero orbs (subtle, desktop only)
+     ------------------------------------------ */
+  if (!isTouchDevice && !prefersReducedMotion) {
+    var heroGlow = document.querySelector('.hero-glow');
+    if (heroGlow) {
+      var orbs = heroGlow.querySelectorAll('.orb');
+      var parallaxTicking = false;
+
+      function updateParallax() {
+        var scrollY = window.scrollY;
+        var heroHeight = document.querySelector('.hero').offsetHeight;
+        if (scrollY < heroHeight) {
+          var factor = scrollY / heroHeight;
+          orbs.forEach(function (orb, i) {
+            var speed = (i + 1) * 0.03;
+            orb.style.transform = 'translateY(' + (scrollY * speed) + 'px)';
+          });
+        }
+        parallaxTicking = false;
+      }
+
+      window.addEventListener('scroll', function () {
+        if (!parallaxTicking) {
+          requestAnimationFrame(updateParallax);
+          parallaxTicking = true;
+        }
+      }, { passive: true });
+    }
+  }
+
+  /* ------------------------------------------
+     16. Section separator glow effect
+     ------------------------------------------ */
+  if (!prefersReducedMotion) {
+    var sections = document.querySelectorAll('.features, .integrations, .channels, .getting-started, .oss, .final-cta');
+    sections.forEach(function (section) {
+      var beforeEl = section;
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.style.setProperty('--sep-opacity', '1');
+          }
+        });
+      }, { threshold: 0.05 });
+      observer.observe(section);
+    });
+  }
+
+  /* ------------------------------------------
+     17. Lazy-load below-fold sections
+     ------------------------------------------ */
+  if ('IntersectionObserver' in window) {
+    var lazyContents = document.querySelectorAll('.integrations, .channels, .getting-started, .oss, .final-cta');
+    lazyContents.forEach(function (section) {
+      section.style.contentVisibility = 'auto';
+      section.style.containIntrinsicSize = 'auto 600px';
+    });
+  }
 
 })();

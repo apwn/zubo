@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Integrations — Zubo Docs</title>
-  <meta name="description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, and Twitter with pre-built skill packs and API keys.">
+  <meta name="description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, and Twitter with pre-built skill packs, API keys, and OAuth authentication.">
   <meta name="theme-color" content="#060608">
   <link rel="canonical" href="https://zubo.bot/docs/integrations.html">
   <meta property="og:title" content="Integrations — Zubo Docs">
-  <meta property="og:description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, and Twitter with pre-built integrations.">
+  <meta property="og:description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, and Twitter with pre-built integrations and OAuth.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://zubo.bot/docs/integrations.html">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
@@ -72,6 +72,7 @@
         <div class="docs-sidebar-links">
           <a href="channels.html">Channel Setup</a>
           <a href="integrations.html" class="active">Integrations</a>
+          <a href="integrations.html#oauth">OAuth</a>
           <a href="security.html">Security &amp; Auth</a>
         </div>
       </div>
@@ -94,7 +95,7 @@
       </div>
 
       <h1>Integrations</h1>
-      <p>Zubo integrates with popular services via pre-built skill packs. Each integration installs one or more skills and requires an API key stored as a secret. You can connect integrations via chat, the dashboard, or the <code>connect_service</code> tool.</p>
+      <p>Zubo integrates with popular services via pre-built skill packs. Each integration installs one or more skills and can be connected using API keys or <a href="#oauth">OAuth 2.0 authentication</a>. You can connect integrations via chat, the dashboard, or the <code>connect_service</code> tool. For supported providers, OAuth is the recommended approach &mdash; it is more secure, easier to manage, and handles token refresh automatically.</p>
 
       <h2 id="connecting-an-integration">Connecting an Integration</h2>
       <p>There are three ways to connect a service:</p>
@@ -339,6 +340,133 @@
 "Delete the github_token secret"
 "Update my notion_token to ntn_newvalue123"</code></pre>
 
+      <!-- ================================================================ -->
+      <h2 id="oauth">OAuth Authentication</h2>
+      <p>In addition to raw API keys, Zubo supports <strong>OAuth 2.0</strong> for connecting to services securely. OAuth is the standard authorization protocol used by Google, GitHub, Notion, Linear, and Slack. Instead of pasting long-lived API keys, OAuth lets you authenticate through the provider's own login page. Zubo receives short-lived access tokens and refresh tokens, automatically refreshing them when they expire &mdash; so your connections stay alive without manual intervention.</p>
+
+      <h3 id="oauth-why">Why OAuth?</h3>
+      <ul>
+        <li><strong>More secure</strong> &mdash; tokens are short-lived and scoped. If compromised, they expire quickly. No permanent API keys sitting in your database.</li>
+        <li><strong>Easier to set up</strong> &mdash; click &ldquo;Connect&rdquo; in the dashboard, log into the provider, and approve. No hunting for API key pages.</li>
+        <li><strong>Granular permissions</strong> &mdash; you choose exactly which scopes to grant during the OAuth flow (e.g., read-only calendar vs. full calendar access).</li>
+        <li><strong>Automatic refresh</strong> &mdash; Zubo handles token refresh behind the scenes. When an access token expires, Zubo uses the stored refresh token to get a new one without any user action.</li>
+        <li><strong>Revocable</strong> &mdash; revoke access at any time from the provider's settings or from Zubo's dashboard. No need to rotate API keys.</li>
+      </ul>
+
+      <h3 id="oauth-providers">Supported OAuth Providers</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Services</th>
+            <th>Default Scopes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Google</td>
+            <td>Gmail, Calendar, Sheets, Docs, Drive</td>
+            <td><code>gmail.readonly</code>, <code>calendar.events</code>, <code>spreadsheets</code>, <code>drive.readonly</code></td>
+          </tr>
+          <tr>
+            <td>GitHub</td>
+            <td>Repos, Issues, Pull Requests, Code Search</td>
+            <td><code>repo</code>, <code>read:user</code></td>
+          </tr>
+          <tr>
+            <td>Notion</td>
+            <td>Pages, Databases, Blocks</td>
+            <td>Full workspace access (Notion uses a single scope)</td>
+          </tr>
+          <tr>
+            <td>Linear</td>
+            <td>Issues, Projects, Teams</td>
+            <td><code>read</code>, <code>write</code></td>
+          </tr>
+          <tr>
+            <td>Slack</td>
+            <td>Channels, Messages, Users</td>
+            <td><code>channels:read</code>, <code>chat:write</code>, <code>users:read</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 id="oauth-setup">Setting Up OAuth</h3>
+      <p>OAuth requires a one-time setup where you register an OAuth app with each provider. This gives you a <code>clientId</code> and <code>clientSecret</code> pair that Zubo uses to initiate the authorization flow.</p>
+
+      <h4>Step 1: Create an OAuth App with the Provider</h4>
+      <p>Each provider has its own developer console for creating OAuth apps:</p>
+      <ul>
+        <li><strong>Google:</strong> <a href="https://console.cloud.google.com/apis/credentials">Google Cloud Console &rarr; APIs &amp; Services &rarr; Credentials</a> &mdash; Create an OAuth 2.0 Client ID. Set the redirect URI to <code>http://localhost:3000/oauth/callback</code> (or your configured dashboard port).</li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/settings/developers">Settings &rarr; Developer Settings &rarr; OAuth Apps</a> &mdash; Register a new app. Set the callback URL to <code>http://localhost:3000/oauth/callback</code>.</li>
+        <li><strong>Notion:</strong> <a href="https://www.notion.so/my-integrations">My Integrations</a> &mdash; Create a public integration and set the redirect URI.</li>
+        <li><strong>Linear:</strong> <a href="https://linear.app/settings/api">Settings &rarr; API &rarr; OAuth Applications</a> &mdash; Create a new application with the callback URL.</li>
+        <li><strong>Slack:</strong> <a href="https://api.slack.com/apps">api.slack.com/apps</a> &mdash; Create a new app and configure OAuth &amp; Permissions with the redirect URL.</li>
+      </ul>
+
+      <h4>Step 2: Add Credentials to config.json</h4>
+      <p>Add the <code>clientId</code> and <code>clientSecret</code> for each provider you want to use to your <code>~/.zubo/config.json</code>:</p>
+<pre><code>{
+  "oauth": {
+    "providers": {
+      "google": {
+        "clientId": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+        "clientSecret": "YOUR_GOOGLE_CLIENT_SECRET"
+      },
+      "github": {
+        "clientId": "YOUR_GITHUB_CLIENT_ID",
+        "clientSecret": "YOUR_GITHUB_CLIENT_SECRET"
+      },
+      "notion": {
+        "clientId": "YOUR_NOTION_CLIENT_ID",
+        "clientSecret": "YOUR_NOTION_CLIENT_SECRET"
+      },
+      "linear": {
+        "clientId": "YOUR_LINEAR_CLIENT_ID",
+        "clientSecret": "YOUR_LINEAR_CLIENT_SECRET"
+      },
+      "slack": {
+        "clientId": "YOUR_SLACK_CLIENT_ID",
+        "clientSecret": "YOUR_SLACK_CLIENT_SECRET"
+      }
+    }
+  }
+}</code></pre>
+      <p>You only need to add the providers you plan to use. Providers without credentials are simply skipped.</p>
+
+      <h4>Step 3: Connect via Dashboard or Chat</h4>
+      <p>Once credentials are configured, connect in one of two ways:</p>
+      <ul>
+        <li><strong>Dashboard:</strong> Navigate to Settings &rarr; OAuth Connections. Click &ldquo;Connect&rdquo; next to the provider. You will be redirected to the provider's login page. After approving, you are redirected back and the tokens are stored automatically.</li>
+        <li><strong>Chat:</strong> Ask Zubo directly &mdash; for example, <code>"Connect my Google account"</code> or <code>"Set up GitHub OAuth"</code>. Zubo will provide a link to complete the OAuth flow.</li>
+      </ul>
+
+      <h3 id="oauth-token-refresh">Automatic Token Refresh</h3>
+      <p>OAuth access tokens are short-lived (typically 1 hour for Google, longer for others). When Zubo detects an expired token, it automatically uses the stored refresh token to obtain a new access token. This happens transparently &mdash; you never see an error or get asked to re-authenticate. If a refresh token is revoked or expires (rare), Zubo will notify you and prompt you to re-connect through the dashboard.</p>
+
+      <h3 id="oauth-fallback">Graceful Fallback</h3>
+      <p>OAuth and API keys work side-by-side. If you have both an OAuth token and an API key for the same provider, Zubo prefers the OAuth token. If no OAuth token is available, Zubo falls back to the API key automatically. This means you can adopt OAuth incrementally &mdash; start with API keys and upgrade providers to OAuth one at a time without breaking anything.</p>
+
+      <h3 id="oauth-dashboard">Dashboard UI</h3>
+      <p>The OAuth Connections panel in the dashboard (Settings &rarr; OAuth Connections) shows:</p>
+      <ul>
+        <li>All configured providers and their connection status (connected, disconnected, expired)</li>
+        <li>The account or email associated with each connection</li>
+        <li>When the token was last refreshed</li>
+        <li>A &ldquo;Connect&rdquo; button for disconnected providers and a &ldquo;Disconnect&rdquo; button for active ones</li>
+      </ul>
+
+      <h3 id="oauth-manage-tool">The <code>oauth_manage</code> Tool</h3>
+      <p>Zubo includes a built-in <code>oauth_manage</code> tool that the agent uses to manage OAuth connections programmatically. You can interact with it through natural conversation:</p>
+      <ul>
+        <li><code>"List my OAuth connections"</code> &mdash; shows all providers and their status (<code>oauth_manage</code> with action <code>list</code>)</li>
+        <li><code>"Connect my GitHub account"</code> &mdash; initiates the OAuth flow for GitHub (<code>oauth_manage</code> with action <code>connect</code>)</li>
+        <li><code>"Disconnect Google"</code> &mdash; revokes and removes the Google OAuth tokens (<code>oauth_manage</code> with action <code>disconnect</code>)</li>
+        <li><code>"What's the status of my Notion connection?"</code> &mdash; checks if the token is valid and when it expires (<code>oauth_manage</code> with action <code>status</code>)</li>
+      </ul>
+      <p>The tool supports four actions: <code>list</code>, <code>connect</code>, <code>disconnect</code>, and <code>status</code>. All token storage and refresh logic is handled internally.</p>
+
+      <!-- ================================================================ -->
       <h2 id="best-practices">Best Practices</h2>
       <ul>
         <li><strong>Use minimum required scopes:</strong> When creating API tokens, only grant the permissions each service needs. For GitHub, <code>repo</code> and <code>read:user</code> are sufficient &mdash; avoid granting <code>admin</code> or <code>delete</code> scopes.</li>
@@ -348,6 +476,9 @@
         <li><strong>Secrets are excluded from exports:</strong> When you run <code>zubo export</code>, secrets and API keys are automatically excluded to prevent accidental credential leakage.</li>
         <li><strong>Store secrets via Zubo:</strong> Always use the agent, dashboard, or <code>secret_set</code> tool to store credentials. Never put them in environment variables, configuration files, or skill source code.</li>
         <li><strong>Share Notion pages explicitly:</strong> The Notion integration can only access pages and databases that have been explicitly shared with the integration &mdash; it does not have access to your entire workspace by default.</li>
+        <li><strong>Prefer OAuth over API keys when available:</strong> OAuth tokens are short-lived and automatically refreshed, reducing the risk window compared to long-lived API keys. Use OAuth for Google, GitHub, Notion, Linear, and Slack wherever possible.</li>
+        <li><strong>Keep OAuth client secrets out of version control:</strong> Your <code>clientId</code> and <code>clientSecret</code> should live only in your local <code>config.json</code>. Never commit them to a repository.</li>
+        <li><strong>Request minimal OAuth scopes:</strong> When setting up OAuth apps, only request the scopes your agent actually needs. You can always add more later.</li>
       </ul>
 
       <div class="docs-page-nav">
