@@ -52,7 +52,13 @@ function getStatusData(): Record<string, string> {
   // DB stats
   try {
     const db = getDb();
-    const msgs = (db.query("SELECT COUNT(*) as c FROM messages").get() as any)?.c ?? 0;
+    let msgs = 0;
+    try {
+      const sessionFiles = readdirSync(paths.sessions).filter(f => f.endsWith(".jsonl"));
+      for (const file of sessionFiles) {
+        msgs += readFileSync(join(paths.sessions, file), "utf-8").trim().split("\n").filter(Boolean).length;
+      }
+    } catch {}
     const mems = (db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as any)?.c ?? 0;
     data["Messages"] = String(msgs);
     data["Memories"] = String(mems);
@@ -897,12 +903,24 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
       const db = getDb();
 
       const memoryCount = (db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as any)?.c ?? 0;
-      const messageCount = (db.query("SELECT COUNT(*) as c FROM messages").get() as any)?.c ?? 0;
-      const sessionCount = (db.query("SELECT COUNT(DISTINCT session_id) as c FROM messages").get() as any)?.c ?? 0;
+
+      // Messages are stored as JSONL files in sessions dir, not in SQL
+      let messageCount = 0;
+      let sessionCount = 0;
+      try {
+        const sessionFiles = readdirSync(paths.sessions).filter(f => f.endsWith(".jsonl"));
+        sessionCount = sessionFiles.length;
+        for (const file of sessionFiles) {
+          const content = readFileSync(join(paths.sessions, file), "utf-8");
+          messageCount += content.trim().split("\n").filter(Boolean).length;
+        }
+      } catch {}
+
       const secretCount = (db.query("SELECT COUNT(*) as c FROM secrets").get() as any)?.c ?? 0;
       const cronCount = (db.query("SELECT COUNT(*) as c FROM cron_jobs").get() as any)?.c ?? 0;
       const apiCallCount = (db.query("SELECT COUNT(*) as c FROM usage").get() as any)?.c ?? 0;
-      const toolCallCount = (db.query("SELECT COUNT(*) as c FROM tool_metrics").get() as any)?.c ?? 0;
+      let toolCallCount = 0;
+      try { toolCallCount = (db.query("SELECT COUNT(*) as c FROM tool_metrics").get() as any)?.c ?? 0; } catch {}
       const totalTokensSent = (db.query("SELECT COALESCE(SUM(input_tokens), 0) as t FROM usage").get() as any)?.t ?? 0;
       const totalTokensReceived = (db.query("SELECT COALESCE(SUM(output_tokens), 0) as t FROM usage").get() as any)?.t ?? 0;
 
