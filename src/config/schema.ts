@@ -48,6 +48,26 @@ const channelsConfigSchema = z.object({
     signalCliPath: z.string().optional(),
     allowedNumbers: z.array(z.string()).default([]),
   }).optional(),
+  email: z.object({
+    enabled: z.boolean().default(true),
+    imap: z.object({
+      host: z.string().min(1),
+      port: z.number().default(993),
+      user: z.string().min(1),
+      password: z.string().min(1),
+      tls: z.boolean().default(true),
+    }),
+    smtp: z.object({
+      host: z.string().min(1),
+      port: z.number().default(587),
+      user: z.string().min(1),
+      password: z.string().min(1),
+      tls: z.boolean().default(true),
+    }),
+    pollIntervalSeconds: z.number().min(10).default(60),
+    allowedSenders: z.array(z.string()).optional(),
+    fromName: z.string().optional(),
+  }).optional(),
 });
 
 export type ChannelsConfig = z.infer<typeof channelsConfigSchema>;
@@ -115,6 +135,37 @@ export const configSchema = z.object({
     dailyLimitUsd: z.number().optional(),
     monthlyLimitUsd: z.number().optional(),
     alertThreshold: z.number().min(0).max(1).default(0.8),
+  }).optional(),
+
+  // Webhooks
+  webhooks: z.object({
+    secret: z.string().optional(),
+  }).optional(),
+
+  // Image generation
+  imageGeneration: z.object({
+    provider: z.enum(["openai", "fal", "together"]),
+    apiKey: z.string().optional(),
+    model: z.string().optional(),
+    defaultSize: z.string().optional(),
+  }).optional(),
+
+  // Code interpreter
+  codeInterpreter: z.object({
+    enabled: z.boolean().default(true),
+    timeout: z.number().default(30000),
+    maxOutputSize: z.number().default(50000),
+  }).optional(),
+
+  // MCP servers
+  mcp: z.object({
+    servers: z.array(z.object({
+      name: z.string().min(1),
+      command: z.string().min(1),
+      args: z.array(z.string()).optional(),
+      env: z.record(z.string(), z.string()).optional(),
+      enabled: z.boolean().default(true),
+    })),
   }).optional(),
 });
 

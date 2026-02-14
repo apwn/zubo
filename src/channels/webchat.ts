@@ -1397,6 +1397,88 @@ export function createWebChatAdapter(
             });
           }
 
+          // Webhook ingress — no auth required (uses HMAC signature verification)
+          if (url.pathname.startsWith("/api/webhook/") && req.method === "POST") {
+            const webhookId = url.pathname.slice("/api/webhook/".length);
+            if (!webhookId || !/^[a-f0-9-]+$/i.test(webhookId)) {
+              return Response.json({ error: "Invalid webhook ID" }, { status: 400 });
+            }
+            return (async () => {
+              try {
+                const db = getDb();
+                const webhook = db.query(
+                  "SELECT id, name, secret, active FROM webhooks WHERE id = ?"
+                ).get(webhookId) as { id: string; name: string; secret: string | null; active: number } | null;
+
+                if (!webhook) {
+                  return Response.json({ error: "Webhook not found" }, { status: 404 });
+                }
+                if (!webhook.active) {
+                  return Response.json({ error: "Webhook is disabled" }, { status: 403 });
+                }
+
+                const rawBody = await req.text();
+
+                // HMAC signature verification (if secret is configured)
+                if (webhook.secret) {
+                  const signature = req.headers.get("x-hub-signature-256")
+                    || req.headers.get("x-webhook-secret");
+                  if (!signature) {
+                    return Response.json({ error: "Missing signature header" }, { status: 401 });
+                  }
+                  const encoder = new TextEncoder();
+                  const key = await crypto.subtle.importKey(
+                    "raw",
+                    encoder.encode(webhook.secret),
+                    { name: "HMAC", hash: "SHA-256" },
+                    false,
+                    ["sign"]
+                  );
+                  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
+                  const expected = "sha256=" + Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
+                  const provided = signature.startsWith("sha256=") ? signature : `sha256=${signature}`;
+                  if (expected !== provided) {
+                    return Response.json({ error: "Invalid signature" }, { status: 401 });
+                  }
+                }
+
+                // Store event
+                const headersJson = JSON.stringify(Object.fromEntries(req.headers.entries()));
+                db.prepare(
+                  "INSERT INTO webhook_events (webhook_id, payload, headers) VALUES (?, ?, ?)"
+                ).run(webhook.id, rawBody, headersJson);
+
+                // Trigger agent via router
+                const summary = rawBody.slice(0, 500);
+                const message = `[Webhook: ${webhook.name}] Received event:\n${summary}`;
+                router.sendProactive(`webchat:webhook`, message).catch((err: any) => {
+                  logger.warn("Webhook proactive message failed", { error: err.message });
+                });
+
+                return Response.json({ ok: true, webhook: webhook.name });
+              } catch (err: any) {
+                return Response.json({ error: err.message }, { status: 500 });
+              }
+            })() as any;
+          }
+
+          // Serve generated images
+          if (url.pathname.startsWith("/uploads/generated/") && req.method === "GET") {
+            const filename = url.pathname.slice("/uploads/generated/".length);
+            if (!filename || /[\/\\]/.test(filename)) {
+              return new Response("Not Found", { status: 404 });
+            }
+            const { homedir } = await import("os");
+            const filePath = join(homedir(), ".zubo", "uploads", "generated", filename);
+            const file = Bun.file(filePath);
+            if (await file.exists()) {
+              return new Response(file, {
+                headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=3600" },
+              });
+            }
+            return new Response("Not Found", { status: 404 });
+          }
+
           // Auth check for /api/* endpoints (if enabled) — runs BEFORE any API handler
           if (url.pathname.startsWith("/api/") && isAuthEnabled()) {
             const db = getDb();

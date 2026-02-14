@@ -53,10 +53,24 @@ async function prepareLoop(
 
   const memories = options.memories ?? "";
 
+  // Knowledge graph context injection
+  let kgContext = "";
+  try {
+    const { buildKgContext } = require("../memory/knowledge-graph");
+    const db = getDb();
+    kgContext = buildKgContext(db, userMessage);
+  } catch {
+    // KG tables may not exist yet
+  }
+
+  const fullMemories = kgContext
+    ? (memories ? `${memories}\n\nKnown context:\n${kgContext}` : `Known context:\n${kgContext}`)
+    : memories;
+
   // Assemble context
   const ctx = options.systemPromptOverride
     ? { system: options.systemPromptOverride, messages: [] as LlmMessage[] }
-    : assembleContext(sessionId, 50, memories);
+    : assembleContext(sessionId, 50, fullMemories);
 
   if (options.systemPromptOverride) {
     const { loadSession } = await import("./session");

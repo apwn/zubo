@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Getting Started — Zubo Docs</title>
-  <meta name="description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 20+ tools, sub-agent delegation, and workflow automation.">
+  <meta name="description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 25+ tools, sub-agent delegation, MCP support, and workflow automation.">
   <meta name="theme-color" content="#060608">
   <link rel="canonical" href="https://zubo.bot/docs/">
   <meta property="og:title" content="Getting Started — Zubo Docs">
-  <meta property="og:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 20+ tools, sub-agent delegation, and workflow automation.">
+  <meta property="og:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 25+ tools, sub-agent delegation, MCP support, and workflow automation.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://zubo.bot/docs/">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Getting Started — Zubo Docs">
-  <meta name="twitter:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, 20+ tools, and workflow automation.">
+  <meta name="twitter:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, 25+ tools, MCP support, and workflow automation.">
   <meta name="twitter:image" content="https://zubo.bot/og-image.png">
   <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,7 +87,7 @@
       <h1>Getting Started with Zubo</h1>
 
       <p>
-        Zubo is a self-hosted AI agent with persistent semantic memory, multi-channel presence across Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat, 20+ smart built-in tools, sub-agent delegation, and workflow automation. It runs entirely on your machine &mdash; your data never leaves your infrastructure. Whether you need a personal assistant that remembers everything, an automation hub that connects your services, or an AI copilot embedded in every chat platform you use, Zubo handles it from a single process with a single configuration file.
+        Zubo is a self-hosted AI agent with persistent semantic memory, multi-channel presence across Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat, 25+ smart built-in tools, MCP compatibility, sub-agent delegation, and workflow automation. It runs entirely on your machine &mdash; your data never leaves your infrastructure. Whether you need a personal assistant that remembers everything, an automation hub that connects your services, or an AI copilot embedded in every chat platform you use, Zubo handles it from a single process with a single configuration file.
       </p>
 
       <!-- ================================================================ -->
@@ -110,6 +110,7 @@
         <li><strong>Slack</strong> &mdash; app-level integration using Bot Token and App Token, with user allow-listing by Slack member ID.</li>
         <li><strong>WhatsApp</strong> &mdash; via the WhatsApp Web multi-device API, with phone number allow-listing.</li>
         <li><strong>Signal</strong> &mdash; via signal-cli, with phone number allow-listing.</li>
+        <li><strong>Email</strong> &mdash; bidirectional email channel via IMAP/SMTP. Zubo polls for new messages and replies automatically. Supports sender allow-listing and configurable polling intervals.</li>
         <li><strong>Web Chat</strong> &mdash; built-in web dashboard with real-time chat, served on a configurable port.</li>
         <li>All channels share the same memory, personality, tools, and conversation history. A fact learned in Telegram is immediately available in Discord.</li>
       </ul>
@@ -121,11 +122,15 @@
         <li><strong>Hybrid search</strong> that combines 60% vector similarity (cosine) with 40% FTS5 BM25 scoring for best-of-both-worlds recall.</li>
         <li><strong>Automatic chunking with overlap</strong> for long documents, ensuring context is preserved across chunk boundaries.</li>
         <li><strong>Document ingestion</strong> supporting PDF, DOCX, TXT, CSV, JSON, YAML, and common code file formats. Upload a document and Zubo indexes it into searchable memory automatically.</li>
+        <li><strong>Knowledge Graph</strong> &mdash; structured entity-relationship memory. The agent can store and query entities (people, projects, concepts, organizations) with typed relationships (works_at, knows, manages, part_of). Entity context is automatically injected into conversations when relevant names are mentioned.</li>
       </ul>
 
       <h3>Tools</h3>
       <ul>
-        <li><strong>20+ built-in tools</strong> including shell command execution, file I/O (read, write, list, search), web search (DuckDuckGo, Brave, Google), HTTP requests, memory read/write/search, secrets management, and cron job scheduling.</li>
+        <li><strong>25+ built-in tools</strong> including shell command execution, file I/O (read, write, list, search), web search (DuckDuckGo, Brave, Google), HTTP requests, memory read/write/search, secrets management, cron job scheduling, code interpreter, image generation, knowledge graph, and webhook management.</li>
+        <li><strong>Code Interpreter</strong> &mdash; execute Python, JavaScript, or TypeScript code in a sandboxed subprocess with timeout enforcement and output capture. Runs code via Bun (JS/TS) or python3 (Python) with process isolation.</li>
+        <li><strong>Image Generation</strong> &mdash; generate images using DALL-E 3, fal.ai (Flux), or Together AI. Images are saved locally and served through the web dashboard. Supports custom sizes and styles.</li>
+        <li><strong>Webhooks</strong> &mdash; create webhook endpoints that receive events from external services (GitHub, Stripe, CI/CD). Supports HMAC signature verification (X-Hub-Signature-256). Events trigger agent actions automatically.</li>
         <li>Tools are permission-gated with three levels: <code>safe</code>, <code>sensitive</code>, and <code>dangerous</code>. Dangerous operations require explicit confirmation tokens.</li>
       </ul>
 
@@ -158,6 +163,14 @@
         <li><strong>Jira</strong> &mdash; issues, projects, sprints.</li>
         <li><strong>Slack</strong> &mdash; channels, messages, users (beyond the chat channel).</li>
         <li><strong>Twitter</strong> &mdash; post tweets, read timelines.</li>
+      </ul>
+
+      <h3>MCP (Model Context Protocol)</h3>
+      <ul>
+        <li><strong>Connect to external MCP servers</strong> and expose their tools alongside Zubo's built-in tools. Any MCP-compatible tool server works out of the box.</li>
+        <li><strong>JSON-RPC over stdio</strong> &mdash; each MCP server runs as a subprocess. Zubo handles the full protocol: initialization, tool discovery, and tool execution.</li>
+        <li><strong>Automatic tool registration</strong> &mdash; on boot, Zubo connects to each configured MCP server, discovers available tools, and registers them with a server-name prefix to avoid conflicts (e.g., <code>filesystem__read_file</code>).</li>
+        <li><strong>Configure in JSON</strong> &mdash; add MCP servers via the <code>mcp.servers</code> config array. Example: <code>{ "name": "filesystem", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"] }</code></li>
       </ul>
 
       <h3>Scheduling</h3>
