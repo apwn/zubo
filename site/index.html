@@ -134,28 +134,28 @@
             </div>
             <div class="terminal-line terminal-response" id="response-1" style="display:none">
               <span class="t-agent">zubo</span>
-              <span class="t-msg">Sarah recommended <strong>Osteria Mozza</strong> on Highland Ave — she said the burrata was incredible. Want me to make a reservation?</span>
+              <span class="t-msg"><span class="t-tool">&#9881; memory_search</span> Sarah recommended <strong>Osteria Mozza</strong> on Highland Ave &mdash; she said the burrata was incredible. Want me to look it up?</span>
             </div>
             <div class="terminal-line terminal-prompt" id="prompt-2" style="display:none">
               <span class="t-user">you</span>
-              <span class="t-msg" id="typed-2" data-text="Yes! Friday at 7pm for two. Also check my calendar for conflicts."></span>
+              <span class="t-msg" id="typed-2" data-text="Yes! Book it for Friday at 7pm. Check my calendar first."></span>
             </div>
             <div class="terminal-line terminal-response" id="response-2" style="display:none">
               <span class="t-agent">zubo</span>
               <span class="t-msg">
-                <span class="t-tool">&#9881; google_calendar</span> Friday 7pm is clear.
-                <span class="t-tool">&#9881; web_search</span> Found Osteria Mozza on OpenTable.
-                <br>Reservation confirmed: <strong>Friday, 7:00 PM, party of 2</strong>. I've added it to your calendar.
+                <span class="t-tool">&#9881; google_calendar</span> Friday 7pm is clear &mdash; no conflicts.
+                <span class="t-tool">&#9881; google_calendar</span> Added <strong>&ldquo;Dinner at Osteria Mozza&rdquo;</strong> to your calendar for Friday 7:00 PM.
+                <br>Here&rsquo;s their OpenTable page if you want to reserve a table: <a style="color:#a78bfa;text-decoration:underline">osteria mozza</a>
               </span>
             </div>
             <div class="terminal-line terminal-prompt" id="prompt-3" style="display:none">
               <span class="t-user">you</span>
-              <span class="t-msg" id="typed-3" data-text="Perfect. Send Sarah a message on Telegram to let her know."></span>
+              <span class="t-msg" id="typed-3" data-text="Perfect. Email Sarah to let her know — sarah@email.com"></span>
             </div>
             <div class="terminal-line terminal-response" id="response-3" style="display:none">
               <span class="t-agent">zubo</span>
               <span class="t-msg">
-                <span class="t-tool">&#9881; telegram</span> Done! Sent Sarah: &ldquo;We&rsquo;re going to Osteria Mozza Friday at 7! Thanks for the rec &rdquo;
+                <span class="t-tool">&#9881; gmail</span> Sent! Subject: &ldquo;Dinner Friday?&rdquo; &mdash; told her Osteria Mozza at 7pm, and that the burrata comes highly recommended.
               </span>
             </div>
             <div class="terminal-cursor" id="terminal-cursor">&#9608;</div>
