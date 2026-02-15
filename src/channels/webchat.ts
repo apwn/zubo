@@ -1978,6 +1978,7 @@ export function createWebChatAdapter(
       server = Bun.serve({
         port,
         hostname: "127.0.0.1", // Bind to localhost only — prevents network exposure
+        idleTimeout: 120,
         async fetch(req) {
           const response = await handleRequest(req, router, sessionKey, chatLimiter, uploadLimiter, server, port);
           return addSecurityHeaders(response);

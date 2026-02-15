@@ -124,19 +124,11 @@ async function handleStart(
   setSecret("google_client_secret", clientSecret, "google");
 
   // Start a temporary local HTTP server to receive the OAuth callback
-  let resolveCallback: (code: string) => void;
-  let rejectCallback: (reason: Error) => void;
-
-  const codePromise = new Promise<string>((resolve, reject) => {
-    resolveCallback = resolve;
-    rejectCallback = reject;
-  });
-
   let server: ReturnType<typeof Bun.serve>;
   try {
     server = Bun.serve({
       port: 0,
-      idleTimeout: 120, // OAuth flow can take a while
+      idleTimeout: 120,
       fetch(req) {
         const url = new URL(req.url);
         if (url.pathname === "/oauth/callback") {
@@ -144,7 +136,7 @@ async function handleStart(
           const error = url.searchParams.get("error");
 
           if (error) {
-            rejectCallback(new Error(`Google OAuth error: ${error}`));
+            logger.error(`Google OAuth error: ${error}`);
             return new Response(
               "<html><body><h2>Authorization failed</h2><p>You can close this window.</p></body></html>",
               { headers: { "Content-Type": "text/html" } }
@@ -152,7 +144,19 @@ async function handleStart(
           }
 
           if (code) {
-            resolveCallback(code);
+            // Exchange code in the background — don't block the callback response
+            const storedRedirectUri = getSecret("google_redirect_uri") || `http://localhost:${server.port}/oauth/callback`;
+            exchangeGoogleCode(code, storedRedirectUri)
+              .then(() => {
+                logger.info("[OAuth] Google connected successfully via auto-callback");
+                // Auto-shutdown the callback server after success
+                setTimeout(() => server.stop(), 1000);
+              })
+              .catch((err) => {
+                logger.error("[OAuth] Auto-callback code exchange failed", { error: err.message });
+                setTimeout(() => server.stop(), 1000);
+              });
+
             return new Response(
               "<html><body><h2>Google connected successfully!</h2><p>You can close this window and return to Zubo.</p></body></html>",
               { headers: { "Content-Type": "text/html" } }
@@ -166,14 +170,12 @@ async function handleStart(
       },
     });
   } catch (err: any) {
-    // If local server fails (e.g. running in a container), fall back to manual flow
     logger.warn("Could not start local OAuth callback server", { error: err.message });
     return handleStartManual();
   }
 
   const port = server.port;
   const redirectUri = `http://localhost:${port}/oauth/callback`;
-  // Store redirect URI so 'complete' action can use it if auto-callback fails
   setSecret("google_redirect_uri", redirectUri, "google");
 
   let authUrl: string;
@@ -185,7 +187,6 @@ async function handleStart(
   }
 
   // Try to open the authorization URL in the user's default browser
-  let browserOpened = false;
   try {
     const cmd =
       process.platform === "darwin"
@@ -194,66 +195,29 @@ async function handleStart(
           ? ["cmd", "/c", "start", authUrl]
           : ["xdg-open", authUrl];
     Bun.spawn(cmd, { stdio: ["ignore", "ignore", "ignore"] });
-    browserOpened = true;
   } catch (err: any) {
-    logger.warn("Failed to open browser for Google OAuth", {
-      error: err.message,
-    });
+    logger.warn("Failed to open browser for Google OAuth", { error: err.message });
   }
 
-  // Wait for the callback with a 120-second timeout
-  const TIMEOUT_MS = 120_000;
-  let timeoutId: ReturnType<typeof setTimeout>;
-  const timeoutPromise = new Promise<never>((_resolve, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(
-        new Error("TIMEOUT")
-      );
-    }, TIMEOUT_MS);
+  // Auto-shutdown the callback server after 3 minutes if no callback received
+  setTimeout(() => {
+    try { server.stop(); } catch {}
+  }, 180_000);
+
+  // Return immediately — don't block waiting for the callback.
+  // If the user is local, the browser will handle it automatically in the background.
+  // If the user is remote (Telegram, Discord), they can open the link manually.
+  return JSON.stringify({
+    auth_url: authUrl,
+    instructions:
+      "Send this authorization link to the user. Tell them to open it in their browser and authorize Google. " +
+      "If they are on this machine, a browser window should have opened automatically. " +
+      "After authorizing, the connection will be set up automatically. " +
+      "If the automatic callback fails (e.g. remote user), ask the user to copy the URL from their browser " +
+      "after authorizing (it will show a localhost URL), extract the 'code' parameter, and call google_oauth " +
+      "with action 'complete' and that code.",
+    message: "A browser window should open shortly. If not, use the link above to authorize Google.",
   });
-
-  try {
-    const code = await Promise.race([codePromise, timeoutPromise]);
-    clearTimeout(timeoutId!);
-
-    await exchangeGoogleCode(code, redirectUri);
-    server.stop();
-
-    return JSON.stringify({
-      success: true,
-      message:
-        "Google connected successfully! The following services are now available: Gmail, Google Calendar, Google Sheets, Google Docs, Google Drive.",
-      services: [
-        "gmail",
-        "google_calendar",
-        "google_sheets",
-        "google_docs",
-        "google_drive",
-      ],
-    });
-  } catch (err: any) {
-    clearTimeout(timeoutId!);
-    server.stop();
-
-    // If timed out, it likely means the user is remote (Telegram) and can't use localhost callback.
-    // Return the auth URL so they can open it manually and paste back the code.
-    if (err.message === "TIMEOUT") {
-      logger.info("OAuth auto-callback timed out, providing manual flow URL");
-      return JSON.stringify({
-        error: "The automatic OAuth callback did not complete in time.",
-        manual_flow: true,
-        auth_url: authUrl,
-        instructions:
-          "Send the user this link to open in their browser. After they authorize, " +
-          "the browser will redirect to a localhost URL. The URL will contain a 'code' parameter. " +
-          "Ask the user to copy the FULL URL from their browser address bar after authorizing, " +
-          "then use google_oauth with action 'complete' and pass the code parameter value.",
-      });
-    }
-
-    logger.error("Google OAuth flow failed", { error: err.message });
-    return JSON.stringify({ error: err.message });
-  }
 }
 
 /**
