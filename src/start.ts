@@ -18,7 +18,8 @@ import { registerDelegateTaskTool } from "./tools/builtin/delegate-task";
 import { registerDiagnoseTool } from "./tools/builtin/diagnose";
 import { registerGoogleOAuthTool } from "./tools/builtin/google-oauth";
 import { registerManageAgentsTool } from "./tools/builtin/manage-agents";
-import { exposeSecretsRuntime, exposeGoogleTokenRuntime, exposeOAuthTokenRuntime } from "./secrets/store";
+import { registerConfigUpdateTool } from "./tools/builtin/config-update";
+import { exposeOAuthRuntime } from "./secrets/store";
 import { registerTool } from "./tools/registry";
 import { loadSkills, watchSkills } from "./tools/skill-loader";
 import { createRouter, type MessageRouter } from "./channels/router";
@@ -125,17 +126,14 @@ export async function startZubo(isDaemon = false) {
   registerMemorySearchTool(db);
   registerManageSkillsTool();
   registerSecretTools();
-  exposeSecretsRuntime();
-
-  // Expose Google OAuth token helper for installed skill handlers
+  // Expose OAuth helpers for built-in skill handlers (NOT getSecret — secrets
+  // are passed to sandboxed skills via scoped environment variables only)
   const { getGoogleAccessToken } = await import("./util/google-tokens");
-  exposeGoogleTokenRuntime(getGoogleAccessToken);
-
-  // Expose multi-provider OAuth token helper for skill handlers
   const { getOAuthTokenForIntegration } = await import("./tools/oauth");
-  exposeOAuthTokenRuntime(getOAuthTokenForIntegration);
+  exposeOAuthRuntime(getGoogleAccessToken, getOAuthTokenForIntegration);
 
   registerConnectServiceTool();
+  registerConfigUpdateTool();
 
   // Register skill registry tool
   const { registerSkillRegistryTool } = await import("./tools/builtin/skill-registry");

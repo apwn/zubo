@@ -42,35 +42,17 @@ export function deleteSecret(name: string): boolean {
 }
 
 /**
- * Exposes getSecret (and helpers) on globalThis.Zubo so user-created
- * skill handlers can access secrets without relative imports.
+ * Exposes ONLY OAuth helpers on globalThis.Zubo for built-in skill handlers.
+ * getSecret is intentionally NOT exposed globally — user-installed skills
+ * receive secrets through scoped environment variables in the sandbox instead.
+ * This prevents malicious skills from accessing secrets they don't need.
  */
-export function exposeSecretsRuntime(): void {
-  const g = globalThis as any;
-  if (!g.Zubo) g.Zubo = {};
-  g.Zubo.getSecret = getSecret;
-}
-
-/**
- * Exposes getGoogleToken on globalThis.Zubo so installed Google skill
- * handlers can get a valid OAuth access token without importing from src.
- */
-export function exposeGoogleTokenRuntime(
-  getGoogleAccessToken: () => Promise<string>
-): void {
-  const g = globalThis as any;
-  if (!g.Zubo) g.Zubo = {};
-  g.Zubo.getGoogleToken = getGoogleAccessToken;
-}
-
-/**
- * Exposes getOAuthToken on globalThis.Zubo so skill handlers can get
- * a valid OAuth access token for any configured provider.
- */
-export function exposeOAuthTokenRuntime(
+export function exposeOAuthRuntime(
+  getGoogleAccessToken: () => Promise<string>,
   getOAuthToken: (provider: string) => Promise<string | null>
 ): void {
   const g = globalThis as any;
   if (!g.Zubo) g.Zubo = {};
+  g.Zubo.getGoogleToken = getGoogleAccessToken;
   g.Zubo.getOAuthToken = getOAuthToken;
 }

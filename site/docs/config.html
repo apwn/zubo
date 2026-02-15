@@ -784,6 +784,12 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
         </thead>
         <tbody>
           <tr>
+            <td><code>agentName</code></td>
+            <td>string</td>
+            <td><code>"Zubo"</code></td>
+            <td>The name of your agent. Used in the system prompt and memory file. Set during setup or change via <code>config_update</code>.</td>
+          </tr>
+          <tr>
             <td><code>maxTurns</code></td>
             <td>number</td>
             <td><code>50</code></td>
@@ -799,6 +805,7 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
       </table>
 
 <pre><code>{
+  "agentName": "Zubo",
   "maxTurns": 50,
   "heartbeatMinutes": 30
 }</code></pre>
@@ -1080,6 +1087,7 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
     }
   },
 
+  "agentName": "Zubo",
   "maxTurns": 50,
   "heartbeatMinutes": 30,
 

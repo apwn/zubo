@@ -5,32 +5,48 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   datetime: "auto",
   memory_write: "auto",
   memory_search: "auto",
-  manage_skills: "auto",
-  cron_create: "auto",
   cron_list: "auto",
-  cron_delete: "auto",
+  reminder_set: "auto",
+  diagnose: "auto",
 
   // Secrets — set/list are safe, delete requires confirmation
   secret_set: "auto",
   secret_list: "auto",
   secret_delete: "confirm",
 
-  // Integrations
-  connect_service: "auto",
+  // Config & integrations — require confirmation (can change system behavior)
+  config_update: "confirm",
+  connect_service: "confirm",
 
-  // Agent delegation
+  // Agent delegation — delegate is auto, but creating/managing agents requires confirmation
   delegate: "auto",
-  manage_agents: "auto",
+  delegate_task: "auto",
+  manage_agents: "confirm",
+  manage_skills: "confirm",
 
-  // Built-in skills — safe
+  // Scheduling — creating cron jobs requires confirmation (runs code unattended)
+  cron_create: "confirm",
+  cron_delete: "confirm",
+
+  // Knowledge graph
+  kg_query: "auto",
+  kg_update: "auto",
+
+  // Built-in skills — safe (read-only or low risk)
   web_search: "auto",
   url_fetch: "auto",
   file_read: "auto",
-  http_request: "auto",
+  image_generate: "auto",
+  google_oauth: "auto",
 
-  // Built-in skills — potentially dangerous
+  // Built-in skills — require confirmation (network writes, code execution, system access)
+  http_request: "confirm",
+  code_interpreter: "confirm",
   shell: "confirm",
   file_write: "confirm",
+  webhook_manage: "confirm",
+  oauth_manage: "confirm",
+  skill_registry: "confirm",
 
   // Integration skills — posting requires confirmation
   twitter_posts: "confirm",
@@ -38,8 +54,9 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
 
 /**
  * Returns the permission level for a tool.
- * Unknown tools (user-installed skills) default to "auto".
+ * Unknown tools (user-installed skills, MCP tools) default to "confirm"
+ * to prevent untrusted code from running without user approval.
  */
 export function getToolPermission(name: string): ToolPermission {
-  return DEFAULT_PERMISSIONS[name] ?? "auto";
+  return DEFAULT_PERMISSIONS[name] ?? "confirm";
 }

@@ -8,6 +8,19 @@ import { logger } from "./util/logger";
 import { existsSync } from "fs";
 import { installBuiltinSkills } from "./tools/skill-installer";
 
+// ── Terminal colors ──────────────────────────────────────────────
+const BOLD = "\x1b[1m";
+const DIM = "\x1b[2m";
+const GREEN = "\x1b[32m";
+const YELLOW = "\x1b[33m";
+const CYAN = "\x1b[36m";
+const MAGENTA = "\x1b[35m";
+const RESET = "\x1b[0m";
+
+const ok = (msg: string) => console.log(`  ${GREEN}${BOLD}✓${RESET} ${msg}`);
+const info = (msg: string) => console.log(`  ${CYAN}→${RESET} ${msg}`);
+const warn = (msg: string) => console.log(`  ${YELLOW}!${RESET} ${msg}`);
+
 async function prompt(question: string): Promise<string> {
   process.stdout.write(question);
   for await (const line of console) {
@@ -15,6 +28,16 @@ async function prompt(question: string): Promise<string> {
   }
   return "";
 }
+
+function step(n: number, total: number, title: string) {
+  console.log("");
+  console.log(`  ${DIM}─────────────────────────────────────────${RESET}`);
+  console.log(`  ${MAGENTA}${BOLD}Step ${n}/${total}${RESET}  ${BOLD}${title}${RESET}`);
+  console.log(`  ${DIM}─────────────────────────────────────────${RESET}`);
+  console.log("");
+}
+
+// ── Provider definitions ─────────────────────────────────────────
 
 interface ProviderOption {
   key: string;
@@ -27,11 +50,11 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "1",
     label: "Anthropic (Claude)",
     setup: async () => {
-      const apiKey = await prompt("Anthropic API key (sk-ant-...): ");
-      if (!apiKey.startsWith("sk-ant-")) {
-        console.log("Warning: Key doesn't start with 'sk-ant-'. Proceeding anyway.");
+      const apiKey = await prompt("  Anthropic API key (sk-ant-...): ");
+      if (apiKey && !apiKey.startsWith("sk-ant-")) {
+        warn("Key doesn't start with 'sk-ant-'. Proceeding anyway.");
       }
-      const model = await prompt("Model [claude-sonnet-4-5-20250929]: ");
+      const model = await prompt("  Model [claude-sonnet-4-5-20250929]: ");
       return {
         name: "anthropic",
         config: { apiKey, model: model || "claude-sonnet-4-5-20250929" },
@@ -42,8 +65,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "2",
     label: "OpenAI (GPT)",
     setup: async () => {
-      const apiKey = await prompt("OpenAI API key (sk-...): ");
-      const model = await prompt("Model [gpt-4.1]: ");
+      const apiKey = await prompt("  OpenAI API key (sk-...): ");
+      const model = await prompt("  Model [gpt-4.1]: ");
       return {
         name: "openai",
         config: { apiKey, model: model || "gpt-4.1" },
@@ -54,8 +77,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "3",
     label: "Ollama (local)",
     setup: async () => {
-      const baseUrl = await prompt("Ollama URL [http://localhost:11434/v1]: ");
-      const model = await prompt("Model [llama3.3]: ");
+      const baseUrl = await prompt("  Ollama URL [http://localhost:11434/v1]: ");
+      const model = await prompt("  Model [llama3.3]: ");
       return {
         name: "ollama",
         config: {
@@ -71,8 +94,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "4",
     label: "Groq",
     setup: async () => {
-      const apiKey = await prompt("Groq API key (gsk_...): ");
-      const model = await prompt("Model [llama-3.3-70b-versatile]: ");
+      const apiKey = await prompt("  Groq API key (gsk_...): ");
+      const model = await prompt("  Model [llama-3.3-70b-versatile]: ");
       return {
         name: "groq",
         config: { apiKey, model: model || "llama-3.3-70b-versatile" },
@@ -83,8 +106,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "5",
     label: "Together AI",
     setup: async () => {
-      const apiKey = await prompt("Together API key: ");
-      const model = await prompt("Model [meta-llama/Llama-3.3-70B-Instruct-Turbo]: ");
+      const apiKey = await prompt("  Together API key: ");
+      const model = await prompt("  Model [meta-llama/Llama-3.3-70B-Instruct-Turbo]: ");
       return {
         name: "together",
         config: {
@@ -99,8 +122,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "6",
     label: "OpenRouter",
     setup: async () => {
-      const apiKey = await prompt("OpenRouter API key: ");
-      const model = await prompt("Model [anthropic/claude-sonnet-4-5]: ");
+      const apiKey = await prompt("  OpenRouter API key: ");
+      const model = await prompt("  Model [anthropic/claude-sonnet-4-5]: ");
       return {
         name: "openrouter",
         config: {
@@ -115,8 +138,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "7",
     label: "DeepSeek",
     setup: async () => {
-      const apiKey = await prompt("DeepSeek API key: ");
-      const model = await prompt("Model [deepseek-chat]: ");
+      const apiKey = await prompt("  DeepSeek API key: ");
+      const model = await prompt("  Model [deepseek-chat]: ");
       return {
         name: "deepseek",
         config: {
@@ -131,8 +154,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "8",
     label: "xAI (Grok)",
     setup: async () => {
-      const apiKey = await prompt("xAI API key: ");
-      const model = await prompt("Model [grok-4.1-fast]: ");
+      const apiKey = await prompt("  xAI API key: ");
+      const model = await prompt("  Model [grok-4.1-fast]: ");
       return {
         name: "xai",
         config: {
@@ -147,8 +170,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "9",
     label: "Fireworks AI",
     setup: async () => {
-      const apiKey = await prompt("Fireworks API key: ");
-      const model = await prompt("Model [accounts/fireworks/models/llama-v3p3-70b-instruct]: ");
+      const apiKey = await prompt("  Fireworks API key: ");
+      const model = await prompt("  Model [accounts/fireworks/models/llama-v3p3-70b-instruct]: ");
       return {
         name: "fireworks",
         config: {
@@ -163,8 +186,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "10",
     label: "Cerebras",
     setup: async () => {
-      const apiKey = await prompt("Cerebras API key: ");
-      const model = await prompt("Model [llama-3.3-70b]: ");
+      const apiKey = await prompt("  Cerebras API key: ");
+      const model = await prompt("  Model [llama-3.3-70b]: ");
       return {
         name: "cerebras",
         config: {
@@ -179,8 +202,8 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "11",
     label: "LM Studio (local)",
     setup: async () => {
-      const baseUrl = await prompt("LM Studio URL [http://localhost:1234/v1]: ");
-      const model = await prompt("Model name: ");
+      const baseUrl = await prompt("  LM Studio URL [http://localhost:1234/v1]: ");
+      const model = await prompt("  Model name: ");
       return {
         name: "lmstudio",
         config: {
@@ -195,10 +218,10 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "12",
     label: "Other (OpenAI-compatible)",
     setup: async () => {
-      const name = await prompt("Provider name: ");
-      const baseUrl = await prompt("Base URL (e.g. https://api.example.com/v1): ");
-      const apiKey = await prompt("API key (or 'none'): ");
-      const model = await prompt("Model name: ");
+      const name = await prompt("  Provider name: ");
+      const baseUrl = await prompt("  Base URL (e.g. https://api.example.com/v1): ");
+      const apiKey = await prompt("  API key (or 'none'): ");
+      const model = await prompt("  Model name: ");
       return {
         name: name || "custom",
         config: {
@@ -213,36 +236,40 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
 
 function printProviderMenu() {
   for (const opt of PROVIDER_OPTIONS) {
-    console.log(`  ${opt.key}. ${opt.label}`);
+    console.log(`    ${DIM}${opt.key.padStart(2)}.${RESET} ${opt.label}`);
   }
   console.log("");
 }
 
 async function pickProvider(): Promise<{ name: string; config: ProviderConfig } | null> {
   const maxKey = PROVIDER_OPTIONS.length;
-  const choice = await prompt(`Provider [1-${maxKey}]: `);
+  const choice = await prompt(`  Provider [1-${maxKey}]: `);
   const option = PROVIDER_OPTIONS.find((o) => o.key === choice);
   if (!option) return null;
   console.log("");
   return option.setup();
 }
 
+// ── Step 1: LLM Provider ────────────────────────────────────────
+
 async function setupProvider(): Promise<{
   providers: Record<string, ProviderConfig>;
   activeProvider: string;
+  failover: string[];
   anthropicApiKey?: string;
 }> {
-  console.log("Choose your LLM provider:\n");
+  console.log("  Choose your LLM provider:\n");
   printProviderMenu();
 
   const result = await pickProvider();
   if (!result) {
-    console.log("Invalid choice. Defaulting to Anthropic.\n");
-    const apiKey = await prompt("Anthropic API key (sk-ant-...): ");
+    warn("Invalid choice. Defaulting to Anthropic.\n");
+    const apiKey = await prompt("  Anthropic API key (sk-ant-...): ");
     const model = "claude-sonnet-4-5-20250929";
     return {
       providers: { anthropic: { apiKey, model } },
       activeProvider: "anthropic",
+      failover: [],
       anthropicApiKey: apiKey,
     };
   }
@@ -253,97 +280,255 @@ async function setupProvider(): Promise<{
   const anthropicApiKey =
     result.name === "anthropic" ? result.config.apiKey : undefined;
 
-  console.log(`\n✓ ${result.name} configured (${result.config.model})`);
+  ok(`${result.name} configured (${result.config.model})`);
 
-  // Offer to add a fallback
-  const addFallback = await prompt("\nAdd a fallback provider? (y/N): ");
+  // Offer fallback
+  const addFallback = await prompt("\n  Add a fallback provider? (y/N): ");
+  const failover: string[] = [];
   if (addFallback.toLowerCase() === "y") {
-    console.log("\nFallback provider:\n");
+    console.log("\n  Fallback provider:\n");
     printProviderMenu();
     const fb = await pickProvider();
     if (fb) {
       providers[fb.name] = fb.config;
-      console.log(`✓ ${fb.name} added as fallback (${fb.config.model})`);
+      failover.push(fb.name);
+      ok(`${fb.name} added as fallback (${fb.config.model})`);
     }
   }
 
-  return { providers, activeProvider: result.name, anthropicApiKey };
+  return { providers, activeProvider: result.name, failover, anthropicApiKey };
 }
+
+// ── Step 2: Channels ────────────────────────────────────────────
 
 async function setupChannels(): Promise<{
   channels: Record<string, any>;
   telegramBotToken?: string;
 }> {
-  console.log("Which channels do you want to enable?\n");
-  console.log("  1. Telegram");
-  console.log("  2. Discord");
-  console.log("  3. WebChat (local browser UI)");
+  console.log("  Which channels do you want to enable?\n");
+  console.log(`    ${DIM} 1.${RESET} Telegram`);
+  console.log(`    ${DIM} 2.${RESET} Discord`);
+  console.log(`    ${DIM} 3.${RESET} Slack`);
+  console.log(`    ${DIM} 4.${RESET} WhatsApp`);
+  console.log(`    ${DIM} 5.${RESET} Signal`);
+  console.log(`    ${DIM} 6.${RESET} Email (IMAP/SMTP)`);
   console.log("");
-  console.log("Enter numbers separated by commas, e.g. 1,3\n");
+  console.log(`  ${DIM}WebChat (dashboard) is always enabled.${RESET}`);
+  console.log(`  ${DIM}Enter numbers separated by commas, or press Enter to skip.${RESET}\n`);
 
-  const choices = await prompt("Channels [1]: ");
+  const choices = await prompt("  Channels: ");
   const selected = choices
     ? choices.split(",").map((s) => s.trim())
-    : ["1"];
+    : [];
 
-  const channels: Record<string, any> = {};
+  const channels: Record<string, any> = {
+    webchat: { enabled: true, port: 0 },
+  };
   let telegramBotToken: string | undefined;
 
   if (selected.includes("1")) {
-    console.log("\nTo create a Telegram bot:");
-    console.log("  1. Open Telegram and message @BotFather");
-    console.log("  2. Send /newbot and follow the prompts");
-    console.log("  3. Copy the bot token\n");
-    const token = await prompt("Telegram bot token: ");
+    console.log("");
+    console.log(`  ${DIM}To create a Telegram bot:${RESET}`);
+    console.log(`  ${DIM}  1. Open Telegram → message @BotFather${RESET}`);
+    console.log(`  ${DIM}  2. Send /newbot and follow the prompts${RESET}`);
+    console.log(`  ${DIM}  3. Copy the bot token${RESET}\n`);
+    const token = await prompt("  Telegram bot token: ");
     channels.telegram = { enabled: true, botToken: token, allowedUsers: [] };
     telegramBotToken = token;
-    console.log("✓ Telegram configured");
+    ok("Telegram configured");
   }
 
   if (selected.includes("2")) {
-    console.log("\nTo create a Discord bot:");
-    console.log("  1. Go to https://discord.com/developers/applications");
-    console.log("  2. Create an application → Bot → copy token");
-    console.log("  3. Enable MESSAGE CONTENT intent");
-    console.log("  4. Invite bot with messages scope\n");
-    const token = await prompt("Discord bot token: ");
+    console.log("");
+    console.log(`  ${DIM}To create a Discord bot:${RESET}`);
+    console.log(`  ${DIM}  1. Go to discord.com/developers/applications${RESET}`);
+    console.log(`  ${DIM}  2. Create app → Bot → copy token${RESET}`);
+    console.log(`  ${DIM}  3. Enable MESSAGE CONTENT intent${RESET}`);
+    console.log(`  ${DIM}  4. Invite with messages scope${RESET}\n`);
+    const token = await prompt("  Discord bot token: ");
     channels.discord = { enabled: true, botToken: token, allowedUsers: [] };
-    console.log("✓ Discord configured");
+    ok("Discord configured");
   }
 
   if (selected.includes("3")) {
-    const portStr = await prompt("\nWebChat port [auto]: ");
-    const port = parseInt(portStr, 10) || 0;
-    channels.webchat = { enabled: true, port };
-    console.log(`✓ WebChat configured${port ? ` on port ${port}` : " (auto port)"}`);
+    console.log("");
+    console.log(`  ${DIM}To create a Slack bot:${RESET}`);
+    console.log(`  ${DIM}  1. Go to api.slack.com/apps → Create New App${RESET}`);
+    console.log(`  ${DIM}  2. Enable Socket Mode → copy App Token (xapp-...)${RESET}`);
+    console.log(`  ${DIM}  3. Under OAuth, copy Bot Token (xoxb-...)${RESET}\n`);
+    const botToken = await prompt("  Slack bot token (xoxb-...): ");
+    const appToken = await prompt("  Slack app token (xapp-...): ");
+    channels.slack = {
+      enabled: true,
+      botToken,
+      appToken,
+      allowedUsers: [],
+    };
+    ok("Slack configured");
   }
 
-  if (Object.keys(channels).length === 0) {
-    console.log("\nNo channels selected. Defaulting to WebChat (auto port).");
-    channels.webchat = { enabled: true, port: 0 };
+  if (selected.includes("4")) {
+    console.log("");
+    console.log(`  ${DIM}WhatsApp uses whatsapp-web.js. A QR code will appear on first start.${RESET}\n`);
+    channels.whatsapp = { enabled: true, allowedNumbers: [] };
+    ok("WhatsApp configured (scan QR on first start)");
+  }
+
+  if (selected.includes("5")) {
+    console.log("");
+    console.log(`  ${DIM}Signal requires signal-cli installed and registered.${RESET}\n`);
+    const phone = await prompt("  Signal phone number (+1234567890): ");
+    channels.signal = {
+      enabled: true,
+      phoneNumber: phone,
+      allowedNumbers: [],
+    };
+    ok("Signal configured");
+  }
+
+  if (selected.includes("6")) {
+    console.log("");
+    console.log(`  ${DIM}Email requires IMAP (receive) and SMTP (send) credentials.${RESET}`);
+    console.log(`  ${DIM}For Gmail, use an App Password: myaccount.google.com/apppasswords${RESET}\n`);
+    const imapHost = await prompt("  IMAP host (e.g. imap.gmail.com): ");
+    const imapUser = await prompt("  IMAP username (email address): ");
+    const imapPass = await prompt("  IMAP password: ");
+    const smtpHost = await prompt("  SMTP host (e.g. smtp.gmail.com): ");
+    const smtpUser = await prompt(`  SMTP username [${imapUser}]: `);
+    const smtpPass = await prompt(`  SMTP password [same as IMAP]: `);
+    channels.email = {
+      enabled: true,
+      imap: { host: imapHost, user: imapUser, password: imapPass, port: 993, tls: true },
+      smtp: { host: smtpHost, user: smtpUser || imapUser, password: smtpPass || imapPass, port: 587, tls: true },
+      allowedSenders: [],
+    };
+    ok("Email configured");
+  }
+
+  if (selected.length === 0) {
+    info("No extra channels selected. WebChat dashboard is ready.");
   }
 
   return { channels, telegramBotToken };
 }
 
+// ── Step 3: Personalization ─────────────────────────────────────
+
+async function setupPersonality(): Promise<{ agentName: string; personality: string }> {
+  const name = await prompt("  Agent name [Zubo]: ");
+  const agentName = name || "Zubo";
+
+  console.log("");
+  console.log(`  ${DIM}Describe your agent's personality in a sentence or two.${RESET}`);
+  console.log(`  ${DIM}Press Enter for a sensible default.${RESET}\n`);
+  const personality = await prompt("  Personality: ");
+
+  ok(`Agent name: ${agentName}`);
+
+  return { agentName, personality };
+}
+
+// ── Step 4: Smart Routing ───────────────────────────────────────
+
+async function setupSmartRouting(
+  providers: Record<string, ProviderConfig>,
+  activeProvider: string
+): Promise<{ enabled: boolean; fastProvider?: string; fastModel?: string }> {
+  console.log(`  ${DIM}Smart routing sends simple queries (greetings, one-liners) to a${RESET}`);
+  console.log(`  ${DIM}fast, cheap model and uses your main provider for complex tasks.${RESET}`);
+  console.log(`  ${DIM}This can save 50-80% on API costs.${RESET}\n`);
+
+  const enable = await prompt("  Enable smart routing? (Y/n): ");
+  if (enable.toLowerCase() === "n") {
+    return { enabled: false };
+  }
+
+  // If they have a second provider, suggest it; otherwise suggest Groq
+  const otherProviders = Object.keys(providers).filter((k) => k !== activeProvider);
+
+  if (otherProviders.length > 0) {
+    const suggested = otherProviders[0];
+    ok(`Smart routing enabled (fast provider: ${suggested})`);
+    return { enabled: true, fastProvider: suggested };
+  }
+
+  console.log("");
+  console.log(`  ${DIM}Which provider should handle simple queries?${RESET}`);
+  console.log(`  ${DIM}Groq is free and very fast. Or press Enter to use your main provider.${RESET}\n`);
+
+  console.log(`    ${DIM} 1.${RESET} Groq (free tier, very fast)`);
+  console.log(`    ${DIM} 2.${RESET} Use a smaller model on ${activeProvider}`);
+  console.log(`    ${DIM} 3.${RESET} Skip for now\n`);
+
+  const choice = await prompt("  Choice [1]: ");
+
+  if (choice === "3") {
+    return { enabled: false };
+  }
+
+  if (choice === "2") {
+    const fastModel = await prompt("  Fast model name: ");
+    if (fastModel) {
+      ok(`Smart routing enabled (fast model: ${fastModel})`);
+      return { enabled: true, fastProvider: activeProvider, fastModel };
+    }
+    return { enabled: false };
+  }
+
+  // Default: Groq
+  const groqKey = await prompt("  Groq API key (gsk_..., or Enter to skip): ");
+  if (!groqKey) {
+    info("Skipping smart routing for now. You can enable it later in the dashboard.");
+    return { enabled: false };
+  }
+
+  providers["groq"] = {
+    apiKey: groqKey,
+    model: "llama-3.3-70b-versatile",
+  };
+  ok("Smart routing enabled (fast provider: groq)");
+  return { enabled: true, fastProvider: "groq" };
+}
+
+// ── Main Setup ──────────────────────────────────────────────────
+
 export async function runSetup() {
-  console.log("\n  Zubo Setup Wizard\n");
-  console.log("This will configure your Zubo agent.\n");
+  // Welcome
+  console.log("");
+  console.log(`  ${BOLD}${MAGENTA}◆${RESET} ${BOLD}zubo setup${RESET}`);
+  console.log(`  ${DIM}The AI agent that never forgets.${RESET}`);
+  console.log("");
+  console.log(`  ${DIM}This wizard will configure your agent in 4 steps.${RESET}`);
+  console.log(`  ${DIM}Press Enter at any prompt to accept the default [in brackets].${RESET}`);
 
-  // 1. LLM provider
-  const { providers, activeProvider, anthropicApiKey } = await setupProvider();
+  // ── Step 1: LLM Provider ──
+  step(1, 4, "LLM Provider");
+  const { providers, activeProvider, failover, anthropicApiKey } = await setupProvider();
 
-  // Build failover list from extra providers
-  const failover = Object.keys(providers).filter((k) => k !== activeProvider);
-
-  // 2. Channels
+  // ── Step 2: Channels ──
+  step(2, 4, "Channels");
   const { channels, telegramBotToken } = await setupChannels();
 
-  // 3. Create directory tree
-  console.log("\nCreating ~/.zubo/ directory tree...");
-  ensureDirectories();
+  // ── Step 3: Personalization ──
+  step(3, 4, "Personalization");
+  const { agentName, personality } = await setupPersonality();
 
-  // 4. Write config
+  // ── Step 4: Smart Routing ──
+  step(4, 4, "Smart Routing");
+  const smartRouting = await setupSmartRouting(providers, activeProvider);
+
+  // ── Finalize ──────────────────────────────────────────────────
+  console.log("");
+  console.log(`  ${DIM}─────────────────────────────────────────${RESET}`);
+  console.log(`  ${BOLD}Setting up...${RESET}`);
+  console.log(`  ${DIM}─────────────────────────────────────────${RESET}`);
+  console.log("");
+
+  // Create directory tree
+  ensureDirectories();
+  ok("Created ~/.zubo/ directory tree");
+
+  // Write config
   const config = configSchema.parse({
     // Legacy compat
     anthropicApiKey,
@@ -351,63 +536,101 @@ export async function runSetup() {
     telegramBotToken,
     telegramAllowedUsers: [],
 
-    // New provider system
+    // Provider system
     providers,
     activeProvider,
     failover: failover.length ? failover : undefined,
 
     // Channels
     channels,
+
+    // Smart routing
+    smartRouting: smartRouting.enabled
+      ? {
+          enabled: true,
+          fastProvider: smartRouting.fastProvider,
+          fastModel: smartRouting.fastModel,
+        }
+      : undefined,
+
+    // Agent name
+    agentName,
   });
   await saveConfig(config);
-  console.log(`Config saved to ${paths.config}`);
+  ok(`Config saved to ${paths.config}`);
 
-  // 5. Init SQLite DB
-  console.log("Initializing database...");
+  // Init database
   const db = getDb();
   runMigrations(db);
   db.close();
-  console.log(`Database created at ${paths.db}`);
+  ok(`Database initialized at ${paths.db}`);
 
-  // 6. Create initial MEMORY.md
+  // Create initial MEMORY.md
   if (!existsSync(paths.memoryFile)) {
     await Bun.write(
       paths.memoryFile,
-      `# Zubo Memory\n\nThis file stores persistent memories about the user.\n`
+      `# ${agentName} Memory\n\nThis file stores persistent memories about the user.\n`
     );
-    console.log(`Created ${paths.memoryFile}`);
   }
+  ok("Memory file ready");
 
-  // 7. Create default SYSTEM.md
+  // Create SYSTEM.md only if the user customized the name or personality.
+  // Otherwise, let the built-in DEFAULT_PERSONALITY in prompts.ts be used —
+  // it has the full capability set and stays up-to-date with new features.
   if (!existsSync(paths.systemPrompt)) {
-    await Bun.write(
-      paths.systemPrompt,
-      `You are Zubo, a personal AI agent. You are helpful, proactive, and have a persistent memory.
+    if (agentName !== "Zubo" || personality) {
+      const nameLine = agentName !== "Zubo"
+        ? `You are ${agentName}, a personal AI agent.`
+        : "You are Zubo, a personal AI agent.";
+      const personalityLine = personality
+        ? ` ${personality}`
+        : " You are friendly, straight to the point, and solution-driven.";
 
-## Your capabilities
-- You remember things about the user across conversations using your memory tools.
-- You can check the current date and time.
-- You are conversational and friendly, but concise.
-- When the user tells you something personal (name, preferences, facts about their life), proactively save it to memory.
-- When answering questions that might relate to stored memories, search your memory first.
-
-## Guidelines
-- Be concise. Don't over-explain unless asked.
-- Use memory_write to save important facts the user shares.
-- Use memory_search to recall previously stored information.
-- If you're unsure about something, say so.
-`
-    );
-    console.log(`Created ${paths.systemPrompt}`);
+      await Bun.write(
+        paths.systemPrompt,
+        `${nameLine}${personalityLine}\n`
+      );
+    }
+    // If no customization, no SYSTEM.md is created — the default personality is used.
   }
+  ok("System prompt ready");
 
-  // 8. Install built-in skills
+  // Install built-in skills
   const installed = installBuiltinSkills(paths.skills);
   if (installed.length) {
-    console.log(`Installed ${installed.length} built-in skills: ${installed.join(", ")}`);
+    ok(`Installed ${installed.length} built-in skills`);
   } else {
-    console.log("Built-in skills already installed.");
+    ok("Built-in skills already installed");
   }
 
-  console.log("\nSetup complete! Run 'zubo start' to launch Zubo.\n");
+  // ── Summary ───────────────────────────────────────────────────
+  console.log("");
+  console.log(`  ${DIM}═════════════════════════════════════════${RESET}`);
+  console.log(`  ${GREEN}${BOLD}Setup complete!${RESET}`);
+  console.log(`  ${DIM}═════════════════════════════════════════${RESET}`);
+  console.log("");
+  console.log(`  ${BOLD}Agent:${RESET}    ${agentName}`);
+  console.log(`  ${BOLD}Provider:${RESET} ${activeProvider} (${providers[activeProvider].model})`);
+  if (failover.length) {
+    console.log(`  ${BOLD}Fallback:${RESET} ${failover.join(", ")}`);
+  }
+  if (smartRouting.enabled) {
+    console.log(`  ${BOLD}Routing:${RESET}  Smart (fast → ${smartRouting.fastProvider})`);
+  }
+  const channelNames = Object.keys(channels).filter(
+    (c) => channels[c]?.enabled !== false
+  );
+  console.log(`  ${BOLD}Channels:${RESET} ${channelNames.join(", ")}`);
+  console.log(`  ${BOLD}Config:${RESET}   ${paths.config}`);
+
+  console.log("");
+  console.log(`  ${BOLD}Next steps:${RESET}`);
+  console.log("");
+  console.log(`    ${CYAN}1.${RESET} Start your agent:     ${BOLD}zubo start${RESET}`);
+  console.log(`    ${CYAN}2.${RESET} Open the dashboard:   ${DIM}(opens automatically in your browser)${RESET}`);
+  console.log(`    ${CYAN}3.${RESET} Connect integrations: ${DIM}tell ${agentName} "connect my GitHub"${RESET}`);
+  console.log("");
+  console.log(`  ${DIM}Docs: https://zubo.bot/docs${RESET}`);
+  console.log(`  ${DIM}Config: zubo config set <key> <value>${RESET}`);
+  console.log("");
 }

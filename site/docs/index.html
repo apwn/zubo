@@ -51,6 +51,7 @@
         <div class="docs-sidebar-heading">Getting Started</div>
         <div class="docs-sidebar-links">
           <a href="index.html" class="active">Overview</a>
+          <a href="#quick-start">Quick Start</a>
           <a href="config.html">Configuration</a>
         </div>
       </div>
@@ -132,6 +133,7 @@
         <li><strong>Code Interpreter</strong> &mdash; execute Python, JavaScript, or TypeScript code in a sandboxed subprocess with timeout enforcement and output capture. Runs code via Bun (JS/TS) or python3 (Python) with process isolation.</li>
         <li><strong>Image Generation</strong> &mdash; generate images using DALL-E 3, fal.ai (Flux), or Together AI. Images are saved locally and served through the web dashboard. Supports custom sizes and styles.</li>
         <li><strong>Webhooks</strong> &mdash; create webhook endpoints that receive events from external services (GitHub, Stripe, CI/CD). Supports HMAC signature verification (X-Hub-Signature-256). Events trigger agent actions automatically.</li>
+        <li><strong>Self-configuration</strong> &mdash; the agent can read and modify its own config at runtime via the <code>config_update</code> tool. Switch providers, set budgets, enable features &mdash; all through natural conversation.</li>
         <li>Tools are permission-gated with three levels: <code>safe</code>, <code>sensitive</code>, and <code>dangerous</code>. Dangerous operations require explicit confirmation tokens.</li>
       </ul>
 
@@ -285,15 +287,14 @@ docker compose up -d</code></pre>
 
 <pre><code>zubo setup</code></pre>
 
-      <p>The interactive setup wizard walks you through initial configuration. It will:</p>
+      <p>The interactive setup wizard walks you through 4 steps to get Zubo fully configured:</p>
       <ul>
-        <li>Create the <code>~/.zubo</code> directory and all required subdirectories.</li>
-        <li>Prompt you to select a primary LLM provider and enter your API key.</li>
-        <li>Optionally configure one or more chat channels (Telegram, Discord, etc.).</li>
-        <li>Generate the <code>~/.zubo/config.json</code> file with your choices.</li>
-        <li>Download the all-MiniLM-L6-v2 embedding model (~80 MB) for local semantic memory.</li>
-        <li>Create a default <code>SYSTEM.md</code> system prompt that you can customize later.</li>
+        <li><strong>Step 1: LLM Provider</strong> &mdash; choose from 12 supported providers (Anthropic, OpenAI, Google Gemini, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, or any OpenAI-compatible endpoint) and enter your API key. Optionally configure a fallback provider for automatic failover.</li>
+        <li><strong>Step 2: Channels</strong> &mdash; enable any combination of Telegram, Discord, Slack, WhatsApp, Signal, and Email. Enter the required tokens and credentials for each. Web Chat is always on and requires no configuration.</li>
+        <li><strong>Step 3: Personalization</strong> &mdash; set your agent's name and describe its personality. This shapes how Zubo talks to you across all channels.</li>
+        <li><strong>Step 4: Smart Routing</strong> &mdash; optionally configure a fast model (e.g., Groq) for simple queries. Smart routing automatically detects low-complexity messages and routes them to the cheaper, faster model, saving 50&ndash;80% on costs without sacrificing quality for complex tasks.</li>
       </ul>
+      <p>The wizard also creates the <code>~/.zubo</code> directory and all required subdirectories, generates your <code>~/.zubo/config.json</code> file, and downloads the all-MiniLM-L6-v2 embedding model (~80 MB) for local semantic memory.</p>
 
       <h3 id="starting">Starting Zubo</h3>
 
@@ -304,6 +305,162 @@ zubo start
 zubo start --daemon</code></pre>
 
       <p>When started, Zubo initializes the SQLite database, loads the embedding model, connects to all enabled channels, and starts the heartbeat scheduler. The web dashboard opens automatically in your default browser at <code>http://localhost:3000</code> (or your configured port). When running with <code>--daemon</code>, Zubo writes its PID to <code>~/.zubo/zubo.pid</code> and logs to <code>~/.zubo/logs/zubo.log</code>.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="quick-start">Quick Start</h2>
+
+      <p>Here is what Zubo looks like in action. These are real conversations showing key capabilities &mdash; memory, self-configuration, skill building, service integration, and scheduling.</p>
+
+      <h3>Memory</h3>
+      <div style="background: rgba(10, 10, 14, 0.9); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.025); border-bottom: 1px solid var(--border);">
+          <div style="display: flex; gap: 7px;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #febc2e; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #28c840; display: inline-block;"></span>
+          </div>
+        </div>
+        <div style="padding: 20px; font-family: var(--mono); font-size: 13px; line-height: 1.8;">
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">Hey, my name is Sarah and I work at Stripe on the payments team.</span>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">Got it, Sarah! Saved that to memory. What can I help you with?</span>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">What's my name?</span>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">You're Sarah &mdash; you work at Stripe on the payments team.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Self-Configuration</h3>
+      <div style="background: rgba(10, 10, 14, 0.9); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.025); border-bottom: 1px solid var(--border);">
+          <div style="display: flex; gap: 7px;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #febc2e; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #28c840; display: inline-block;"></span>
+          </div>
+        </div>
+        <div style="padding: 20px; font-family: var(--mono); font-size: 13px; line-height: 1.8;">
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">Switch to GPT-4o</span>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">Done &mdash; switched your active provider to OpenAI (gpt-4o). Takes effect on next restart.</span>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">Set my daily budget to $5</span>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">Updated your daily limit to $5.00 USD. I'll pause requests when you hit the cap.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Building a Skill on the Fly</h3>
+      <div style="background: rgba(10, 10, 14, 0.9); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.025); border-bottom: 1px solid var(--border);">
+          <div style="display: flex; gap: 7px;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #febc2e; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #28c840; display: inline-block;"></span>
+          </div>
+        </div>
+        <div style="padding: 20px; font-family: var(--mono); font-size: 13px; line-height: 1.8;">
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">Build me a tool that checks if a website is up</span>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">Created skill "website_checker"! It pings any URL and returns the status code and response time. Try it: "check if google.com is up"</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Connecting a Service</h3>
+      <div style="background: rgba(10, 10, 14, 0.9); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.025); border-bottom: 1px solid var(--border);">
+          <div style="display: flex; gap: 7px;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #febc2e; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #28c840; display: inline-block;"></span>
+          </div>
+        </div>
+        <div style="padding: 20px; font-family: var(--mono); font-size: 13px; line-height: 1.8;">
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">Connect my GitHub</span>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">I need a Personal Access Token (PAT). Go to GitHub &rarr; Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Generate new token. Need scopes: repo, read:org. Paste the token here.</span>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">ghp_abc123...</span>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">Stored your GitHub token and installed 4 GitHub skills (issues, PRs, repos, commits). Try: "list my open PRs"</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Scheduling</h3>
+      <div style="background: rgba(10, 10, 14, 0.9); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.025); border-bottom: 1px solid var(--border);">
+          <div style="display: flex; gap: 7px;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #febc2e; display: inline-block;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #28c840; display: inline-block;"></span>
+          </div>
+        </div>
+        <div style="padding: 20px; font-family: var(--mono); font-size: 13px; line-height: 1.8;">
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">Remind me in 30 minutes to review the PR</span>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">Reminder set! I'll ping you at 3:45 PM with: "Review the PR"</span>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(99, 102, 241, 0.12); color: #818cf8;">You</span>
+            <span style="color: var(--text-secondary);">Every weekday at 9am, send me a summary of my calendar</span>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.12); color: #34d399;">Zubo</span>
+            <span style="color: var(--text);">Scheduled "morning-briefing" &mdash; runs every weekday at 9:00 AM.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <h2 id="how-zubo-thinks">How Zubo Thinks</h2>
+
+      <p>Zubo is not a chatbot that describes what it could do. It is an agent that acts. Here is the core behavior model that drives every interaction:</p>
+
+      <ul>
+        <li><strong>Act first</strong> &mdash; Zubo does not describe what it could do or ask for permission on routine tasks. It executes immediately and reports results. If you say "check the weather," you get the weather, not an explanation of how weather APIs work.</li>
+        <li><strong>Be concise</strong> &mdash; the shortest answer that fully addresses the question. No filler, no preamble, no unnecessary caveats. Direct answers to direct questions.</li>
+        <li><strong>Find a way</strong> &mdash; Zubo builds tools on the fly when it does not have one. It never says "I can't do that." If a skill does not exist, it writes one. If an integration is not configured, it walks you through setup.</li>
+        <li><strong>Learn constantly</strong> &mdash; facts, preferences, names, projects, relationships &mdash; everything you tell Zubo goes into persistent memory and the knowledge graph automatically. The more you talk to it, the more context it has.</li>
+        <li><strong>Self-configuring</strong> &mdash; Zubo can read and modify its own configuration at runtime via the <code>config_update</code> tool. Switch LLM providers, set budgets, enable features, change its name &mdash; all through natural conversation.</li>
+        <li><strong>Cross-channel</strong> &mdash; same memory, same personality, same tools, everywhere. A fact learned in Telegram is immediately available in Discord, Slack, WhatsApp, Signal, Email, and Web Chat.</li>
+      </ul>
 
       <!-- ================================================================ -->
       <h2 id="architecture">Architecture</h2>
@@ -448,7 +605,8 @@ zubo start --daemon</code></pre>
 
       <ul>
         <li><strong>Start with <code>zubo setup</code></strong> &mdash; let the interactive wizard configure everything. It handles directory creation, model downloading, and initial config generation so you do not have to do it manually.</li>
-        <li><strong>Write a custom system prompt</strong> in <code>~/.zubo/workspace/SYSTEM.md</code> to give your agent a distinct personality and context about you, your work, your preferences, and your tools. The more specific you are, the better Zubo serves you.</li>
+        <li><strong>You do not need a custom SYSTEM.md</strong> &mdash; Zubo's built-in personality is comprehensive and handles most use cases out of the box. Only customize <code>~/.zubo/workspace/SYSTEM.md</code> if you want to change the agent's name or personality.</li>
+        <li><strong>Tell Zubo about yourself in conversation</strong> &mdash; it saves everything to memory automatically. Your name, your job, your preferences, your projects &mdash; the more you talk to it, the better it gets. No manual configuration needed.</li>
         <li><strong>Use the dashboard for day-to-day management</strong> (chatting, browsing memory, managing skills) and <strong>the CLI for automation</strong> (scripting, cron, CI/CD pipelines).</li>
         <li><strong>Enable API authentication</strong> if you are exposing the web port beyond localhost: <code>zubo config set auth.enabled true</code>, then create an API key via the dashboard or <code>zubo auth create</code>.</li>
         <li><strong>Set rate limits for production</strong> to prevent abuse: <code>zubo config set rateLimit.chatPerMinute 30</code>.</li>

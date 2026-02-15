@@ -71,10 +71,17 @@ export function validateRequest(db: Database, req: Request): boolean {
 
   initAuth(db);
   const row = db
-    .query("SELECT id FROM api_keys WHERE key_hash = ?")
-    .get(keyHash) as { id: number } | null;
+    .query("SELECT id, key_hash FROM api_keys WHERE key_hash = ?")
+    .get(keyHash) as { id: number; key_hash: string } | null;
 
   if (!row) return false;
+
+  // Timing-safe comparison to prevent hash extraction via timing attacks
+  const expectedBuf = Buffer.from(row.key_hash, "utf8");
+  const providedBuf = Buffer.from(keyHash, "utf8");
+  if (expectedBuf.length !== providedBuf.length || !crypto.timingSafeEqual(expectedBuf, providedBuf)) {
+    return false;
+  }
 
   // Update last_used_at
   db.prepare("UPDATE api_keys SET last_used_at = datetime('now') WHERE id = ?").run(

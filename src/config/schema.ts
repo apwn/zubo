@@ -102,6 +102,7 @@ export const configSchema = z.object({
   }).optional(),
 
   // Agent
+  agentName: z.string().default("Zubo"),
   maxTurns: z.number().default(50),
   heartbeatMinutes: z.number().min(1).max(1440).default(30),
   createdAt: z.string().default(() => new Date().toISOString()),

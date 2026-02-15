@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Your AI agent that never forgets.</strong><br>
-  Persistent memory, 20+ tools, 6 channels, 11+ LLM providers — runs entirely on your machine.
+  Persistent memory, 25+ tools, 7 channels, 11+ LLM providers — runs entirely on your machine.
 </p>
 
 <p align="center">
@@ -27,11 +27,11 @@
 ## Features
 
 - **11+ LLM providers** — Anthropic, OpenAI, Google Gemini, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, and any OpenAI-compatible endpoint. Smart routing sends simple queries to fast models automatically.
-- **6 channels** — Telegram, Discord, Slack, WhatsApp, Signal, Web Chat
+- **7 channels** — Telegram, Discord, Slack, WhatsApp, Signal, Email, Web Chat
 - **Persistent memory** — Vector + full-text hybrid search with ONNX embeddings and FTS5. Remembers every conversation, preference, and fact — forever.
-- **20+ built-in tools** — Web search, file ops, code execution, APIs, sub-agent delegation, and automatic failover between providers.
+- **25+ built-in tools** — Web search, file ops, code execution, APIs, sub-agent delegation, knowledge graph, reminders, and automatic failover between providers.
 - **Extensible skills** — Build custom skills in TypeScript. Share them on the registry. Install community skills with one command.
-- **7 integrations** — GitHub, Google (Gmail, Calendar, Docs, Drive, Sheets), Notion, Linear, Jira, Slack, Twitter
+- **9 integrations** — GitHub, Google (Gmail, Calendar, Docs, Drive, Sheets), Notion, Linear, Jira, Slack, Twitter + Claude Code and MCP
 - **Workflows** — Multi-agent pipelines with delegation
 - **Natural language scheduling** — "Every weekday at 9am" just works. Cron jobs, heartbeat, proactive tasks.
 - **Voice** — Speech-to-text (Whisper) and text-to-speech (OpenAI, ElevenLabs)
@@ -98,6 +98,7 @@ See the full [configuration reference](https://zubo.bot/docs/config.html) for al
 | **Discord** | Add `channels.discord.botToken` from [Developer Portal](https://discord.com/developers) |
 | **Slack** | Add `channels.slack.botToken` + `appToken` (Socket Mode) |
 | **WhatsApp** | Add `channels.whatsapp`, authenticate via QR |
+| **Email** | Add `channels.email` with IMAP/SMTP settings |
 | **Signal** | Install signal-cli, add `channels.signal.phoneNumber` |
 
 ## Integrations

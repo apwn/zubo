@@ -242,6 +242,35 @@ You: "What do you know about my work?"
 # Zubo calls kg_query { action: "relations", name: "You" }
 Zubo: "You work at Acme Corp and are on the Atlas project."</code></pre>
 
+      <h2 id="how-zubo-learns">How Zubo Learns Over Time</h2>
+
+      <p>Zubo's memory is built on three complementary layers, each serving a different purpose. Together they give the agent short-term recall, long-term semantic understanding, and structured knowledge about the people, projects, and concepts in your world.</p>
+
+      <h3>1. Session Memory</h3>
+      <p>Every conversation is persisted as JSONL in <code>~/.zubo/sessions/</code>. The last 50 messages are loaded as context for each conversation turn. This gives Zubo short-term memory within a conversation &mdash; it remembers what you said earlier in the chat without needing to search the database.</p>
+
+      <h3>2. Semantic Memory</h3>
+      <p>When the agent calls <code>memory_write</code>, facts are:</p>
+      <ul>
+        <li>Written to dated markdown files in <code>~/.zubo/workspace/memory/</code></li>
+        <li>Chunked and embedded using all-MiniLM-L6-v2 (384-dimension vectors)</li>
+        <li>Indexed in FTS5 for keyword search</li>
+        <li>Searchable via hybrid search (60% vector + 40% FTS)</li>
+      </ul>
+      <p>The agent is instructed to save facts proactively &mdash; when you mention your name, job, preferences, or projects, the agent stores it immediately. Over time this builds a rich knowledge base that makes every future conversation more informed.</p>
+
+      <h3>3. Knowledge Graph</h3>
+      <p>Structured entity-relationship data provides a third dimension of recall:</p>
+      <ul>
+        <li>Entities have a name, type (<code>person</code>, <code>project</code>, <code>org</code>, <code>concept</code>), and key-value properties.</li>
+        <li>Relationships link entities with labeled edges (<code>works_on</code>, <code>knows</code>, <code>manages</code>, <code>part_of</code>).</li>
+        <li>When you mention a known entity in conversation, its graph context is automatically injected into the system prompt.</li>
+        <li>This gives the agent structured recall beyond text similarity &mdash; it understands how things relate to each other, not just what was said about them.</li>
+      </ul>
+
+      <h3>Cross-Channel Memory</h3>
+      <p>All three layers &mdash; session memory, semantic memory, and the knowledge graph &mdash; are shared across all channels. A fact learned on Telegram is instantly available on Discord, Slack, WhatsApp, Signal, Email, and WebChat. You never have to repeat yourself when switching between channels.</p>
+
       <h2>Best Practices</h2>
       <ul>
         <li><strong>Use MEMORY.md for core facts</strong> &mdash; Put information that should always be available in <code>MEMORY.md</code>: your name, key preferences, project context, and important rules. This file is loaded into the system prompt on every message.</li>

@@ -16,9 +16,12 @@ function quoteId(name: string): string {
   return '"' + name.replace(/"/g, '""') + '"';
 }
 
-// Tables to include in export (skip FTS virtual tables and internal sqlite tables)
-// Tables to include in export — secrets and api_keys are excluded by default
-// to prevent accidental credential exposure
+// SECURITY: Allowlist of safe tables for export. The following credential tables
+// are intentionally EXCLUDED to prevent accidental secret exposure:
+//   - secrets (API keys, tokens, passwords)
+//   - api_keys (hashed dashboard auth keys)
+//   - oauth_tokens (OAuth access/refresh tokens)
+//   - webhooks (HMAC signing secrets)
 const EXPORT_TABLES = [
   "sessions",
   "messages",

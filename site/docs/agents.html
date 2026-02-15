@@ -116,6 +116,65 @@ You are Zubo, a personal AI assistant for Thomas.
 - He prefers metric units and Markdown formatting.</code></pre>
       <p>The system prompt is loaded fresh on every message, so changes take effect immediately without restarting Zubo.</p>
 
+      <h2>Self-Configuration</h2>
+      <p>Zubo can modify its own configuration at runtime through the built-in <code>config_update</code> tool. You do not need to edit <code>config.json</code> by hand &mdash; just tell Zubo what you want to change in plain language and it will update the configuration file for you.</p>
+
+      <h3>What Zubo Can Change</h3>
+      <ul>
+        <li><strong>Switch LLM providers</strong> &mdash; "Use GPT-4o" updates <code>activeProvider</code> to <code>openai</code>.</li>
+        <li><strong>Set budgets</strong> &mdash; "Limit my daily spending to $5" updates <code>budget.dailyLimitUsd</code>.</li>
+        <li><strong>Enable smart routing</strong> &mdash; "Enable smart routing with Groq" updates <code>smartRouting.enabled</code> and <code>smartRouting.fastProvider</code>.</li>
+        <li><strong>Change its name</strong> &mdash; "Call yourself Jarvis" updates <code>agentName</code>.</li>
+        <li><strong>Toggle features</strong> &mdash; Enable or disable channels, change the heartbeat interval, adjust max turns, and more.</li>
+      </ul>
+
+      <h3>What It Cannot Change</h3>
+      <ul>
+        <li><strong>API keys and tokens</strong> &mdash; For security, secrets are never stored through <code>config_update</code>. Zubo uses the separate <code>secret_set</code> tool to securely store API keys, passwords, and tokens.</li>
+        <li><strong>Channel restarts</strong> &mdash; Channel configuration changes (enabling Telegram, changing a bot token) require a restart to take effect.</li>
+      </ul>
+
+      <h3>Example</h3>
+<pre><code>You: I want to switch to Claude Opus for complex tasks but use Groq for simple ones
+
+Zubo: Done! I've set your active provider to Anthropic and enabled smart
+routing with Groq as the fast provider. Simple queries like greetings
+will use Groq (fast, inexpensive), while complex tasks like code
+generation and multi-step reasoning use Claude.
+
+# Under the hood, Zubo called config_update three times:
+#   set activeProvider = "anthropic"
+#   set smartRouting.enabled = true
+#   set smartRouting.fastProvider = "groq"</code></pre>
+
+      <h2>How Zubo Learns</h2>
+      <p>Zubo's memory is organized into three complementary layers, each serving a different purpose. Together, they give the agent persistent, searchable, and structured knowledge that improves over time.</p>
+
+      <h3>1. Conversational Memory</h3>
+      <p>Every conversation session is automatically persisted. Recent messages are always included in the LLM context, so Zubo remembers what you discussed earlier in the same session without any explicit action on your part.</p>
+
+      <h3>2. Semantic Memory</h3>
+      <p>Facts, notes, and documents saved via the <code>memory_write</code> tool are chunked, embedded as 384-dimensional vectors, and indexed for full-text search. When you send a message, Zubo automatically runs a hybrid search (60% vector similarity + 40% keyword matching) to find relevant memories and inject them into the context. See the <a href="memory.html">Memory System</a> page for full details.</p>
+
+      <h3>3. Knowledge Graph</h3>
+      <p>Structured entity-relationship memory captures discrete facts in a queryable format. Entities (people, projects, organizations, concepts) are linked by labeled relationships (works_on, manages, uses). When you mention a known entity, its graph context is automatically injected into the LLM prompt.</p>
+
+      <h3>How the Layers Work Together</h3>
+<pre><code>You: I'm working with Alex on the Horizon project. He handles backend,
+     I do frontend.
+
+Zubo automatically:
+  1. Saves this to semantic memory via memory_write
+  2. Creates KG entities: You (person), Alex (person), Horizon (project)
+  3. Creates KG relations:
+       You --works_on--> Horizon
+       Alex --works_on--> Horizon
+       You --role:frontend--> Horizon
+       Alex --role:backend--> Horizon
+  4. Next time you mention "Alex" or "Horizon", this context is
+     auto-injected into the LLM prompt</code></pre>
+      <p>This means you can teach Zubo facts naturally through conversation, and it will recall them when relevant &mdash; without being asked.</p>
+
       <h2>Creating Custom Agents</h2>
       <p>Custom agents are defined as directories inside <code>~/.zubo/workspace/agents/</code>. Each directory contains a single <code>AGENT.md</code> file that specifies the agent's name, description, system prompt, and allowed tools.</p>
       <p>Here is an example <code>AGENT.md</code> for a research specialist:</p>
@@ -138,6 +197,26 @@ to ensure comprehensive coverage.
         <li><strong>Conversationally</strong> &mdash; Tell Zubo: "Create an agent called research_agent that specializes in web research and has access to web_search, url_fetch, and memory_write." Zubo will generate the <code>AGENT.md</code> for you.</li>
         <li><strong>Programmatically</strong> &mdash; Use the <code>manage_agents</code> tool to create, update, list, or delete agents.</li>
       </ul>
+      <p>Here is an example of creating and using an agent entirely through conversation:</p>
+<pre><code>You: Create an agent called "researcher" that can only search the web
+     and fetch URLs. Its job is deep research.
+
+Zubo: Created agent "researcher" with tools: web_search, url_fetch,
+      http_request. System prompt focused on thorough research and
+      source citation.
+
+You: @researcher Find the top 3 competitors to Linear and compare
+     their pricing
+
+Zubo: [delegates to researcher agent]
+
+      Here's a comparison of Linear's top competitors:
+
+      1. Jira — Free tier for up to 10 users, Standard at $8.15/user/mo...
+      2. Shortcut — Free for up to 10 members, Team at $8.50/user/mo...
+      3. Asana — Free tier available, Premium at $10.99/user/mo...
+
+      Sources: [jira.com, shortcut.com, asana.com]</code></pre>
       <p>Agents have restricted tool access &mdash; they can only use the tools explicitly listed in their <code>## Tools</code> section. This is a key security and reliability feature: a research agent does not need access to your calendar, and a writing agent does not need access to the shell.</p>
 
       <h3>Agent Fields</h3>
@@ -157,8 +236,9 @@ to ensure comprehensive coverage.
       <ul>
         <li><strong>Maximum delegation depth: 2</strong> &mdash; This prevents infinite recursion. The main agent (depth 0) can delegate to a sub-agent (depth 1), which can delegate once more (depth 2), but no further.</li>
         <li><strong>Sub-agents cannot delegate further or access the <code>manage_agents</code> or <code>delegate</code> tools</strong> &mdash; These tools are automatically stripped from sub-agent tool lists to prevent abuse.</li>
+        <li><strong>Immutable security preamble</strong> &mdash; Every sub-agent's system prompt is prefixed with an immutable set of security rules that cannot be overridden by the user-defined agent prompt. These rules prevent sub-agents from revealing secrets, bypassing tool permission levels, delegating to other agents, or modifying their own configuration.</li>
         <li><strong>Each delegation creates a separate session</strong> &mdash; This provides context isolation. The sub-agent's conversation history does not bleed into the main agent's context.</li>
-        <li><strong>Memory is shared</strong> &mdash; Sub-agents can search and write to the same memory store as the main agent, so research findings and facts persist across delegations.</li>
+        <li><strong>Memory is shared</strong> &mdash; Sub-agents share the same memory store (semantic memory and knowledge graph) as the main agent. Research findings, facts, and knowledge graph entities written by a sub-agent are immediately available to the main agent and all other sub-agents.</li>
       </ul>
       <p>Here is an example of how delegation works in practice:</p>
 <pre><code>User: "Research the latest AI news and summarize it"

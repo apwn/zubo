@@ -17,6 +17,21 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
+/** Add security headers to all HTTP responses */
+function addSecurityHeaders(res: Response): Response {
+  const headers = new Headers(res.headers);
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("X-Frame-Options", "DENY");
+  headers.set("X-XSS-Protection", "1; mode=block");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Permissions-Policy", "camera=(), microphone=(self), geolocation=()");
+  // Only set CSP on HTML responses (don't break JSON APIs or SSE)
+  if (headers.get("Content-Type")?.includes("text/html")) {
+    headers.set("Content-Security-Policy", "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none';");
+  }
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
 // Dashboard API helpers
 function readFileOr(path: string, fallback: string): string {
   try {
@@ -1094,7 +1109,7 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     }
   }
 
-  // GET /api/dashboard/secrets/:name — reveal a single secret value
+  // GET /api/dashboard/secrets/:name — check if a secret exists (NEVER reveals values)
   if (path.startsWith("/secrets/") && req.method === "GET") {
     const secretName = decodeURIComponent(path.replace("/secrets/", ""));
     if (!secretName || !/^[a-z0-9_]+$/.test(secretName)) {
@@ -1107,16 +1122,16 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
         try {
           const cfg = JSON.parse(readFileSync(paths.config, "utf-8"));
           if (cfg.providers?.[provider]?.apiKey) {
-            return Response.json({ name: secretName, value: cfg.providers[provider].apiKey, source: "config" });
+            return Response.json({ name: secretName, exists: true, source: "config" });
           }
         } catch (err: any) {
           logger.warn("Failed to read provider secret from config", { error: (err as Error).message });
         }
       }
       const db = getDb();
-      const row = db.query("SELECT value FROM secrets WHERE name = ?").get(secretName) as { value: string } | null;
+      const row = db.query("SELECT name FROM secrets WHERE name = ?").get(secretName) as { name: string } | null;
       if (!row) return Response.json({ error: "Not found" }, { status: 404 });
-      return Response.json({ name: secretName, value: row.value });
+      return Response.json({ name: secretName, exists: true, source: "secrets" });
     } catch (err: any) {
       return Response.json({ error: err.message }, { status: 500 });
     }
@@ -1959,8 +1974,49 @@ export function createWebChatAdapter(
 
       server = Bun.serve({
         port,
+        hostname: "127.0.0.1", // Bind to localhost only — prevents network exposure
         async fetch(req) {
+          const response = await handleRequest(req, router, sessionKey, chatLimiter, uploadLimiter, server, port);
+          return addSecurityHeaders(response);
+        },
+      });
+
+      logger.info(`WebChat + Dashboard at http://localhost:${server.port}`);
+    },
+
+    stop() {
+      if (server) {
+        server.stop();
+        server = null;
+      }
+    },
+
+    async sendMessage(_sessionKey: string, text: string) {
+      logger.debug("WebChat proactive message (not delivered)", {
+        text: text.slice(0, 100),
+      });
+    },
+  };
+}
+
+async function handleRequest(
+  req: Request,
+  router: MessageRouter,
+  sessionKey: string,
+  chatLimiter: RateLimiter,
+  uploadLimiter: RateLimiter,
+  server: ReturnType<typeof Bun.serve> | null,
+  port: number
+): Promise<Response> {
           const url = new URL(req.url);
+
+          // CORS protection: reject cross-origin API requests
+          if (url.pathname.startsWith("/api/")) {
+            const origin = req.headers.get("origin");
+            if (origin && !origin.startsWith("http://localhost:") && !origin.startsWith("http://127.0.0.1:")) {
+              return Response.json({ error: "Cross-origin requests are not allowed" }, { status: 403 });
+            }
+          }
 
           // Health check
           if (url.pathname === "/health") {
@@ -2102,7 +2158,10 @@ export function createWebChatAdapter(
                   const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
                   const expected = "sha256=" + Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
                   const provided = signature.startsWith("sha256=") ? signature : `sha256=${signature}`;
-                  if (expected !== provided) {
+                  // Timing-safe comparison to prevent signature extraction via timing attacks
+                  const expectedBuf = Buffer.from(expected, "utf8");
+                  const providedBuf = Buffer.from(provided, "utf8");
+                  if (expectedBuf.length !== providedBuf.length || !crypto.timingSafeEqual(expectedBuf, providedBuf)) {
                     return Response.json({ error: "Invalid signature" }, { status: 401 });
                   }
                 }
@@ -2522,23 +2581,4 @@ export function createWebChatAdapter(
           }
 
           return new Response("Not Found", { status: 404 });
-        },
-      });
-
-      logger.info(`WebChat + Dashboard at http://localhost:${server.port}`);
-    },
-
-    stop() {
-      if (server) {
-        server.stop();
-        server = null;
-      }
-    },
-
-    async sendMessage(_sessionKey: string, text: string) {
-      logger.debug("WebChat proactive message (not delivered)", {
-        text: text.slice(0, 100),
-      });
-    },
-  };
 }

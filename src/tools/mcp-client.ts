@@ -42,8 +42,14 @@ export class McpClient {
 
   async connect(): Promise<void> {
     const args = this.config.args ?? [];
+    // Security: only pass safe environment variables to MCP servers.
+    // Do NOT pass the full process.env — it may contain API keys and tokens.
     const env = {
-      ...process.env,
+      HOME: process.env.HOME ?? "",
+      PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+      USER: process.env.USER ?? "",
+      LANG: process.env.LANG ?? "en_US.UTF-8",
+      NODE_ENV: process.env.NODE_ENV ?? "production",
       ...(this.config.env ?? {}),
     };
 

@@ -514,9 +514,42 @@ Content-Type: application/json
 <pre><code>GET /api/dashboard/logs</code></pre>
       <p>Returns the last 100 log lines from the agent's log output.</p>
 
-      <h3>Config</h3>
+      <h3>Configuration</h3>
 <pre><code>GET /api/dashboard/config</code></pre>
-      <p>Returns the current configuration (sensitive values are masked).</p>
+      <p>Returns the current configuration summary with API keys masked.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "agentName": "Zubo",
+  "activeProvider": "anthropic",
+  "providers": {
+    "anthropic": { "model": "claude-sonnet-4-5-20250929", "hasApiKey": true },
+    "groq": { "model": "llama-3.3-70b-versatile", "hasApiKey": true }
+  },
+  "failover": ["groq"],
+  "channels": {
+    "webchat": { "enabled": true },
+    "telegram": { "enabled": true }
+  },
+  "smartRouting": { "enabled": true, "fastProvider": "groq" },
+  "budget": { "dailyLimitUsd": 5, "monthlyLimitUsd": 50, "alertThreshold": 0.8 },
+  "maxTurns": 50,
+  "heartbeatMinutes": 30
+}</code></pre>
+<pre><code>PUT /api/dashboard/config
+Content-Type: application/json
+
+{
+  "key": "budget.dailyLimitUsd",
+  "value": 10
+}</code></pre>
+      <p>Updates a configuration value using dot-notation paths. The value is validated against the config schema before saving. API keys and tokens cannot be set through this endpoint &mdash; use the secrets API instead.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "success": true,
+  "key": "budget.dailyLimitUsd",
+  "value": 10,
+  "message": "Config updated. Changes take effect on next restart."
+}</code></pre>
 <pre><code>PUT /api/dashboard/config/model
 Content-Type: application/json
 

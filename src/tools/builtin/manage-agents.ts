@@ -71,6 +71,22 @@ export function registerManageAgentsTool() {
             });
           }
 
+          // Security: prevent sub-agents from having privilege-escalation tools
+          const FORBIDDEN_SUBAGENT_TOOLS = [
+            "manage_agents",   // Prevents recursive agent creation
+            "delegate",        // Prevents delegation loops
+            "config_update",   // Prevents config tampering
+            "secret_set",      // Prevents secret manipulation
+            "secret_delete",   // Prevents secret deletion
+            "manage_skills",   // Prevents creating malicious skills
+          ];
+          const forbidden = tools.filter((t) => FORBIDDEN_SUBAGENT_TOOLS.includes(t));
+          if (forbidden.length > 0) {
+            return JSON.stringify({
+              error: `Sub-agents cannot have these tools: ${forbidden.join(", ")}. These are reserved for the main agent.`,
+            });
+          }
+
           // Check if agent already exists
           if (getAgentDefinition(name)) {
             return JSON.stringify({

@@ -30,8 +30,8 @@ function sanitizeLogData(data: Record<string, unknown>): Record<string, unknown>
   const sanitized: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(data)) {
     const lower = k.toLowerCase();
-    if (SENSITIVE_KEYS.some((s) => lower.includes(s)) && typeof v === "string" && v.length > 20) {
-      sanitized[k] = v.slice(0, 8) + "…[REDACTED]";
+    if (SENSITIVE_KEYS.some((s) => lower.includes(s)) && typeof v === "string") {
+      sanitized[k] = v.length > 8 ? v.slice(0, 4) + "…[REDACTED]" : "[REDACTED]";
     } else if (typeof v === "object" && v !== null && !Array.isArray(v)) {
       sanitized[k] = sanitizeLogData(v as Record<string, unknown>);
     } else {

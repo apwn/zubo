@@ -88,14 +88,14 @@
       <h2>Core Commands</h2>
 
       <h3>zubo setup</h3>
-      <p>Interactive wizard for first-time configuration. Walks you through the full initial setup process:</p>
-      <ul>
-        <li>Choose LLM provider (Anthropic, OpenAI, Ollama, etc.)</li>
-        <li>Enter API key</li>
-        <li>Select model</li>
-        <li>Optionally configure channels</li>
-      </ul>
-      <p>Writes to <code>~/.zubo/config.json</code>.</p>
+      <p>Interactive 4-step wizard for first-time configuration. Walks you through the full initial setup process:</p>
+      <ol>
+        <li><strong>LLM Provider</strong> &mdash; Choose from 12 supported providers (Anthropic, OpenAI, Google, Groq, Ollama, and more). Enter your API key and select a model. Optionally add a fallback provider for automatic failover.</li>
+        <li><strong>Channels</strong> &mdash; Enable any of 7 messaging channels: Telegram, Discord, Slack, WhatsApp, Signal, and Email. WebChat is always enabled by default. Each channel prompts for its required credentials (bot tokens, webhook URLs, etc.).</li>
+        <li><strong>Personalization</strong> &mdash; Name your agent and optionally describe its personality. The name and personality are used in the system prompt and across all channels.</li>
+        <li><strong>Smart Routing</strong> &mdash; Optionally set up a fast provider for simple queries (e.g., greetings, factual lookups). Smart routing automatically directs simple messages to a cheaper, faster model while using the primary model for complex tasks &mdash; saving 50&ndash;80% on costs.</li>
+      </ol>
+      <p>Writes to <code>~/.zubo/config.json</code>. You can re-run <code>zubo setup</code> at any time to reconfigure.</p>
 <pre><code>zubo setup</code></pre>
 
       <h3>zubo start</h3>
@@ -137,6 +137,7 @@ zubo config set channels.webchat.port 3000
 zubo config get                          # Show all config (keys masked)
 zubo config get activeProvider           # Show single value</code></pre>
       <p>Supports dotted keys for nested values (e.g., <code>auth.enabled</code> sets the <code>enabled</code> field inside the <code>auth</code> object). Values are auto-parsed: <code>true</code>/<code>false</code> become booleans, digit strings become numbers, and everything else is stored as a string.</p>
+      <p>These commands are the CLI equivalents of the <code>config_update</code> tool and the <code>PUT /api/dashboard/config</code> API endpoint. All three interfaces use the same dot-notation paths and schema validation.</p>
 
       <h2>Skills</h2>
 <pre><code>zubo skills          # Interactive menu

@@ -35,37 +35,30 @@ async function shouldSandbox(
     const { join } = await import("path");
     const { paths } = await import("../config/paths");
 
-    // Check if sandbox is enabled in config
+    // Sandbox is always enabled for user-installed skills — cannot be disabled.
+    // Read timeout from config if set.
     let timeoutMs = 30_000;
     try {
       const config = JSON.parse(readFileSync(paths.config, "utf-8"));
-      if (config.sandbox?.enabled === false) return null;
       if (config.sandbox?.timeoutMs) timeoutMs = config.sandbox.timeoutMs;
     } catch (err: any) {
       logger.warn("Failed to read sandbox config", { error: (err as Error).message });
     }
 
-    // Resolve the handler path and read SKILL.md for declared secrets
+    // Resolve the handler path
     const skillDir = join(paths.skills, toolName);
     const handlerPath = join(skillDir, "handler.ts");
     if (!existsSync(handlerPath)) return null;
 
-    // If the handler uses getGoogleToken, it needs the main process globals — skip sandbox
-    const handlerCode = readFileSync(handlerPath, "utf-8");
-    if (handlerCode.includes("getGoogleToken")) {
-      return null;
-    }
-
-    // Scope secrets: prefer the explicit `secrets:` field from SKILL.md when available.
-    // Fall back to string-matching as a heuristic (limitation: can be tricked by
-    // obfuscated secret names in handler code — the SKILL.md declaration is the
-    // authoritative source when present).
+    // Scope secrets: ONLY pass secrets explicitly declared in SKILL.md.
+    // Skills without a secrets declaration get NO secrets — this prevents
+    // malicious skills from accessing credentials they don't need.
     const env: Record<string, string> = {};
     try {
       const { getDb } = await import("../db/connection");
       const db = getDb();
 
-      // Try to read declared secrets from SKILL.md
+      // Read declared secrets from SKILL.md (the ONLY source of truth)
       let declaredSecrets: Set<string> | null = null;
       try {
         const skillMdPath = join(skillDir, "SKILL.md");
@@ -82,20 +75,15 @@ async function shouldSandbox(
         logger.warn("Failed to parse SKILL.md secrets declaration", { error: (err as Error).message });
       }
 
-      const rows = db.query("SELECT name, value FROM secrets").all() as { name: string; value: string }[];
-      for (const row of rows) {
-        if (declaredSecrets) {
-          // Authoritative: only pass secrets explicitly declared in SKILL.md
+      if (declaredSecrets && declaredSecrets.size > 0) {
+        const rows = db.query("SELECT name, value FROM secrets").all() as { name: string; value: string }[];
+        for (const row of rows) {
           if (declaredSecrets.has(row.name)) {
-            env[`ZUBO_SECRET_${row.name.toUpperCase()}`] = row.value;
-          }
-        } else {
-          // Fallback heuristic: only pass secrets referenced in the handler code
-          if (handlerCode.includes(`"${row.name}"`) || handlerCode.includes(`'${row.name}'`)) {
             env[`ZUBO_SECRET_${row.name.toUpperCase()}`] = row.value;
           }
         }
       }
+      // No declared secrets = no secrets passed. This is intentional.
     } catch (err: any) {
       logger.warn("Failed to resolve skill secrets for sandbox", { error: (err as Error).message });
     }
