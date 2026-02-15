@@ -41,9 +41,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
   } catch (err: any) {
     return JSON.stringify({
       error: err.message,
-      action_required: "Google is not connected. The user needs to set up Google OAuth. " +
-        "Ask them for their Google OAuth client_id (ends with .apps.googleusercontent.com) " +
-        "and client_secret (starts with GOCSPX-), then use google_oauth tool with action 'start'.",
+      action_required: "Google is not connected. Call google_oauth with action 'start' (no other parameters needed — it will use stored credentials automatically). Only ask the user for credentials if google_oauth returns an error saying they are missing.",
     });
   }
 
