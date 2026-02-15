@@ -9,8 +9,9 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   reminder_set: "auto",
   diagnose: "auto",
 
-  // Secrets — set/list are safe, delete requires confirmation
+  // Secrets — set/list/get are safe, delete requires confirmation
   secret_set: "auto",
+  secret_get: "auto",
   secret_list: "auto",
   secret_delete: "confirm",
 

@@ -1,5 +1,5 @@
 import { registerTool } from "../registry";
-import { setSecret, listSecrets, deleteSecret } from "../../secrets/store";
+import { setSecret, getSecret, listSecrets, deleteSecret } from "../../secrets/store";
 
 export function registerSecretTools() {
   registerTool({
@@ -49,6 +49,37 @@ export function registerSecretTools() {
         service: service ?? null,
         message: `Secret "${name}" stored securely.`,
       });
+    },
+  });
+
+  registerTool({
+    definition: {
+      name: "secret_get",
+      description:
+        "Retrieve the value of a stored secret. Use this to access API keys, tokens, and credentials needed for tool calls and integrations.",
+      input_schema: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "The name of the secret to retrieve (e.g., 'github_token', 'google_client_id')",
+          },
+        },
+        required: ["name"],
+      },
+    },
+    execute: async (input) => {
+      const { name } = input as { name: string };
+      if (!name) {
+        return JSON.stringify({ error: "Secret name is required." });
+      }
+
+      const value = getSecret(name);
+      if (value === null) {
+        return JSON.stringify({ error: `No secret found with name "${name}".` });
+      }
+
+      return JSON.stringify({ name, value });
     },
   });
 

@@ -16,9 +16,9 @@ export function registerGoogleOAuthTool(): void {
       name: "google_oauth",
       description:
         "Manage the Google OAuth 2.0 connection used by Gmail, Calendar, Sheets, Docs, and Drive. " +
-        "IMPORTANT: You need TWO credentials from the user: client_id (looks like 123456-abc.apps.googleusercontent.com) " +
-        "and client_secret (starts with GOCSPX-). Ask for BOTH before calling this tool. " +
-        "Use action 'start' to begin the OAuth flow. " +
+        "Use action 'start' to begin or re-start the OAuth flow. If credentials are already stored in secrets, " +
+        "you can call 'start' with NO parameters — it will automatically use the saved google_client_id and google_client_secret. " +
+        "Only ask the user for client_id and client_secret if this tool returns an error saying they are missing. " +
         "Use 'complete' to finish the flow by providing the authorization code the user copied from the browser. " +
         "Use 'status' to check connection state. Use 'disconnect' to remove all stored Google credentials.",
       input_schema: {
@@ -32,12 +32,12 @@ export function registerGoogleOAuthTool(): void {
           client_id: {
             type: "string",
             description:
-              "Google OAuth client ID (looks like 123456789-xxxx.apps.googleusercontent.com). Required for 'start'.",
+              "Google OAuth client ID. Optional — if omitted, uses the value already saved in secrets.",
           },
           client_secret: {
             type: "string",
             description:
-              "Google OAuth client secret (starts with GOCSPX-). Required for 'start'.",
+              "Google OAuth client secret. Optional — if omitted, uses the value already saved in secrets.",
           },
           code: {
             type: "string",
