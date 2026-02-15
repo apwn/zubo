@@ -4,6 +4,18 @@ import { logger } from "../util/logger";
 import { recordError } from "../util/error-buffer";
 import { executeSandboxed } from "./sandbox";
 
+/** Built-in integration tool names — these run in-process, NOT sandboxed,
+ *  because they need access to Zubo.getGoogleToken and the OAuth module. */
+const BUILTIN_INTEGRATION_TOOLS = new Set([
+  "gmail", "google_calendar", "google_sheets", "google_docs", "google_drive",
+  "github_issues", "github_prs", "github_repos",
+  "notion_pages", "notion_databases", "notion_search",
+  "linear_issues", "linear_projects",
+  "jira_issues", "jira_boards",
+  "slack_messages", "twitter_posts",
+  "claude_code_task", "codex_task",
+]);
+
 export interface ToolResult {
   tool_use_id: string;
   content: string;
@@ -30,6 +42,9 @@ async function shouldSandbox(
 
     // Only sandbox tools that were loaded via the skill-loader from the user's skills directory
     if (!isUserInstalledSkill(toolName)) return null;
+
+    // Built-in integrations run in-process — they need access to Zubo.getGoogleToken and OAuth
+    if (BUILTIN_INTEGRATION_TOOLS.has(toolName)) return null;
 
     const { existsSync, readFileSync } = await import("fs");
     const { join } = await import("path");
