@@ -24,6 +24,10 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   "deepseek-chat": { input: 0.56, output: 1.68 },
   "deepseek-reasoner": { input: 0.55, output: 2.19 },
 
+  // MiniMax
+  "MiniMax-M2.5": { input: 0.3, output: 1.2 },
+  "MiniMax-M2.5-highspeed": { input: 0.3, output: 2.4 },
+
   // Groq
   "llama-3.3-70b-versatile": { input: 0.59, output: 0.79 },
   "llama-3.1-8b-instant": { input: 0.05, output: 0.08 },

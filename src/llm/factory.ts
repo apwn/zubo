@@ -18,6 +18,7 @@ const KNOWN_BASE_URLS: Record<string, string> = {
   cerebras: "https://api.cerebras.ai/v1",
   perplexity: "https://api.perplexity.ai",
   xai: "https://api.x.ai/v1",
+  minimax: "https://api.minimax.io/v1",
   ollama: "http://localhost:11434/v1",
   lmstudio: "http://localhost:1234/v1",
 };

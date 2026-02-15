@@ -168,6 +168,21 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
   },
   {
     key: "9",
+    label: "MiniMax (M2.5)",
+    setup: async () => {
+      const apiKey = await prompt("  MiniMax API key: ");
+      const model = await prompt("  Model [MiniMax-M2.5] (or MiniMax-M2.5-highspeed): ");
+      return {
+        name: "minimax",
+        config: {
+          apiKey,
+          model: model || "MiniMax-M2.5",
+        },
+      };
+    },
+  },
+  {
+    key: "10",
     label: "Fireworks AI",
     setup: async () => {
       const apiKey = await prompt("  Fireworks API key: ");
@@ -183,7 +198,7 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     },
   },
   {
-    key: "10",
+    key: "11",
     label: "Cerebras",
     setup: async () => {
       const apiKey = await prompt("  Cerebras API key: ");
@@ -199,7 +214,7 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     },
   },
   {
-    key: "11",
+    key: "12",
     label: "LM Studio (local)",
     setup: async () => {
       const baseUrl = await prompt("  LM Studio URL [http://localhost:1234/v1]: ");
@@ -215,7 +230,7 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     },
   },
   {
-    key: "12",
+    key: "13",
     label: "Other (OpenAI-compatible)",
     setup: async () => {
       const name = await prompt("  Provider name: ");

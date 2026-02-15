@@ -28,6 +28,7 @@ const DEFAULT_CONTEXT_WINDOWS: Record<string, number> = {
   cerebras: 128_000,
   perplexity: 128_000,
   xai: 131_072,           // Grok 4.1 supports up to 2M; safe default
+  minimax: 204_800,        // MiniMax M2.5
   ollama: 8_000,
   lmstudio: 8_000,
 };
