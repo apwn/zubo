@@ -39,6 +39,20 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   image_generate: "auto",
   google_oauth: "auto",
 
+  // Integration skills — auto because user explicitly requests these actions
+  gmail: "auto",
+  google_calendar: "auto",
+  google_sheets: "auto",
+  google_docs: "auto",
+  google_drive: "auto",
+  github_issues: "auto",
+  github_repos: "auto",
+  github_prs: "auto",
+  notion_pages: "auto",
+  linear_issues: "auto",
+  jira_issues: "auto",
+  slack_messages: "auto",
+
   // Built-in skills — require confirmation (network writes, code execution, system access)
   http_request: "confirm",
   code_interpreter: "confirm",

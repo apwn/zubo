@@ -22,11 +22,18 @@ describe("Tool Executor", () => {
     unregisterTool("error_tool");
   });
 
-  it("should execute a registered tool", async () => {
-    const result = await executeTool("test_tool", "t1", { msg: "hello" });
+  it("should execute a registered tool (with confirmation)", async () => {
+    // Unknown tools default to "confirm" — first call returns confirmation token
+    const confirmResult = await executeTool("test_tool", "t1", { msg: "hello" });
+    expect(confirmResult.content).toContain("Confirmation Token:");
+    const tokenMatch = confirmResult.content.match(/Confirmation Token: ([a-f0-9-]+)/);
+    expect(tokenMatch).toBeTruthy();
+
+    // Second call with token executes the tool
+    const result = await executeTool("test_tool", "t1b", { msg: "hello", _confirmToken: tokenMatch![1] });
     expect(result.content).toBe("echo: hello");
     expect(result.is_error).toBe(false);
-    expect(result.tool_use_id).toBe("t1");
+    expect(result.tool_use_id).toBe("t1b");
   });
 
   it("should return error for unknown tool", async () => {
@@ -53,7 +60,14 @@ describe("Tool Executor", () => {
       },
     });
 
-    const result = await executeTool("error_tool", "t4", {});
+    // Unknown tools default to "confirm" — first call returns confirmation token
+    const confirmResult = await executeTool("error_tool", "t4", {});
+    expect(confirmResult.content).toContain("Confirmation Token:");
+    const tokenMatch = confirmResult.content.match(/Confirmation Token: ([a-f0-9-]+)/);
+    expect(tokenMatch).toBeTruthy();
+
+    // Second call with token — tool throws
+    const result = await executeTool("error_tool", "t4b", { _confirmToken: tokenMatch![1] });
     expect(result.is_error).toBe(true);
     expect(result.content).toContain("intentional failure");
   });

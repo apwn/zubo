@@ -80,6 +80,10 @@ async function handleStart(
   clientId?: string,
   clientSecret?: string
 ): Promise<string> {
+  // If credentials not provided as parameters, check stored secrets
+  if (!clientId) clientId = getSecret("google_client_id") ?? undefined;
+  if (!clientSecret) clientSecret = getSecret("google_client_secret") ?? undefined;
+
   if (!clientId || !clientSecret) {
     return JSON.stringify({
       error:
