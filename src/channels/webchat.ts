@@ -1109,29 +1109,32 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     }
   }
 
-  // GET /api/dashboard/secrets/:name — check if a secret exists (NEVER reveals values)
+  // GET /api/dashboard/secrets/:name — reveal a secret value (dashboard is localhost-only + session-authenticated)
   if (path.startsWith("/secrets/") && req.method === "GET") {
     const secretName = decodeURIComponent(path.replace("/secrets/", ""));
     if (!secretName || !/^[a-z0-9_]+$/.test(secretName)) {
       return Response.json({ error: "Invalid secret name" }, { status: 400 });
     }
     try {
+      const { maskToken } = require("../util/mask") as { maskToken: (s: string) => string };
       // Check config provider keys first
       if (secretName.endsWith("_api_key")) {
         const provider = secretName.replace(/_api_key$/, "");
         try {
           const cfg = JSON.parse(readFileSync(paths.config, "utf-8"));
           if (cfg.providers?.[provider]?.apiKey) {
-            return Response.json({ name: secretName, exists: true, source: "config" });
+            const key = cfg.providers[provider].apiKey;
+            return Response.json({ name: secretName, value: maskToken(key), source: "config" });
           }
         } catch (err: any) {
           logger.warn("Failed to read provider secret from config", { error: (err as Error).message });
         }
       }
       const db = getDb();
-      const row = db.query("SELECT name FROM secrets WHERE name = ?").get(secretName) as { name: string } | null;
-      if (!row) return Response.json({ error: "Not found" }, { status: 404 });
-      return Response.json({ name: secretName, exists: true, source: "secrets" });
+      const { getSecret } = require("../secrets/store") as { getSecret: (name: string) => string | null };
+      const value = getSecret(secretName);
+      if (!value) return Response.json({ error: "Not found" }, { status: 404 });
+      return Response.json({ name: secretName, value: maskToken(value), source: "secrets" });
     } catch (err: any) {
       return Response.json({ error: err.message }, { status: 500 });
     }
