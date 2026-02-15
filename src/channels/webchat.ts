@@ -1317,7 +1317,7 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
   }
 
   // DELETE /api/dashboard/oauth/:provider — revoke connection
-  if (path.startsWith("/oauth/") && req.method === "DELETE") {
+  if (path.startsWith("/oauth/") && path.split("/").length === 2 && req.method === "DELETE") {
     const provider = path.replace("/oauth/", "");
     if (!provider || !/^[a-z]+$/.test(provider)) {
       return Response.json({ error: "Invalid provider name" }, { status: 400 });
@@ -1327,6 +1327,546 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
         const { revokeToken } = await import("../tools/oauth");
         const removed = await revokeToken(provider);
         return Response.json({ ok: removed, provider });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // PUT /api/dashboard/oauth/:provider/config — save OAuth provider credentials
+  if (path.match(/^\/oauth\/[a-z]+\/config$/) && req.method === "PUT") {
+    const provider = path.split("/")[2];
+    const allowed = ["google", "github", "notion", "linear", "slack"];
+    if (!allowed.includes(provider)) {
+      return Response.json({ error: "Unsupported provider: " + provider }, { status: 400 });
+    }
+    return (async () => {
+      try {
+        const body = await req.json();
+        const clientId = String(body.clientId || "").trim();
+        const clientSecret = String(body.clientSecret || "").trim();
+        if (!clientId || !clientSecret) {
+          return Response.json({ error: "clientId and clientSecret are required" }, { status: 400 });
+        }
+        // Load current config, merge in OAuth credentials, save
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const config = await loadConfig();
+        if (!config.oauth) (config as any).oauth = {};
+        if (!config.oauth!.providers) (config.oauth as any).providers = {};
+        (config.oauth!.providers as any)[provider] = { clientId, clientSecret };
+        await saveConfig(config);
+        return Response.json({ ok: true, provider });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/oauth/:provider/config — remove OAuth provider credentials
+  if (path.match(/^\/oauth\/[a-z]+\/config$/) && req.method === "DELETE") {
+    const provider = path.split("/")[2];
+    return (async () => {
+      try {
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const config = await loadConfig();
+        if (config.oauth?.providers) {
+          delete (config.oauth.providers as any)[provider];
+          await saveConfig(config);
+        }
+        return Response.json({ ok: true, provider });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // --- Channel Config Endpoints ---
+
+  // GET /api/dashboard/channels/config — all channel configs with running status
+  if (path === "/channels/config" && req.method === "GET") {
+    return (async () => {
+      try {
+        const { maskToken } = await import("../util/mask");
+        const { getRunningChannels } = await import("./lifecycle");
+        const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+        const running = new Set(getRunningChannels());
+
+        const channelDefs: Record<string, any> = {};
+        const ch = config.channels || {};
+
+        // Telegram
+        const tgToken = ch.telegram?.botToken || config.telegramBotToken || "";
+        channelDefs.telegram = {
+          enabled: ch.telegram?.enabled !== false && !!tgToken,
+          configured: !!tgToken,
+          running: running.has("telegram"),
+          config: {
+            botToken: tgToken ? maskToken(tgToken) : "",
+            allowedUsers: ch.telegram?.allowedUsers || config.telegramAllowedUsers || [],
+          },
+        };
+
+        // Discord
+        channelDefs.discord = {
+          enabled: ch.discord?.enabled !== false && !!ch.discord?.botToken,
+          configured: !!ch.discord?.botToken,
+          running: running.has("discord"),
+          config: {
+            botToken: ch.discord?.botToken ? maskToken(ch.discord.botToken) : "",
+            allowedUsers: ch.discord?.allowedUsers || [],
+          },
+        };
+
+        // Slack
+        channelDefs.slack = {
+          enabled: ch.slack?.enabled !== false && !!ch.slack?.botToken,
+          configured: !!ch.slack?.botToken,
+          running: running.has("slack"),
+          config: {
+            botToken: ch.slack?.botToken ? maskToken(ch.slack.botToken) : "",
+            appToken: ch.slack?.appToken ? maskToken(ch.slack.appToken) : "",
+            allowedUsers: ch.slack?.allowedUsers || [],
+          },
+        };
+
+        // WhatsApp
+        channelDefs.whatsapp = {
+          enabled: ch.whatsapp?.enabled !== false && !!ch.whatsapp,
+          configured: !!ch.whatsapp,
+          running: running.has("whatsapp"),
+          config: {
+            authDir: ch.whatsapp?.authDir || "",
+            allowedNumbers: ch.whatsapp?.allowedNumbers || [],
+          },
+        };
+
+        // Signal
+        channelDefs.signal = {
+          enabled: ch.signal?.enabled !== false && !!ch.signal?.phoneNumber,
+          configured: !!ch.signal?.phoneNumber,
+          running: running.has("signal"),
+          config: {
+            phoneNumber: ch.signal?.phoneNumber || "",
+            signalCliPath: ch.signal?.signalCliPath || "",
+            allowedNumbers: ch.signal?.allowedNumbers || [],
+          },
+        };
+
+        // Email
+        channelDefs.email = {
+          enabled: ch.email?.enabled !== false && !!ch.email?.imap?.host,
+          configured: !!ch.email?.imap?.host,
+          running: running.has("email"),
+          config: {
+            imap: ch.email?.imap ? {
+              host: ch.email.imap.host || "",
+              port: ch.email.imap.port || 993,
+              user: ch.email.imap.user || "",
+              password: ch.email.imap.password ? maskToken(ch.email.imap.password) : "",
+              tls: ch.email.imap.tls !== false,
+            } : { host: "", port: 993, user: "", password: "", tls: true },
+            smtp: ch.email?.smtp ? {
+              host: ch.email.smtp.host || "",
+              port: ch.email.smtp.port || 587,
+              user: ch.email.smtp.user || "",
+              password: ch.email.smtp.password ? maskToken(ch.email.smtp.password) : "",
+              tls: ch.email.smtp.tls !== false,
+            } : { host: "", port: 587, user: "", password: "", tls: true },
+            pollIntervalSeconds: ch.email?.pollIntervalSeconds || 60,
+            allowedSenders: ch.email?.allowedSenders || [],
+            fromName: ch.email?.fromName || "",
+          },
+        };
+
+        return Response.json({ channels: channelDefs });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // PUT /api/dashboard/channels/:name/config — save channel config + hot-start if enabled
+  const channelConfigMatch = path.match(/^\/channels\/([a-z]+)\/config$/);
+  if (channelConfigMatch && req.method === "PUT") {
+    const channelName = channelConfigMatch[1];
+    const validChannels = ["telegram", "discord", "slack", "whatsapp", "signal", "email"];
+    if (!validChannels.includes(channelName)) {
+      return Response.json({ error: "Invalid channel: " + channelName }, { status: 400 });
+    }
+    return (async () => {
+      try {
+        const body = await req.json();
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const { startChannel, stopChannel } = await import("./lifecycle");
+        const config = await loadConfig();
+
+        if (!config.channels) (config as any).channels = {};
+
+        // Read current config to preserve masked/empty password fields
+        const currentRaw = JSON.parse(readFileSync(paths.config, "utf-8"));
+        const currentCh = currentRaw.channels?.[channelName] || {};
+
+        // Merge — preserve existing secrets if masked values are sent back
+        const merged = { ...body };
+        if (channelName === "telegram" || channelName === "discord") {
+          if (!merged.botToken || merged.botToken.includes("...")) {
+            merged.botToken = currentCh.botToken || "";
+          }
+        }
+        if (channelName === "slack") {
+          if (!merged.botToken || merged.botToken.includes("...")) merged.botToken = currentCh.botToken || "";
+          if (!merged.appToken || merged.appToken.includes("...")) merged.appToken = currentCh.appToken || "";
+        }
+        if (channelName === "email") {
+          if (merged.imap?.password && merged.imap.password.includes("...")) {
+            merged.imap.password = currentCh.imap?.password || "";
+          }
+          if (merged.smtp?.password && merged.smtp.password.includes("...")) {
+            merged.smtp.password = currentCh.smtp?.password || "";
+          }
+        }
+
+        (config.channels as any)[channelName] = merged;
+        await saveConfig(config);
+
+        // Hot-start/stop based on enabled flag
+        const enabled = merged.enabled !== false;
+        const router = (globalThis as any).__zuboRouter;
+        if (router) {
+          if (enabled) {
+            // Reload config for startChannel since we just saved
+            const freshConfig = await loadConfig();
+            await startChannel(channelName, freshConfig, router);
+          } else {
+            await stopChannel(channelName, router);
+          }
+        }
+
+        return Response.json({ ok: true, channel: channelName, enabled });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // PUT /api/dashboard/channels/:name/toggle — enable/disable channel
+  const channelToggleMatch = path.match(/^\/channels\/([a-z]+)\/toggle$/);
+  if (channelToggleMatch && req.method === "PUT") {
+    const channelName = channelToggleMatch[1];
+    return (async () => {
+      try {
+        const body = await req.json();
+        const enabled = !!body.enabled;
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const { startChannel, stopChannel } = await import("./lifecycle");
+        const config = await loadConfig();
+
+        if (!config.channels) (config as any).channels = {};
+        if (!(config.channels as any)[channelName]) {
+          return Response.json({ error: "Channel not configured" }, { status: 400 });
+        }
+        (config.channels as any)[channelName].enabled = enabled;
+        await saveConfig(config);
+
+        const router = (globalThis as any).__zuboRouter;
+        if (router) {
+          if (enabled) {
+            const freshConfig = await loadConfig();
+            await startChannel(channelName, freshConfig, router);
+          } else {
+            await stopChannel(channelName, router);
+          }
+        }
+
+        return Response.json({ ok: true, channel: channelName, enabled });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // --- LLM Provider Endpoints ---
+
+  // GET /api/dashboard/providers — list all providers with masked keys
+  if (path === "/providers" && req.method === "GET") {
+    return (async () => {
+      try {
+        const { maskToken } = await import("../util/mask");
+        const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+        const providers: any[] = [];
+
+        if (config.providers) {
+          for (const [name, p] of Object.entries(config.providers) as [string, any][]) {
+            providers.push({
+              name,
+              model: p.model ?? "",
+              apiKey: p.apiKey ? maskToken(p.apiKey) : "",
+              baseUrl: p.baseUrl ?? "",
+              contextWindow: p.contextWindow,
+              streaming: p.streaming,
+            });
+          }
+        }
+
+        // Legacy provider
+        if (config.anthropicApiKey && !providers.find(p => p.name === "anthropic")) {
+          providers.push({
+            name: "anthropic",
+            model: config.model ?? "claude-sonnet-4-5-20250929",
+            apiKey: maskToken(config.anthropicApiKey),
+            baseUrl: "",
+          });
+        }
+
+        return Response.json({
+          providers,
+          activeProvider: config.activeProvider ?? (config.anthropicApiKey ? "anthropic" : ""),
+          failover: config.failover ?? [],
+        });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // PUT /api/dashboard/providers/:name — add or update a provider
+  const providerPutMatch = path.match(/^\/providers\/([a-z0-9_-]+)$/);
+  if (providerPutMatch && req.method === "PUT" && path !== "/providers/active" && path !== "/providers/failover") {
+    const providerName = providerPutMatch[1];
+    return (async () => {
+      try {
+        const body = await req.json();
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const config = await loadConfig();
+
+        if (!config.providers) (config as any).providers = {};
+
+        // Preserve existing API key if masked value sent back
+        const existing = (config.providers as any)?.[providerName];
+        if (body.apiKey && body.apiKey.includes("...") && existing?.apiKey) {
+          body.apiKey = existing.apiKey;
+        }
+
+        (config.providers as any)[providerName] = {
+          ...(existing || {}),
+          ...body,
+        };
+
+        // Set as active if first provider
+        if (!config.activeProvider) {
+          (config as any).activeProvider = providerName;
+        }
+
+        await saveConfig(config);
+        return Response.json({ ok: true, provider: providerName });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/providers/:name — remove a provider
+  const providerDelMatch = path.match(/^\/providers\/([a-z0-9_-]+)$/);
+  if (providerDelMatch && req.method === "DELETE") {
+    const providerName = providerDelMatch[1];
+    return (async () => {
+      try {
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const config = await loadConfig();
+        if (config.providers) {
+          delete (config.providers as any)[providerName];
+        }
+        // Remove from failover if present
+        if (config.failover) {
+          (config as any).failover = config.failover.filter(f => f !== providerName);
+        }
+        // If this was active, switch to first remaining
+        if (config.activeProvider === providerName) {
+          const remaining = Object.keys(config.providers || {});
+          (config as any).activeProvider = remaining[0] || "";
+        }
+        await saveConfig(config);
+        return Response.json({ ok: true, deleted: providerName });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // PUT /api/dashboard/providers/active — switch active provider + hot-reload
+  if (path === "/providers/active" && req.method === "PUT") {
+    return (async () => {
+      try {
+        const body = await req.json();
+        const providerName = body.provider;
+        if (!providerName) {
+          return Response.json({ error: "provider is required" }, { status: 400 });
+        }
+
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const { createProvider } = await import("../llm/factory");
+        const config = await loadConfig();
+
+        if (!config.providers?.[providerName]) {
+          return Response.json({ error: `Provider "${providerName}" not configured` }, { status: 400 });
+        }
+
+        (config as any).activeProvider = providerName;
+        await saveConfig(config);
+
+        // Hot-reload: create new LLM and swap into router
+        const router = (globalThis as any).__zuboRouter;
+        if (router) {
+          const freshConfig = await loadConfig();
+          const newLlm = createProvider(freshConfig);
+          router.setLlm(newLlm);
+        }
+
+        return Response.json({ ok: true, activeProvider: providerName });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // PUT /api/dashboard/providers/failover — update failover order
+  if (path === "/providers/failover" && req.method === "PUT") {
+    return (async () => {
+      try {
+        const body = await req.json();
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const config = await loadConfig();
+        (config as any).failover = body.failover || [];
+        await saveConfig(config);
+        return Response.json({ ok: true, failover: config.failover });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // --- MCP Server Endpoints ---
+
+  // GET /api/dashboard/mcp/servers — list MCP servers + status
+  if (path === "/mcp/servers" && req.method === "GET") {
+    return (async () => {
+      try {
+        const { getMcpStatus } = await import("../tools/mcp-client");
+        const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+        const statusList = getMcpStatus();
+        const statusMap: Record<string, { connected: boolean; tools: number }> = {};
+        statusList.forEach(s => { statusMap[s.name] = { connected: s.connected, tools: s.tools }; });
+
+        const servers = (config.mcp?.servers || []).map((s: any) => ({
+          name: s.name,
+          command: s.command,
+          args: s.args || [],
+          env: s.env ? Object.keys(s.env) : [],
+          enabled: s.enabled !== false,
+          connected: statusMap[s.name]?.connected ?? false,
+          tools: statusMap[s.name]?.tools ?? 0,
+        }));
+
+        return Response.json({ servers });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/mcp/servers — add new MCP server + hot-connect
+  if (path === "/mcp/servers" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = await req.json();
+        if (!body.name || !body.command) {
+          return Response.json({ error: "name and command are required" }, { status: 400 });
+        }
+
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const { connectMcpServer } = await import("../tools/mcp-client");
+        const config = await loadConfig();
+
+        if (!config.mcp) (config as any).mcp = { servers: [] };
+        if (!config.mcp!.servers) (config.mcp as any).servers = [];
+
+        // Remove existing with same name
+        (config.mcp!.servers as any[]) = config.mcp!.servers.filter(
+          (s: any) => s.name !== body.name
+        );
+
+        const serverConfig = {
+          name: body.name,
+          command: body.command,
+          args: body.args || [],
+          env: body.env || {},
+          enabled: body.enabled !== false,
+        };
+        config.mcp!.servers.push(serverConfig);
+        await saveConfig(config);
+
+        // Hot-connect
+        if (serverConfig.enabled) {
+          try {
+            await connectMcpServer(serverConfig);
+          } catch (err: any) {
+            return Response.json({ ok: true, connected: false, error: err.message });
+          }
+        }
+
+        return Response.json({ ok: true, connected: true, server: body.name });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/mcp/servers/:name — remove MCP server + hot-disconnect
+  const mcpDeleteMatch = path.match(/^\/mcp\/servers\/([a-zA-Z0-9_-]+)$/);
+  if (mcpDeleteMatch && req.method === "DELETE") {
+    const serverName = decodeURIComponent(mcpDeleteMatch[1]);
+    return (async () => {
+      try {
+        const { loadConfig, saveConfig } = await import("../config/loader");
+        const { disconnectMcpServer } = await import("../tools/mcp-client");
+        const config = await loadConfig();
+
+        if (config.mcp?.servers) {
+          (config.mcp.servers as any[]) = config.mcp.servers.filter(
+            (s: any) => s.name !== serverName
+          );
+        }
+        await saveConfig(config);
+
+        // Hot-disconnect
+        await disconnectMcpServer(serverName);
+
+        return Response.json({ ok: true, deleted: serverName });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/mcp/servers/:name/restart — disconnect + reconnect
+  const mcpRestartMatch = path.match(/^\/mcp\/servers\/([a-zA-Z0-9_-]+)\/restart$/);
+  if (mcpRestartMatch && req.method === "POST") {
+    const serverName = decodeURIComponent(mcpRestartMatch[1]);
+    return (async () => {
+      try {
+        const { connectMcpServer, disconnectMcpServer } = await import("../tools/mcp-client");
+        const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+        const serverConfig = (config.mcp?.servers || []).find(
+          (s: any) => s.name === serverName
+        );
+        if (!serverConfig) {
+          return Response.json({ error: "Server not found" }, { status: 404 });
+        }
+
+        await disconnectMcpServer(serverName);
+        await connectMcpServer(serverConfig);
+
+        return Response.json({ ok: true, restarted: serverName });
       } catch (err: any) {
         return Response.json({ error: err.message }, { status: 500 });
       }

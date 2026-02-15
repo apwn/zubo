@@ -1,6 +1,7 @@
 import { registerTool } from "../registry";
 import { addCronJob, removeCronJob, listCronJobs } from "../../scheduler/cron";
 import { parseNaturalSchedule } from "../../scheduler/natural-cron";
+import type { ParsedSchedule } from "../../scheduler/natural-cron";
 import type { MessageRouter } from "../../channels/router";
 import type { ZuboConfig } from "../../config/schema";
 import type { LlmProvider } from "../../llm/provider";
@@ -53,9 +54,16 @@ export function registerCronTools(
       };
       try {
         let cronExpr = schedule;
+        let once = false;
         let naturalParseError = "";
         try {
-          cronExpr = parseNaturalSchedule(schedule);
+          const parsed = parseNaturalSchedule(schedule);
+          if (typeof parsed === "string") {
+            cronExpr = parsed;
+          } else {
+            cronExpr = parsed.cron;
+            once = parsed.once;
+          }
         } catch (parseErr: any) {
           naturalParseError = parseErr.message;
           // Only fall through if it looks like raw cron (5 space-separated fields)
@@ -63,9 +71,10 @@ export function registerCronTools(
             throw new Error(naturalParseError);
           }
         }
-        addCronJob(db, name, cronExpr, task, router, config, agent, llm);
+        addCronJob(db, name, cronExpr, task, router, config, agent, llm, once);
         let msg = `Scheduled task "${name}" created.\nSchedule: ${cronExpr}`;
         if (cronExpr !== schedule) msg += ` (parsed from "${schedule}")`;
+        if (once) msg += `\nType: one-shot (will auto-delete after firing)`;
         msg += `\nTask: ${task}`;
         if (agent) msg += `\nAgent: ${agent}`;
         return msg;
@@ -80,9 +89,69 @@ export function registerCronTools(
 
   registerTool({
     definition: {
+      name: "reminder_set",
+      description:
+        'Set a one-time reminder that fires once after a delay, then auto-deletes itself. Use this when the user asks to be reminded, pinged back, or followed up on something after a period of time. Examples: "in 30 minutes", "in 2 hours", "in 1 hour and 30 minutes". The reminder message is sent as a proactive message to the user.',
+      input_schema: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description:
+              "A short unique name for this reminder (e.g., 'marketing-followup', 'standup-reminder')",
+          },
+          delay: {
+            type: "string",
+            description:
+              'How long from now to fire the reminder. Natural language like "in 30 minutes", "in 2 hours", "in 1 hour and 15 minutes".',
+          },
+          message: {
+            type: "string",
+            description:
+              "The reminder message to send to the user when the timer fires (e.g., 'Hey! Have you worked on marketing yet?')",
+          },
+        },
+        required: ["name", "delay", "message"],
+      },
+    },
+    execute: async (input) => {
+      const { name, delay, message } = input as {
+        name: string;
+        delay: string;
+        message: string;
+      };
+      try {
+        // Ensure the delay starts with "in" for the parser
+        const delayText = delay.toLowerCase().startsWith("in ") ? delay : `in ${delay}`;
+        const parsed = parseNaturalSchedule(delayText);
+
+        if (typeof parsed === "string" || !parsed.once) {
+          throw new Error(
+            `"${delay}" does not look like a one-shot delay. Use formats like "in 30 minutes" or "in 2 hours".`
+          );
+        }
+
+        addCronJob(db, name, parsed.cron, message, router, config, undefined, llm, true);
+
+        // Calculate human-readable fire time from ISO string
+        const fireDate = new Date(parsed.cron);
+        const fireTime = fireDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+        return `Reminder "${name}" set! I'll ping you at ${fireTime} with: "${message}"\nThis reminder will auto-delete after firing.`;
+      } catch (err: any) {
+        if (err.message?.includes("UNIQUE constraint")) {
+          return `Error: A reminder named "${name}" already exists. Use a different name or delete the existing one with cron_delete first.`;
+        }
+        throw err;
+      }
+    },
+  });
+
+  registerTool({
+    definition: {
       name: "cron_list",
       description:
-        "List all scheduled tasks with their status, schedule, and last run time.",
+        "List all scheduled tasks and reminders with their status, schedule, and last run time.",
       input_schema: {
         type: "object",
         properties: {},
@@ -90,12 +159,12 @@ export function registerCronTools(
     },
     execute: async () => {
       const jobs = listCronJobs(db);
-      if (jobs.length === 0) return "No scheduled tasks found.";
+      if (jobs.length === 0) return "No scheduled tasks or reminders found.";
 
       return jobs
         .map(
           (j) =>
-            `- ${j.name} [${j.enabled ? "active" : "disabled"}]\n  Schedule: ${j.schedule}\n  Task: ${j.task}${j.agent ? `\n  Agent: ${j.agent}` : ""}\n  Last run: ${j.last_run ?? "never"}`
+            `- ${j.name} [${j.enabled ? "active" : "disabled"}]${j.once ? " (one-shot)" : ""}\n  Schedule: ${j.schedule}\n  Task: ${j.task}${j.agent ? `\n  Agent: ${j.agent}` : ""}\n  Last run: ${j.last_run ?? "never"}`
         )
         .join("\n\n");
     },
@@ -104,13 +173,13 @@ export function registerCronTools(
   registerTool({
     definition: {
       name: "cron_delete",
-      description: "Delete a scheduled task by name.",
+      description: "Delete a scheduled task or reminder by name.",
       input_schema: {
         type: "object",
         properties: {
           name: {
             type: "string",
-            description: "The name of the scheduled task to delete",
+            description: "The name of the scheduled task or reminder to delete",
           },
         },
         required: ["name"],

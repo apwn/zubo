@@ -181,6 +181,7 @@
       <h3>Scheduling</h3>
       <ul>
         <li><strong>Natural language scheduling</strong> &mdash; describe schedules in plain English like &ldquo;every weekday at 9am&rdquo; or &ldquo;twice a day&rdquo;. Zubo parses natural language into cron expressions automatically.</li>
+        <li><strong>One-shot reminders</strong> &mdash; say &ldquo;remind me in 30 minutes&rdquo; or &ldquo;ping me in 2 hours&rdquo;. The reminder fires once and auto-deletes, so you never accumulate stale jobs.</li>
         <li><strong>Cron jobs</strong> supporting any standard cron expression (e.g., <code>0 9 * * 1-5</code> for weekday mornings).</li>
         <li><strong>Configurable heartbeat</strong> from 1 to 1440 minutes (default 30), where Zubo wakes up, checks for pending tasks, processes scheduled jobs, and optionally sends proactive messages.</li>
         <li><strong>Proactive memory-based triggers</strong> &mdash; Zubo can surface reminders and follow-ups based on things it has remembered.</li>

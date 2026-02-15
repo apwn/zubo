@@ -16,6 +16,7 @@ export interface CronJob {
   retry_count: number;
   max_retries: number;
   agent: string | null;
+  once: number;
 }
 
 const activeCrons: Map<number, Cron> = new Map();
@@ -57,8 +58,14 @@ function scheduleJob(
 
   let cron: Cron;
   try {
-    cron = new Cron(job.schedule, async () => {
+    cron = new Cron(job.schedule, { maxRuns: job.once ? 1 : undefined }, async () => {
       logger.info(`Cron job firing: ${job.name}`);
+
+      // Stop one-shot jobs immediately to prevent re-firing
+      if (job.once && activeCrons.has(job.id)) {
+        activeCrons.get(job.id)!.stop();
+        activeCrons.delete(job.id);
+      }
 
       const sessionKey = getOwnerSessionKey(config);
       if (!sessionKey) {
@@ -94,13 +101,17 @@ function scheduleJob(
           "UPDATE cron_jobs SET last_run = datetime('now'), retry_count = 0 WHERE id = ?"
         ).run(job.id);
 
+        // Auto-delete one-shot jobs after successful execution
+        if (job.once) {
+          logger.info(`One-shot job "${job.name}" completed, auto-deleting`);
+          db.prepare("DELETE FROM cron_logs WHERE job_id = ?").run(job.id);
+          db.prepare("DELETE FROM cron_jobs WHERE id = ?").run(job.id);
+          return;
+        }
+
         // Send result to owner if delegated to agent
         if (job.agent && llm && reply) {
-          const adapter = router as any;
           try {
-            // Try to send through router's proactive channel
-            const sessionAdapter = (router as any).adapters ?? (router as any);
-            // Simplified: just log that the agent completed. The reply is already logged.
             logger.info(`Agent "${job.agent}" completed cron task "${job.name}"`);
           } catch {
             // Non-critical, reply is already logged
@@ -189,10 +200,13 @@ export function addCronJob(
   router: MessageRouter,
   config: ZuboConfig,
   agent?: string,
-  llm?: LlmProvider
+  llm?: LlmProvider,
+  once?: boolean
 ) {
-  // Validate schedule interval
-  validateCronSchedule(schedule);
+  // Skip aggressive-interval validation for one-shot jobs
+  if (!once) {
+    validateCronSchedule(schedule);
+  }
 
   // Enforce max active jobs
   const activeCount = db
@@ -206,9 +220,9 @@ export function addCronJob(
 
   const result = db
     .prepare(
-      "INSERT INTO cron_jobs (name, schedule, task, agent) VALUES (?, ?, ?, ?)"
+      "INSERT INTO cron_jobs (name, schedule, task, agent, once) VALUES (?, ?, ?, ?, ?)"
     )
-    .run(name, schedule, task, agent ?? null);
+    .run(name, schedule, task, agent ?? null, once ? 1 : 0);
 
   const id = Number(result.lastInsertRowid);
   const job: CronJob = {
@@ -221,10 +235,11 @@ export function addCronJob(
     retry_count: 0,
     max_retries: 3,
     agent: agent ?? null,
+    once: once ? 1 : 0,
   };
 
   scheduleJob(db, job, router, config, llm);
-  logger.info(`Cron job added: ${name}`, { schedule, task, agent });
+  logger.info(`Cron job added: ${name}`, { schedule, task, agent, once: !!once });
 }
 
 export function removeCronJob(db: Database, name: string): boolean {

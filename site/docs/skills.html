@@ -239,16 +239,21 @@ zubo publish my_skill     # Publish your skill to the registry</code></pre>
           <tr><td><code>get_current_datetime</code></td><td>Get current date and time with timezone</td><td>auto</td></tr>
           <tr><td><code>memory_write</code></td><td>Save a fact or note to persistent memory</td><td>auto</td></tr>
           <tr><td><code>memory_search</code></td><td>Search memory using semantic and full-text search</td><td>auto</td></tr>
+          <tr><td><code>kg_query</code></td><td>Query the knowledge graph for entities and relationships</td><td>auto</td></tr>
+          <tr><td><code>kg_update</code></td><td>Add or update entities and relationships in the knowledge graph</td><td>auto</td></tr>
           <tr><td><code>manage_skills</code></td><td>Create, list, or remove user skills</td><td>auto</td></tr>
           <tr><td><code>secret_set</code></td><td>Store a secret (API key, token, etc.)</td><td>auto</td></tr>
           <tr><td><code>secret_list</code></td><td>List all stored secret names</td><td>auto</td></tr>
           <tr><td><code>secret_delete</code></td><td>Delete a stored secret</td><td>confirm</td></tr>
-          <tr><td><code>cron_create</code></td><td>Create a scheduled task (cron job)</td><td>auto</td></tr>
-          <tr><td><code>cron_list</code></td><td>List all scheduled tasks</td><td>auto</td></tr>
-          <tr><td><code>cron_delete</code></td><td>Delete a scheduled task</td><td>auto</td></tr>
+          <tr><td><code>cron_create</code></td><td>Create a scheduled task (cron job or one-shot reminder)</td><td>auto</td></tr>
+          <tr><td><code>cron_list</code></td><td>List all scheduled tasks and reminders</td><td>auto</td></tr>
+          <tr><td><code>cron_delete</code></td><td>Delete a scheduled task or reminder</td><td>auto</td></tr>
+          <tr><td><code>reminder_set</code></td><td>Set a one-time reminder that fires after a delay and auto-deletes</td><td>auto</td></tr>
           <tr><td><code>connect_service</code></td><td>Connect an external integration (GitHub, Google, etc.)</td><td>auto</td></tr>
           <tr><td><code>delegate</code></td><td>Delegate a task to a sub-agent</td><td>auto</td></tr>
+          <tr><td><code>delegate_task</code></td><td>Delegate a task to an ad-hoc sub-agent</td><td>auto</td></tr>
           <tr><td><code>manage_agents</code></td><td>Create, list, or remove sub-agents</td><td>auto</td></tr>
+          <tr><td><code>diagnose</code></td><td>Check recent errors and system health</td><td>auto</td></tr>
           <tr><td><code>manage_workflows</code></td><td>Create and manage multi-step workflows</td><td>auto</td></tr>
           <tr><td><code>manage_teams</code></td><td>Manage agent teams and coordination</td><td>auto</td></tr>
           <tr><td><code>manage_triggers</code></td><td>Manage proactive triggers and alerts</td><td>auto</td></tr>
@@ -257,9 +262,13 @@ zubo publish my_skill     # Publish your skill to the registry</code></pre>
           <tr><td><code>shell</code></td><td>Execute shell commands on the host system</td><td>confirm</td></tr>
           <tr><td><code>file_read</code></td><td>Read the contents of a file</td><td>auto</td></tr>
           <tr><td><code>file_write</code></td><td>Write or append content to a file</td><td>confirm</td></tr>
+          <tr><td><code>code_interpreter</code></td><td>Execute Python, JavaScript, or TypeScript code</td><td>confirm</td></tr>
           <tr><td><code>web_search</code></td><td>Search the web via DuckDuckGo</td><td>auto</td></tr>
           <tr><td><code>url_fetch</code></td><td>Fetch and extract content from a web page</td><td>auto</td></tr>
           <tr><td><code>http_request</code></td><td>Make a generic HTTP request (GET, POST, etc.)</td><td>auto</td></tr>
+          <tr><td><code>image_generate</code></td><td>Generate images using AI (DALL-E, etc.)</td><td>auto</td></tr>
+          <tr><td><code>webhook_manage</code></td><td>Create, list, or remove incoming webhooks</td><td>auto</td></tr>
+          <tr><td><code>oauth_manage</code></td><td>Manage OAuth provider connections</td><td>auto</td></tr>
         </tbody>
       </table>
       <p>Tools marked <strong>confirm</strong> require user confirmation before execution. Tools marked <strong>auto</strong> run immediately without prompting.</p>

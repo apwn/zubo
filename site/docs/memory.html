@@ -132,7 +132,7 @@ Query --&gt; Hybrid Search &lt;----------------+
         <li>Uses the all-MiniLM-L6-v2 ONNX model to generate 384-dimensional embeddings.</li>
         <li>Performs cosine similarity matching to find semantically related content.</li>
         <li>Better for conceptual and semantic queries &mdash; for example, searching for "my programming preferences" will find chunks about Rust even if the word "preferences" does not appear in the stored text.</li>
-        <li>The embedding model (~23MB) is automatically downloaded on first startup and cached at <code>~/.orba/models/all-MiniLM-L6-v2</code>.</li>
+        <li>The embedding model (~23MB) is automatically downloaded on first startup and cached at <code>~/.zubo/models/all-MiniLM-L6-v2</code>.</li>
       </ul>
 
       <h3>Hybrid Search</h3>
@@ -219,6 +219,28 @@ Zubo: "Based on my memory, I know that your favorite programming
           <tr><td><code>memory_search</code></td><td>Search memory for relevant information using hybrid search. Returns the top matching chunks with their source and relevance score.</td></tr>
         </tbody>
       </table>
+
+      <h2>Knowledge Graph</h2>
+      <p>In addition to vector and full-text search, Zubo maintains a <strong>knowledge graph</strong> that stores structured entities and the relationships between them. While the chunk-based memory system excels at free-form text retrieval, the knowledge graph captures discrete facts in a queryable <em>entity &rarr; relation &rarr; entity</em> format. Entities have a <strong>name</strong>, a <strong>type</strong> (such as <code>person</code>, <code>project</code>, <code>org</code>, or <code>concept</code>), and optional key-value <strong>properties</strong>. Relationships link two entities with a labeled edge (for example, <code>works_at</code>, <code>manages</code>, or <code>uses</code>). When you mention a known entity in a message, Zubo automatically looks up its graph context and injects relevant relationships into the LLM prompt &mdash; giving the agent structured awareness alongside its semantic memory.</p>
+      <p>Two built-in tools give the agent full read/write access to the graph:</p>
+      <table>
+        <thead><tr><th>Tool</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>kg_query</code></td><td>Search for entities by name, retrieve full entity details and relations, or export a subgraph. Supports actions: <code>search</code>, <code>get</code>, <code>relations</code>, <code>graph</code>.</td></tr>
+          <tr><td><code>kg_update</code></td><td>Add or remove entities and relationships. Supports actions: <code>add_entity</code>, <code>add_relation</code>, <code>remove_entity</code>, <code>remove_relation</code>. Entities are upserted by name+type.</td></tr>
+        </tbody>
+      </table>
+      <p>Example interaction:</p>
+<pre><code>You: "I just started working at Acme Corp on the Atlas project."
+Zubo: "Noted! I've added that to your knowledge graph."
+
+# Under the hood, Zubo calls kg_update twice:
+#   add_relation: You --works_at--> Acme Corp (org)
+#   add_relation: You --works_on--> Atlas (project)
+
+You: "What do you know about my work?"
+# Zubo calls kg_query { action: "relations", name: "You" }
+Zubo: "You work at Acme Corp and are on the Atlas project."</code></pre>
 
       <h2>Best Practices</h2>
       <ul>

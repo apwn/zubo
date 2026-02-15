@@ -1,10 +1,50 @@
+export interface ParsedSchedule {
+  cron: string;
+  once: boolean;
+}
+
 /**
  * Parse natural language schedule descriptions into cron expressions.
  * Returns a standard 5-field cron expression (minute hour day month weekday).
  * Throws if the input can't be parsed.
+ *
+ * Also supports one-shot delayed schedules like "in 30 minutes", "in 2 hours".
+ * These return a cron expression targeting the exact future time, with once=true.
  */
-export function parseNaturalSchedule(input: string): string {
+export function parseNaturalSchedule(input: string): string | ParsedSchedule {
   const text = input.toLowerCase().trim();
+
+  // --- One-shot "in X minutes/hours" patterns ---
+  const inMinMatch = text.match(/^in\s+(\d+)\s*min(?:ute)?s?$/i);
+  if (inMinMatch) {
+    const mins = parseInt(inMinMatch[1], 10);
+    if (mins < 1 || mins > 1440) throw new Error("Delay must be between 1 minute and 24 hours");
+    return makeOnceCron(mins);
+  }
+
+  const inHourMatch = text.match(/^in\s+(\d+)\s*hours?$/i);
+  if (inHourMatch) {
+    const hrs = parseInt(inHourMatch[1], 10);
+    if (hrs < 1 || hrs > 24) throw new Error("Delay must be between 1 and 24 hours");
+    return makeOnceCron(hrs * 60);
+  }
+
+  // "in X hours and Y minutes" or "in Xh Ym"
+  const inHourMinMatch = text.match(/^in\s+(\d+)\s*(?:hours?|h)\s*(?:and\s*)?(\d+)\s*(?:min(?:ute)?s?|m)$/i);
+  if (inHourMinMatch) {
+    const totalMins = parseInt(inHourMinMatch[1], 10) * 60 + parseInt(inHourMinMatch[2], 10);
+    if (totalMins < 1 || totalMins > 1440) throw new Error("Delay must be between 1 minute and 24 hours");
+    return makeOnceCron(totalMins);
+  }
+
+  // "in half an hour" / "in 30min" style aliases
+  if (/^in\s+(?:half\s+an?\s+hour|30\s*min)$/i.test(text)) {
+    return makeOnceCron(30);
+  }
+
+  if (/^in\s+an?\s+hour$/i.test(text)) {
+    return makeOnceCron(60);
+  }
 
   // Direct cron expression passthrough — only accept standard 5-field cron
   if (/^[\d*\/,\-]+(\s+[\d*\/,\-]+){4}$/.test(text)) return text;
@@ -158,6 +198,19 @@ export function parseNaturalSchedule(input: string): string {
   }
 
   throw new Error(
-    `Could not parse schedule: "${input}". Try formats like "every day at 9am", "every weekday at 8:30am", "every monday and friday at noon", or "every 30 minutes".`
+    `Could not parse schedule: "${input}". Try formats like "every day at 9am", "every weekday at 8:30am", "every monday and friday at noon", "every 30 minutes", or "in 30 minutes".`
   );
+}
+
+/**
+ * Create a one-shot schedule that fires once at now + delayMinutes.
+ * Uses an ISO 8601 date string which croner handles natively for one-time firing.
+ */
+function makeOnceCron(delayMinutes: number): ParsedSchedule {
+  const target = new Date(Date.now() + delayMinutes * 60_000);
+  // Use ISO 8601 string — croner fires exactly once at this time
+  return {
+    cron: target.toISOString(),
+    once: true,
+  };
 }

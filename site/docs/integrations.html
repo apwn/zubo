@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Integrations — Zubo Docs</title>
-  <meta name="description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, Twitter, Claude Code, and OpenAI Codex with pre-built skill packs, API keys, OAuth, and MCP server mode.">
+  <meta name="description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, Twitter, and Claude Code with pre-built skill packs, API keys, OAuth, and MCP server mode.">
   <meta name="theme-color" content="#060608">
   <link rel="canonical" href="https://zubo.bot/docs/integrations.html">
   <meta property="og:title" content="Integrations — Zubo Docs">
-  <meta property="og:description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, Twitter, Claude Code, and OpenAI Codex with pre-built integrations, OAuth, and MCP server mode.">
+  <meta property="og:description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, Twitter, and Claude Code with pre-built integrations, OAuth, and MCP server mode.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://zubo.bot/docs/integrations.html">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Integrations — Zubo Docs">
-  <meta name="twitter:description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, Twitter, Claude Code, and OpenAI Codex.">
+  <meta name="twitter:description" content="Connect Zubo to GitHub, Google, Notion, Linear, Jira, Slack, Twitter, and Claude Code.">
   <meta name="twitter:image" content="https://zubo.bot/og-image.png">
   <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -190,7 +190,7 @@
       <table>
         <thead><tr><th>Field</th><th>Details</th></tr></thead>
         <tbody>
-          <tr><td>Secret Name</td><td><code>linear_api_key</code></td></tr>
+          <tr><td>Secret Name</td><td><code>linear_token</code></td></tr>
           <tr><td>Token Type</td><td>Personal API Key</td></tr>
         </tbody>
       </table>
@@ -210,11 +210,11 @@
       <table>
         <thead><tr><th>Field</th><th>Details</th></tr></thead>
         <tbody>
-          <tr><td>Secret Names</td><td><code>jira_token</code>, <code>jira_email</code>, <code>jira_domain</code></td></tr>
+          <tr><td>Secret Names</td><td><code>jira_token</code>, <code>jira_email</code>, <code>jira_url</code></td></tr>
           <tr><td>Token Type</td><td>Atlassian API Token</td></tr>
         </tbody>
       </table>
-      <p>Jira requires three secrets: your API token, the email address associated with your Atlassian account, and your Jira domain (e.g., <code>yourcompany.atlassian.net</code>).</p>
+      <p>Jira requires three secrets: your API token, the email address associated with your Atlassian account, and your Jira URL (e.g., <code>https://yourcompany.atlassian.net</code>).</p>
       <h3>Getting a Token</h3>
       <ol>
         <li>Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens">id.atlassian.com/manage-profile/security/api-tokens</a></li>
@@ -223,7 +223,7 @@
         <li>Store all three secrets:
 <pre><code>"Store my jira_token: atl_abc123..."
 "Store my jira_email: you@company.com"
-"Store my jira_domain: yourcompany.atlassian.net"</code></pre>
+"Store my jira_url: https://yourcompany.atlassian.net"</code></pre>
         </li>
       </ol>
       <h3>Skills Installed</h3>
@@ -236,7 +236,7 @@
       <table>
         <thead><tr><th>Field</th><th>Details</th></tr></thead>
         <tbody>
-          <tr><td>Secret Name</td><td><code>slack_bot_token</code></td></tr>
+          <tr><td>Secret Name</td><td><code>slack_token</code></td></tr>
           <tr><td>Token Type</td><td>Bot User OAuth Token</td></tr>
         </tbody>
       </table>
@@ -306,45 +306,8 @@ zubo mcp-serve</code></pre>
 <pre><code>"Use Claude Code to refactor the auth module in ~/projects/myapp"</code></pre>
       <p>Zubo delegates the task to Claude Code, which performs the refactoring and returns the result.</p>
 
-      <h2 id="openai-codex">OpenAI Codex</h2>
-      <table>
-        <thead><tr><th>Field</th><th>Details</th></tr></thead>
-        <tbody>
-          <tr><td>Secret Name</td><td><code>openai_api_key</code> (if using as LLM provider)</td></tr>
-          <tr><td>Requirement</td><td>Codex CLI installed (<code>npm i -g @openai/codex</code>)</td></tr>
-          <tr><td>Modes</td><td>Task delegation, LLM provider, MCP server</td></tr>
-        </tbody>
-      </table>
-      <p>Zubo integrates with <a href="https://github.com/openai/codex">OpenAI Codex CLI</a> the same way it integrates with Claude Code:</p>
-      <ol>
-        <li><strong>Task delegation:</strong> Zubo can delegate coding tasks to Codex CLI. The agent spawns a Codex session, passes the task, and collects the result.</li>
-        <li><strong>LLM provider:</strong> Use Codex as an LLM provider for Zubo's agent loop via the OpenAI API.</li>
-        <li><strong>MCP server mode:</strong> Run Zubo as an MCP server (<code>zubo mcp-serve</code>) so Codex can access Zubo's tools as MCP tools.</li>
-      </ol>
-      <h3>Setup</h3>
-      <ol>
-        <li>Install Codex CLI: <code>npm i -g @openai/codex</code></li>
-        <li>Ensure your <code>OPENAI_API_KEY</code> environment variable is set, or store it as a Zubo secret: <code>"Store my openai_api_key: sk-..."</code></li>
-      </ol>
-      <h3>Using as MCP Server</h3>
-      <p>To let Codex use Zubo's tools, start Zubo in MCP server mode and add it to your Codex MCP configuration:</p>
-<pre><code># Start Zubo as an MCP server
-zubo mcp-serve</code></pre>
-      <p>Then add Zubo to your Codex MCP config:</p>
-<pre><code>{
-  "mcpServers": {
-    "zubo": {
-      "command": "zubo",
-      "args": ["mcp-serve"]
-    }
-  }
-}</code></pre>
-      <p>Codex will then have access to Zubo's memory, knowledge graph, scheduling, and all integration tools.</p>
-      <h3>Example</h3>
-<pre><code>"Use Codex to write tests for the payment module in ~/projects/myapp"</code></pre>
-
       <h2 id="mcp-server-mode">MCP Server Mode</h2>
-      <p>Zubo can run as an <strong>MCP (Model Context Protocol) server</strong>, exposing all of its tools to any MCP-compatible client. This means Claude Code, OpenAI Codex, or any other MCP client can use Zubo's memory, knowledge graph, integrations, scheduling, and other tools natively.</p>
+      <p>Zubo can run as an <strong>MCP (Model Context Protocol) server</strong>, exposing all of its tools to any MCP-compatible client. This means Claude Code or any other MCP client can use Zubo's memory, knowledge graph, integrations, scheduling, and other tools natively.</p>
       <p>Start the MCP server with:</p>
 <pre><code>zubo mcp-serve</code></pre>
       <p>The server communicates over <strong>stdio</strong> using JSON-RPC, following the MCP specification. It exposes Zubo's full tool catalog to the connected client. See the <a href="cli.html#mcp-serve">CLI reference</a> for flags and options.</p>
@@ -357,7 +320,7 @@ zubo mcp-serve</code></pre>
         <li><code>schedule_job</code> &mdash; create scheduled tasks</li>
         <li><code>web_search</code>, <code>http_request</code> &mdash; web access</li>
       </ul>
-      <p>This lets you use Zubo as a shared intelligence layer &mdash; Claude Code or Codex can search your memory, check your calendar, create GitHub issues, or query your knowledge graph, all through MCP.</p>
+      <p>This lets you use Zubo as a shared intelligence layer &mdash; Claude Code can search your memory, check your calendar, create GitHub issues, or query your knowledge graph, all through MCP.</p>
 
       <h2 id="integration-summary">Integration Summary</h2>
       <table>
@@ -390,19 +353,19 @@ zubo mcp-serve</code></pre>
           </tr>
           <tr>
             <td>Linear</td>
-            <td><code>linear_api_key</code></td>
+            <td><code>linear_token</code></td>
             <td>issues, projects</td>
             <td>Personal API key</td>
           </tr>
           <tr>
             <td>Jira</td>
-            <td><code>jira_token</code> + <code>jira_email</code> + <code>jira_domain</code></td>
+            <td><code>jira_token</code> + <code>jira_email</code> + <code>jira_url</code></td>
             <td>issues, boards</td>
             <td>Atlassian API token</td>
           </tr>
           <tr>
             <td>Slack</td>
-            <td><code>slack_bot_token</code></td>
+            <td><code>slack_token</code></td>
             <td>messages</td>
             <td>For proactive messages</td>
           </tr>
@@ -417,12 +380,6 @@ zubo mcp-serve</code></pre>
             <td><code>anthropic_api_key</code></td>
             <td>task delegation, MCP server</td>
             <td>Requires Claude Code CLI</td>
-          </tr>
-          <tr>
-            <td>OpenAI Codex</td>
-            <td><code>openai_api_key</code></td>
-            <td>task delegation, MCP server</td>
-            <td>Requires Codex CLI</td>
           </tr>
         </tbody>
       </table>

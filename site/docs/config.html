@@ -224,7 +224,7 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
           <tr>
             <td><code>model</code></td>
             <td>string</td>
-            <td>No</td>
+            <td>Yes</td>
             <td>Model name to use. Defaults vary by provider (e.g., <code>claude-sonnet-4-5-20250929</code> for Anthropic).</td>
           </tr>
           <tr>
@@ -298,10 +298,10 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
             <td>Provider key to use for simple queries (e.g., <code>"groq"</code>, <code>"deepseek"</code>).</td>
           </tr>
           <tr>
-            <td><code>smartRouting.complexProvider</code></td>
+            <td><code>smartRouting.fastModel</code></td>
             <td>string</td>
             <td>&mdash;</td>
-            <td>Provider key to use for complex queries. Defaults to <code>activeProvider</code> if not set.</td>
+            <td>Model to use for the fast provider. Falls back to the provider's default model.</td>
           </tr>
         </tbody>
       </table>
@@ -309,7 +309,7 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
 <pre><code>"smartRouting": {
   "enabled": true,
   "fastProvider": "groq",
-  "complexProvider": "anthropic"
+  "fastModel": "llama-3.3-70b-versatile"
 }</code></pre>
 
       <p>When smart routing is enabled, Zubo classifies each incoming message and routes it accordingly. You can always override the routing for a specific message by prefixing it with the provider name (e.g., <code>@anthropic explain quantum computing</code>).</p>
@@ -342,8 +342,8 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
           <tr>
             <td><code>port</code></td>
             <td>number</td>
-            <td><code>3000</code></td>
-            <td>HTTP port for the web dashboard and API.</td>
+            <td><code>0 (auto)</code></td>
+            <td>HTTP port for the web dashboard and API. Set to 0 for automatic port assignment (default).</td>
           </tr>
         </tbody>
       </table>
@@ -562,6 +562,126 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
   "allowedNumbers": ["+447700900000"]
 }</code></pre>
 
+      <h3>Email</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>enabled</code></td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Enable the Email channel. Defaults to <code>true</code> when the email object is present.</td>
+          </tr>
+          <tr>
+            <td><code>imap.host</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>Hostname of the IMAP server (e.g., <code>"imap.gmail.com"</code>).</td>
+          </tr>
+          <tr>
+            <td><code>imap.port</code></td>
+            <td>number</td>
+            <td>No</td>
+            <td>IMAP server port. Defaults to <code>993</code>.</td>
+          </tr>
+          <tr>
+            <td><code>imap.user</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>IMAP login username (typically your email address).</td>
+          </tr>
+          <tr>
+            <td><code>imap.password</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>IMAP login password or app-specific password.</td>
+          </tr>
+          <tr>
+            <td><code>imap.tls</code></td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Enable TLS for the IMAP connection. Defaults to <code>true</code>.</td>
+          </tr>
+          <tr>
+            <td><code>smtp.host</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>Hostname of the SMTP server (e.g., <code>"smtp.gmail.com"</code>).</td>
+          </tr>
+          <tr>
+            <td><code>smtp.port</code></td>
+            <td>number</td>
+            <td>No</td>
+            <td>SMTP server port. Defaults to <code>587</code>.</td>
+          </tr>
+          <tr>
+            <td><code>smtp.user</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>SMTP login username (typically your email address).</td>
+          </tr>
+          <tr>
+            <td><code>smtp.password</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>SMTP login password or app-specific password.</td>
+          </tr>
+          <tr>
+            <td><code>smtp.tls</code></td>
+            <td>boolean</td>
+            <td>No</td>
+            <td>Enable TLS for the SMTP connection. Defaults to <code>true</code>.</td>
+          </tr>
+          <tr>
+            <td><code>pollIntervalSeconds</code></td>
+            <td>number</td>
+            <td>No</td>
+            <td>How often (in seconds) to check for new emails. Minimum <code>10</code>, defaults to <code>60</code>.</td>
+          </tr>
+          <tr>
+            <td><code>allowedSenders</code></td>
+            <td>string[]</td>
+            <td>No</td>
+            <td>Array of email addresses allowed to interact. If omitted, all senders are accepted.</td>
+          </tr>
+          <tr>
+            <td><code>fromName</code></td>
+            <td>string</td>
+            <td>No</td>
+            <td>Display name used in the &ldquo;From&rdquo; header of outgoing replies.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"email": {
+  "enabled": true,
+  "imap": {
+    "host": "imap.gmail.com",
+    "port": 993,
+    "user": "you@gmail.com",
+    "password": "app-specific-password",
+    "tls": true
+  },
+  "smtp": {
+    "host": "smtp.gmail.com",
+    "port": 587,
+    "user": "you@gmail.com",
+    "password": "app-specific-password",
+    "tls": true
+  },
+  "pollIntervalSeconds": 60,
+  "allowedSenders": ["friend@example.com", "boss@example.com"],
+  "fromName": "Zubo"
+}</code></pre>
+
       <!-- ================================================================ -->
       <h2 id="voice-configuration">Voice Configuration</h2>
 
@@ -740,19 +860,19 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
         </thead>
         <tbody>
           <tr>
-            <td><code>budget.dailyLimit</code></td>
+            <td><code>budget.dailyLimitUsd</code></td>
             <td>number</td>
             <td><code>0</code></td>
             <td>Maximum daily spend in USD. Set to <code>0</code> for no limit. When the limit is reached, Zubo pauses LLM requests and notifies you.</td>
           </tr>
           <tr>
-            <td><code>budget.monthlyLimit</code></td>
+            <td><code>budget.monthlyLimitUsd</code></td>
             <td>number</td>
             <td><code>0</code></td>
             <td>Maximum monthly spend in USD. Set to <code>0</code> for no limit.</td>
           </tr>
           <tr>
-            <td><code>budget.warningThreshold</code></td>
+            <td><code>budget.alertThreshold</code></td>
             <td>number</td>
             <td><code>0.8</code></td>
             <td>Percentage (0&ndash;1) of the budget at which Zubo sends a warning notification. Default is 80%.</td>
@@ -761,9 +881,9 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
       </table>
 
 <pre><code>"budget": {
-  "dailyLimit": 5,
-  "monthlyLimit": 50,
-  "warningThreshold": 0.8
+  "dailyLimitUsd": 5,
+  "monthlyLimitUsd": 50,
+  "alertThreshold": 0.8
 }</code></pre>
 
       <p>Cost tracking is always active even without spending limits. View your usage breakdown in the dashboard under Analytics &rarr; Costs, or ask Zubo directly: &ldquo;How much have I spent today?&rdquo;</p>
@@ -890,7 +1010,7 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
   "smartRouting": {
     "enabled": true,
     "fastProvider": "groq",
-    "complexProvider": "anthropic"
+    "fastModel": "llama-3.3-70b-versatile"
   },
 
   "channels": {
@@ -924,6 +1044,26 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
       "phoneNumber": "",
       "signalCliPath": "signal-cli",
       "allowedNumbers": []
+    },
+    "email": {
+      "enabled": false,
+      "imap": {
+        "host": "imap.gmail.com",
+        "port": 993,
+        "user": "",
+        "password": "",
+        "tls": true
+      },
+      "smtp": {
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "user": "",
+        "password": "",
+        "tls": true
+      },
+      "pollIntervalSeconds": 60,
+      "allowedSenders": [],
+      "fromName": "Zubo"
     }
   },
 
@@ -949,9 +1089,9 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
   },
 
   "budget": {
-    "dailyLimit": 5,
-    "monthlyLimit": 50,
-    "warningThreshold": 0.8
+    "dailyLimitUsd": 5,
+    "monthlyLimitUsd": 50,
+    "alertThreshold": 0.8
   },
 
   "auth": {

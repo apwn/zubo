@@ -41,113 +41,30 @@ function openBrowser(url: string) {
   }
 }
 
-function getTelegramToken(config: ZuboConfig): string | null {
-  if (config.channels?.telegram?.enabled !== false && config.channels?.telegram?.botToken) {
-    return config.channels.telegram.botToken;
-  }
-  // Legacy fallback
-  if (config.telegramBotToken) {
-    return config.telegramBotToken;
-  }
-  return null;
-}
-
-function getTelegramAllowedUsers(config: ZuboConfig): number[] {
-  if (config.channels?.telegram?.allowedUsers?.length) {
-    return config.channels.telegram.allowedUsers;
-  }
-  return config.telegramAllowedUsers ?? [];
-}
-
 async function startChannels(config: ZuboConfig, router: MessageRouter) {
+  const { startChannel } = await import("./channels/lifecycle");
   const stoppers: (() => void)[] = [];
 
-  // Telegram
-  const tgToken = getTelegramToken(config);
-  if (tgToken) {
-    const { createTelegramAdapter } = await import("./channels/telegram");
-    // Build a compat config object for the telegram adapter
-    const tgConfig = {
-      ...config,
-      telegramBotToken: tgToken,
-      telegramAllowedUsers: getTelegramAllowedUsers(config),
-    };
-    const telegram = createTelegramAdapter(tgToken, tgConfig, router);
-    router.addAdapter(telegram);
-    telegram.start();
-    stoppers.push(() => telegram.stop());
-    logger.info("Telegram channel started");
+  // Start all configured channels via lifecycle manager
+  const channelNames = ["telegram", "discord", "slack", "whatsapp", "signal", "email"];
+  for (const name of channelNames) {
+    const ch = (config.channels as any)?.[name];
+    const isEnabled = ch?.enabled !== false;
+    const isConfigured =
+      name === "telegram" ? !!(ch?.botToken || config.telegramBotToken) :
+      name === "discord" ? !!ch?.botToken :
+      name === "slack" ? !!ch?.botToken :
+      name === "whatsapp" ? !!ch :
+      name === "signal" ? !!ch?.phoneNumber :
+      name === "email" ? !!ch?.imap?.host :
+      false;
+
+    if (isEnabled && isConfigured) {
+      await startChannel(name, config, router);
+    }
   }
 
-  // Discord
-  if (config.channels?.discord?.enabled !== false && config.channels?.discord?.botToken) {
-    const { createDiscordAdapter } = await import("./channels/discord");
-    const discord = createDiscordAdapter(
-      config.channels.discord.botToken,
-      config.channels.discord.allowedUsers ?? [],
-      router
-    );
-    router.addAdapter(discord);
-    discord.start();
-    stoppers.push(() => discord.stop());
-    logger.info("Discord channel started");
-  }
-
-  // Slack
-  if (config.channels?.slack?.enabled !== false && config.channels?.slack?.botToken) {
-    const { createSlackAdapter } = await import("./channels/slack");
-    const slack = createSlackAdapter(
-      config.channels.slack.botToken,
-      config.channels.slack.appToken,
-      config.channels.slack.allowedUsers ?? [],
-      router
-    );
-    router.addAdapter(slack);
-    slack.start();
-    stoppers.push(() => slack.stop());
-    logger.info("Slack channel started");
-  }
-
-  // WhatsApp
-  if (config.channels?.whatsapp?.enabled !== false && config.channels?.whatsapp) {
-    const { createWhatsAppAdapter } = await import("./channels/whatsapp");
-    const whatsapp = createWhatsAppAdapter(
-      config.channels.whatsapp.allowedNumbers ?? [],
-      config.channels.whatsapp.authDir,
-      router
-    );
-    router.addAdapter(whatsapp);
-    whatsapp.start();
-    stoppers.push(() => whatsapp.stop());
-    logger.info("WhatsApp channel started");
-  }
-
-  // Signal
-  if (config.channels?.signal?.enabled !== false && config.channels?.signal?.phoneNumber) {
-    const { createSignalAdapter } = await import("./channels/signal");
-    const signal = createSignalAdapter(
-      config.channels.signal.phoneNumber,
-      config.channels.signal.allowedNumbers ?? [],
-      config.channels.signal.signalCliPath,
-      router
-    );
-    router.addAdapter(signal);
-    signal.start();
-    stoppers.push(() => signal.stop());
-    logger.info("Signal channel started");
-  }
-
-  // Email
-  if (config.channels?.email?.enabled !== false && config.channels?.email?.imap?.host) {
-    const { createEmailAdapter } = await import("./channels/email");
-    const email = createEmailAdapter(config.channels.email as any, router);
-    router.addAdapter(email);
-    email.start();
-    stoppers.push(() => email.stop());
-    logger.info("Email channel started");
-  }
-
-  // WebChat + Dashboard (always enabled)
+  // WebChat + Dashboard (always enabled, NOT managed by lifecycle — it hosts the dashboard)
   if (config.channels?.webchat?.enabled !== false) {
     const requestedPort = config.channels?.webchat?.port ?? 0;
     const { createWebChatAdapter } = await import("./channels/webchat");
@@ -241,6 +158,9 @@ export async function startZubo(isDaemon = false) {
 
   // Create message router
   const router = createRouter(llm, db);
+
+  // Expose router on globalThis so dashboard API endpoints can access it for hot-reload
+  (globalThis as any).__zuboRouter = router;
 
   // Register cron tools (need router for scheduling)
   registerCronTools(db, router, config, llm);

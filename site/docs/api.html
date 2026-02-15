@@ -232,9 +232,9 @@ Content-Type: application/json
   ]
 }</code></pre>
 
-      <h3>Cron Jobs</h3>
+      <h3>Cron Jobs &amp; Reminders</h3>
 <pre><code>GET /api/dashboard/cron</code></pre>
-      <p>List all configured cron jobs and their status.</p>
+      <p>List all configured cron jobs and one-shot reminders.</p>
       <p><strong>Response:</strong></p>
 <pre><code>{
   "jobs": [
@@ -243,10 +243,272 @@ Content-Type: application/json
       "schedule": "0 9 * * *",
       "task": "Send a daily briefing",
       "enabled": true,
+      "once": false,
       "last_run": "2026-02-12T09:00:00Z"
+    },
+    {
+      "name": "marketing-followup",
+      "schedule": "2026-02-14T15:30:00.000Z",
+      "task": "Hey! Have you worked on marketing yet?",
+      "enabled": true,
+      "once": true,
+      "last_run": null
     }
   ]
 }</code></pre>
+      <p>Jobs with <code>"once": true</code> are one-shot reminders that auto-delete after firing.</p>
+
+      <h3>Providers</h3>
+<pre><code>GET /api/dashboard/providers</code></pre>
+      <p>List all configured LLM providers with masked API keys, the active provider, and the failover order.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "providers": [
+    {
+      "name": "anthropic",
+      "model": "claude-sonnet-4-5-20250929",
+      "apiKey": "sk-ant-...xxxx",
+      "baseUrl": "",
+      "contextWindow": null,
+      "streaming": true
+    },
+    {
+      "name": "openai",
+      "model": "gpt-4o",
+      "apiKey": "sk-...xxxx",
+      "baseUrl": "",
+      "contextWindow": null,
+      "streaming": true
+    }
+  ],
+  "activeProvider": "anthropic",
+  "failover": ["openai"]
+}</code></pre>
+<pre><code>PUT /api/dashboard/providers/:name
+Content-Type: application/json
+
+{
+  "model": "gpt-4o",
+  "apiKey": "sk-...",
+  "baseUrl": "",
+  "streaming": true
+}</code></pre>
+      <p>Add or update a provider configuration. If this is the first provider, it is automatically set as active. Masked API key values (containing <code>...</code>) are ignored to preserve the existing key.</p>
+<pre><code>DELETE /api/dashboard/providers/:name</code></pre>
+      <p>Remove a provider. If the deleted provider was active, the first remaining provider is selected. The provider is also removed from the failover list.</p>
+<pre><code>PUT /api/dashboard/providers/active
+Content-Type: application/json
+
+{
+  "provider": "openai"
+}</code></pre>
+      <p>Set the active LLM provider. The change is hot-reloaded into the running agent &mdash; no restart is needed.</p>
+<pre><code>PUT /api/dashboard/providers/failover
+Content-Type: application/json
+
+{
+  "failover": ["openai", "anthropic"]
+}</code></pre>
+      <p>Update the provider failover order. When the active provider fails, the agent tries each failover provider in the order listed.</p>
+
+      <h3>MCP Servers</h3>
+<pre><code>GET /api/dashboard/mcp/servers</code></pre>
+      <p>List all configured MCP (Model Context Protocol) server connections with their current status and tool count.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "servers": [
+    {
+      "name": "filesystem",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+      "env": ["HOME"],
+      "enabled": true,
+      "connected": true,
+      "tools": 5
+    }
+  ]
+}</code></pre>
+<pre><code>POST /api/dashboard/mcp/servers
+Content-Type: application/json
+
+{
+  "name": "filesystem",
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+  "env": { "HOME": "/Users/me" },
+  "enabled": true
+}</code></pre>
+      <p>Add and connect a new MCP server. If a server with the same name already exists, it is replaced. The server is hot-connected immediately if <code>enabled</code> is <code>true</code> (or omitted).</p>
+<pre><code>DELETE /api/dashboard/mcp/servers/:name</code></pre>
+      <p>Disconnect and remove an MCP server. The server process is terminated and the configuration is deleted.</p>
+<pre><code>POST /api/dashboard/mcp/servers/:name/restart</code></pre>
+      <p>Restart an MCP server connection. The server is disconnected and then reconnected using its saved configuration. Returns <code>404</code> if the server is not found.</p>
+
+      <h3>Channels Configuration</h3>
+<pre><code>GET /api/dashboard/channels/config</code></pre>
+      <p>Get all channel configurations with masked tokens and running status. Returns an object keyed by channel name (telegram, discord, slack, whatsapp, signal, email), each containing <code>enabled</code>, <code>configured</code>, <code>running</code>, and <code>config</code> fields.</p>
+<pre><code>PUT /api/dashboard/channels/:name/config
+Content-Type: application/json
+
+{
+  "botToken": "123456:ABC-DEF...",
+  "allowedUsers": ["user1"],
+  "enabled": true
+}</code></pre>
+      <p>Update a channel's configuration. Valid channel names are <code>telegram</code>, <code>discord</code>, <code>slack</code>, <code>whatsapp</code>, <code>signal</code>, and <code>email</code>. If <code>enabled</code> is <code>true</code>, the channel is hot-started immediately. If <code>false</code>, the channel is stopped. Masked token values are preserved.</p>
+<pre><code>PUT /api/dashboard/channels/:name/toggle
+Content-Type: application/json
+
+{
+  "enabled": true
+}</code></pre>
+      <p>Enable or disable a channel with immediate start or stop. The channel must already be configured.</p>
+
+      <h3>OAuth</h3>
+<pre><code>GET /api/dashboard/oauth/status</code></pre>
+      <p>Get OAuth connection status for all supported providers. Returns a list of supported providers and their current connection state, including whether each provider has credentials configured.</p>
+<pre><code>PUT /api/dashboard/oauth/:provider/config
+Content-Type: application/json
+
+{
+  "clientId": "your-client-id",
+  "clientSecret": "your-client-secret"
+}</code></pre>
+      <p>Save OAuth client credentials for a provider (e.g. <code>google</code>, <code>github</code>). These credentials are stored in the config file and used when initiating OAuth authorization flows.</p>
+<pre><code>DELETE /api/dashboard/oauth/:provider/config</code></pre>
+      <p>Remove OAuth client credentials for a provider from the configuration.</p>
+<pre><code>DELETE /api/dashboard/oauth/:provider</code></pre>
+      <p>Disconnect an OAuth provider by revoking its stored tokens. The client credentials remain in the configuration.</p>
+
+      <h3>Budget</h3>
+<pre><code>GET /api/dashboard/budget</code></pre>
+      <p>Get budget configuration and current usage, including today's spend, this month's spend, and a daily breakdown for the last 7 days.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "daily_limit_usd": 5.00,
+  "monthly_limit_usd": 100.00,
+  "alert_threshold": 0.8,
+  "paused": false,
+  "today_spend_usd": 1.2345,
+  "month_spend_usd": 42.50,
+  "daily_breakdown": [
+    { "day": "2026-02-13", "cost": 1.50, "tokens": 45000 },
+    { "day": "2026-02-14", "cost": 1.23, "tokens": 38000 }
+  ]
+}</code></pre>
+<pre><code>PUT /api/dashboard/budget
+Content-Type: application/json
+
+{
+  "daily_limit_usd": 5.00,
+  "monthly_limit_usd": 100.00,
+  "alert_threshold": 0.8
+}</code></pre>
+      <p>Update budget limits. Set a field to <code>null</code> to remove that limit. The <code>alert_threshold</code> is a fraction (0&ndash;1) of the limit at which a warning is triggered. Updating the budget also resets the <code>paused</code> state.</p>
+
+      <h3>Privacy &amp; Data</h3>
+<pre><code>GET /api/dashboard/privacy/summary</code></pre>
+      <p>Get a summary of all stored data, including counts of memories, messages, sessions, secrets, cron jobs, API calls, tool calls, and total tokens sent and received.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "memoryCount": 567,
+  "messageCount": 1234,
+  "sessionCount": 15,
+  "secretCount": 3,
+  "cronCount": 2,
+  "apiCallCount": 890,
+  "toolCallCount": 456,
+  "totalTokensSent": 1500000,
+  "totalTokensReceived": 750000,
+  "providerBreakdown": [
+    { "provider": "anthropic", "calls": 800, "tokens_sent": 1200000 }
+  ]
+}</code></pre>
+<pre><code>GET /api/dashboard/privacy/api-log?limit=50&amp;offset=0</code></pre>
+      <p>View API call history with session ID, provider, model, token counts, cost, and response time. Supports pagination via <code>limit</code> (max 100) and <code>offset</code> query parameters.</p>
+<pre><code>GET /api/dashboard/privacy/tool-log?limit=50&amp;offset=0</code></pre>
+      <p>View tool call history with tool name, session ID, duration, and success status. Supports pagination via <code>limit</code> (max 100) and <code>offset</code> query parameters.</p>
+<pre><code>POST /api/dashboard/privacy/wipe-memories
+Content-Type: application/json
+
+{ "confirm": "DELETE" }</code></pre>
+      <p>Delete all memory chunks and full-text search index. Requires <code>{ "confirm": "DELETE" }</code> in the request body.</p>
+<pre><code>POST /api/dashboard/privacy/wipe-messages
+Content-Type: application/json
+
+{ "confirm": "DELETE" }</code></pre>
+      <p>Delete all stored messages. Requires <code>{ "confirm": "DELETE" }</code> in the request body.</p>
+<pre><code>POST /api/dashboard/privacy/wipe-usage
+Content-Type: application/json
+
+{ "confirm": "DELETE" }</code></pre>
+      <p>Delete all usage analytics and tool metrics. Requires <code>{ "confirm": "DELETE" }</code> in the request body.</p>
+<pre><code>POST /api/dashboard/privacy/wipe-all
+Content-Type: application/json
+
+{ "confirm": "DELETE_ALL" }</code></pre>
+      <p>Complete data wipe: deletes all memories, messages, usage analytics, tool metrics, secrets, and cron logs. Requires <code>{ "confirm": "DELETE_ALL" }</code> in the request body.</p>
+
+      <h3>Threads</h3>
+<pre><code>GET /api/dashboard/threads</code></pre>
+      <p>List all conversation threads, ordered by most recently updated.</p>
+<pre><code>POST /api/dashboard/threads
+Content-Type: application/json
+
+{
+  "title": "Project discussion"
+}</code></pre>
+      <p>Create a new conversation thread. The <code>title</code> field is optional and defaults to "New conversation". Returns the generated thread <code>id</code> and <code>title</code>.</p>
+<pre><code>PUT /api/dashboard/threads/:id
+Content-Type: application/json
+
+{
+  "title": "Renamed thread"
+}</code></pre>
+      <p>Rename a thread by its ID.</p>
+<pre><code>DELETE /api/dashboard/threads/:id</code></pre>
+      <p>Delete a thread and its associated session file.</p>
+<pre><code>GET /api/dashboard/threads/:id/messages</code></pre>
+      <p>Get the messages in a thread (up to 100 messages). Returns the session's message array.</p>
+<pre><code>GET /api/dashboard/threads/:id/export</code></pre>
+      <p>Export a thread as a Markdown file. Returns a <code>text/markdown</code> response with a <code>Content-Disposition</code> header for download.</p>
+
+      <h3>Recipes</h3>
+<pre><code>GET /api/dashboard/recipes</code></pre>
+      <p>List all available workflow recipe templates with their install status. Each recipe includes its <code>id</code>, metadata, and an <code>installed</code> flag indicating whether it has already been added as a cron job.</p>
+<pre><code>POST /api/dashboard/recipes/install
+Content-Type: application/json
+
+{
+  "recipeId": "daily-summary"
+}</code></pre>
+      <p>Install a recipe as a cron job. The recipe is looked up by <code>recipeId</code> and inserted into the cron jobs table. Returns an error if the recipe is already installed.</p>
+<pre><code>POST /api/dashboard/recipes/uninstall
+Content-Type: application/json
+
+{
+  "recipeId": "daily-summary"
+}</code></pre>
+      <p>Uninstall a recipe by removing its cron job.</p>
+
+      <h3>Smart Routing</h3>
+<pre><code>GET /api/dashboard/smart-routing</code></pre>
+      <p>Get the current smart routing configuration. Smart routing automatically directs simple queries to a faster, cheaper model while using the primary model for complex tasks.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "enabled": false,
+  "fastProvider": "openai",
+  "fastModel": "gpt-4o-mini"
+}</code></pre>
+<pre><code>PUT /api/dashboard/smart-routing
+Content-Type: application/json
+
+{
+  "enabled": true,
+  "fastProvider": "openai",
+  "fastModel": "gpt-4o-mini"
+}</code></pre>
+      <p>Update smart routing settings. All fields are optional &mdash; only the fields you include will be updated.</p>
 
       <h3>Logs</h3>
 <pre><code>GET /api/dashboard/logs</code></pre>

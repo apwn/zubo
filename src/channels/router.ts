@@ -59,6 +59,9 @@ export interface MessageRouter {
   sendProactive(sessionKey: string, task: string): Promise<string>;
   broadcastProactive?(message: string): Promise<void>;
   addAdapter(adapter: ChannelAdapter): void;
+  removeAdapter(channelName: string): void;
+  getAdapterNames(): string[];
+  setLlm(provider: LlmProvider): void;
   /** @deprecated Use addAdapter instead */
   setAdapter(adapter: ChannelAdapter): void;
   stopAll(): void;
@@ -68,6 +71,7 @@ export function createRouter(
   llm: LlmProvider,
   db: Database
 ): MessageRouter {
+  let currentLlm = llm;
   const adapters = new Map<string, ChannelAdapter>();
 
   function getAdapterForSession(sessionKey: string): ChannelAdapter | null {
@@ -78,6 +82,23 @@ export function createRouter(
   return {
     addAdapter(adapter: ChannelAdapter) {
       adapters.set(adapter.channelName, adapter);
+    },
+
+    removeAdapter(channelName: string) {
+      const adapter = adapters.get(channelName);
+      if (adapter) {
+        adapter.stop();
+        adapters.delete(channelName);
+      }
+    },
+
+    getAdapterNames(): string[] {
+      return Array.from(adapters.keys());
+    },
+
+    setLlm(provider: LlmProvider) {
+      currentLlm = provider;
+      logger.info(`LLM provider hot-swapped to ${provider.providerName}/${provider.model}`);
     },
 
     // Backward compat
@@ -119,7 +140,7 @@ export function createRouter(
           }
         }
 
-        const result = await agentLoop(llm, UNIFIED_SESSION, text, memories);
+        const result = await agentLoop(currentLlm, UNIFIED_SESSION, text, memories);
         if (result.reply) {
           await reply(result.reply);
         }
@@ -156,7 +177,7 @@ export function createRouter(
 
       return new Promise<string>((resolve, reject) => {
         agentLoopStream(
-          llm,
+          currentLlm,
           UNIFIED_SESSION,
           text,
           {
@@ -173,7 +194,7 @@ export function createRouter(
 
     async sendProactive(sessionKey, task) {
       try {
-        const result = await agentLoop(llm, UNIFIED_SESSION, task);
+        const result = await agentLoop(currentLlm, UNIFIED_SESSION, task);
         const adapter = getAdapterForSession(sessionKey);
         if (adapter && result.reply) {
           await adapter.sendMessage(sessionKey, result.reply);

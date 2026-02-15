@@ -180,6 +180,10 @@ export class McpClient {
     return this.connected;
   }
 
+  getToolCount(): number {
+    return this.registeredTools.length;
+  }
+
   private async sendRequest(method: string, params: Record<string, unknown>): Promise<any> {
     const id = ++this.requestId;
     const message: JsonRpcRequest = {
@@ -387,6 +391,37 @@ export function getMcpStatus(): { name: string; connected: boolean; tools: numbe
   return Array.from(mcpClients.entries()).map(([name, client]) => ({
     name,
     connected: client.isConnected(),
-    tools: 0, // Could track this if needed
+    tools: client.getToolCount(),
   }));
+}
+
+/**
+ * Connect (or reconnect) a single MCP server by config.
+ * If a server with the same name is already connected, disconnects it first.
+ */
+export async function connectMcpServer(config: McpServerConfig): Promise<void> {
+  // Disconnect existing if any
+  if (mcpClients.has(config.name)) {
+    await disconnectMcpServer(config.name);
+  }
+
+  const client = new McpClient(config);
+  await client.connect();
+  await client.registerTools();
+  mcpClients.set(config.name, client);
+  logger.info(`MCP server "${config.name}" connected with ${client.getToolCount()} tools`);
+}
+
+/**
+ * Disconnect a single MCP server by name.
+ */
+export async function disconnectMcpServer(name: string): Promise<void> {
+  const client = mcpClients.get(name);
+  if (!client) return;
+  try {
+    await client.disconnect();
+  } catch (err: any) {
+    logger.warn(`Failed to disconnect MCP server "${name}"`, { error: err.message });
+  }
+  mcpClients.delete(name);
 }

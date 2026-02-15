@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Channel Setup — Zubo Docs</title>
-  <meta name="description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat. Step-by-step setup guides for every supported messaging channel.">
+  <meta name="description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat. Step-by-step setup guides for every supported messaging channel.">
   <meta name="theme-color" content="#060608">
   <link rel="canonical" href="https://zubo.bot/docs/channels.html">
   <meta property="og:title" content="Channel Setup — Zubo Docs">
-  <meta property="og:description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat. Step-by-step setup guides.">
+  <meta property="og:description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat. Step-by-step setup guides.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://zubo.bot/docs/channels.html">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Channel Setup — Zubo Docs">
-  <meta name="twitter:description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, and Web Chat.">
+  <meta name="twitter:description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat.">
   <meta name="twitter:image" content="https://zubo.bot/og-image.png">
   <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -285,6 +285,72 @@ brew install signal-cli
           <tr><td><code>allowedNumbers</code></td><td>string[]</td><td><code>[]</code></td><td>Phone numbers allowed to message. Empty array means anyone can message.</td></tr>
         </tbody>
       </table>
+
+      <h2>Email</h2>
+      <p>Connect Zubo to an email account via IMAP/SMTP so it can receive and reply to emails. Great for workflows like processing incoming emails, auto-replies, or email-based task management.</p>
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>An email account with IMAP and SMTP access (Gmail, Outlook, FastMail, etc.)</li>
+        <li>For Gmail, an <strong>App Password</strong> is required &mdash; your regular Google account password will not work</li>
+      </ul>
+      <h3>Setup Steps</h3>
+      <ol>
+        <li>Gather your IMAP and SMTP server details from your email provider (host, port, username, password)</li>
+        <li>Add the email channel to your Zubo config:
+<pre><code>{
+  "channels": {
+    "email": {
+      "enabled": true,
+      "imap": {
+        "host": "imap.gmail.com",
+        "port": 993,
+        "user": "you@gmail.com",
+        "password": "your-app-password",
+        "tls": true
+      },
+      "smtp": {
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "user": "you@gmail.com",
+        "password": "your-app-password",
+        "tls": true
+      },
+      "pollIntervalSeconds": 60,
+      "allowedSenders": ["boss@company.com", "team@company.com"],
+      "fromName": "Zubo Assistant"
+    }
+  }
+}</code></pre>
+        </li>
+        <li>Restart Zubo: <code>zubo restart</code></li>
+      </ol>
+
+      <h3>Config Fields</h3>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>enabled</code></td><td>boolean</td><td><code>true</code></td><td>Enable or disable the Email channel</td></tr>
+          <tr><td><code>imap.host</code></td><td>string</td><td>&mdash;</td><td>IMAP server hostname (e.g., <code>imap.gmail.com</code>)</td></tr>
+          <tr><td><code>imap.port</code></td><td>number</td><td><code>993</code></td><td>IMAP server port</td></tr>
+          <tr><td><code>imap.user</code></td><td>string</td><td>&mdash;</td><td>IMAP login username (usually your email address)</td></tr>
+          <tr><td><code>imap.password</code></td><td>string</td><td>&mdash;</td><td>IMAP login password or app password</td></tr>
+          <tr><td><code>imap.tls</code></td><td>boolean</td><td><code>true</code></td><td>Use TLS for the IMAP connection</td></tr>
+          <tr><td><code>smtp.host</code></td><td>string</td><td>&mdash;</td><td>SMTP server hostname (e.g., <code>smtp.gmail.com</code>)</td></tr>
+          <tr><td><code>smtp.port</code></td><td>number</td><td><code>587</code></td><td>SMTP server port (587 for STARTTLS, 465 for implicit TLS)</td></tr>
+          <tr><td><code>smtp.user</code></td><td>string</td><td>&mdash;</td><td>SMTP login username (usually your email address)</td></tr>
+          <tr><td><code>smtp.password</code></td><td>string</td><td>&mdash;</td><td>SMTP login password or app password</td></tr>
+          <tr><td><code>smtp.tls</code></td><td>boolean</td><td><code>true</code></td><td>Use TLS for the SMTP connection</td></tr>
+          <tr><td><code>pollIntervalSeconds</code></td><td>number</td><td><code>60</code></td><td>How often (in seconds) to check for new emails. Minimum is 10.</td></tr>
+          <tr><td><code>allowedSenders</code></td><td>string[]</td><td>&mdash;</td><td>Email addresses allowed to message. If omitted or empty, all incoming emails are processed.</td></tr>
+          <tr><td><code>fromName</code></td><td>string</td><td><code>"Zubo"</code></td><td>Display name used in the <code>From</code> header of outgoing replies</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Security note &mdash; <code>allowedSenders</code>:</strong> If set, only emails from the listed addresses will be processed. All other incoming emails are marked as read and skipped. If <code>allowedSenders</code> is omitted or empty, Zubo will process every incoming email &mdash; use this only for private or low-traffic mailboxes.</p>
+
+      <p><strong>Gmail setup:</strong> Gmail requires an App Password for third-party IMAP/SMTP access. To create one, go to <a href="https://myaccount.google.com/apppasswords">Google Account &rarr; Security &rarr; App Passwords</a> (requires 2-Step Verification to be enabled). Generate a new app password, then use that 16-character password in both the <code>imap.password</code> and <code>smtp.password</code> fields above.</p>
 
       <h2>Running Multiple Channels</h2>
       <p>Zubo is designed to run all channels simultaneously. There is no limit to how many channels you can enable at once.</p>

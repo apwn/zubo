@@ -105,22 +105,26 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     font-weight: 600;
   }
   #sidebar nav a.active .nav-icon { opacity: 1; }
-  #sidebar nav a.active::before {
-    content: ''; position: absolute; left: 0; top: 6px; bottom: 6px;
-    width: 3px; border-radius: 2px; background: var(--gradient);
-  }
+  /* active bar handled in polish section below */
 
   .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
 
   .sidebar-footer {
     padding: 12px 16px; border-top: 1px solid var(--border);
-    font-size: 11px; color: var(--text-faint); display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--text-faint); display: flex; align-items: center; justify-content: space-between;
   }
+  .sidebar-footer .footer-left { display: flex; align-items: center; gap: 6px; }
   .sidebar-footer .conn-badge {
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 10px; padding: 2px 8px; border-radius: 10px;
     background: var(--green-bg); color: var(--green);
   }
+  .sidebar-footer .docs-link {
+    color: var(--text-faint); text-decoration: none; font-size: 11px;
+    display: inline-flex; align-items: center; gap: 4px;
+    transition: color var(--transition);
+  }
+  .sidebar-footer .docs-link:hover { color: var(--accent); }
 
   /* Main area */
   #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
@@ -651,6 +655,156 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   .recipe-card-requires { font-size: 10px; color: var(--yellow); }
   .recipe-card .btn { font-size: 12px; padding: 5px 14px; }
   .recipe-card .btn.installed { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+
+  /* ===== TAB BAR ===== */
+  .tab-bar {
+    display: flex; gap: 2px; padding: 0 0 16px; border-bottom: 1px solid var(--border);
+    margin-bottom: 20px; overflow-x: auto; flex-shrink: 0;
+  }
+  .tab {
+    padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted);
+    background: transparent; border: none; border-radius: 8px; cursor: pointer;
+    font-family: var(--font); transition: all var(--transition); white-space: nowrap;
+  }
+  .tab:hover { color: var(--text-secondary); background: var(--bg-hover); }
+  .tab.active { color: var(--accent); background: var(--accent-bg); font-weight: 600; }
+  .tab-content { display: none; animation: panelIn 200ms ease-out; }
+  .tab-content.active { display: block; }
+
+  /* ===== SVG NAV ICONS ===== */
+  .nav-svg-icon {
+    width: 18px; height: 18px; flex-shrink: 0; opacity: 0.6;
+    transition: opacity var(--transition);
+  }
+  .nav-svg-icon svg { width: 18px; height: 18px; }
+  #sidebar nav a:hover .nav-svg-icon { opacity: 0.85; }
+  #sidebar nav a.active .nav-svg-icon { opacity: 1; }
+
+  /* ===== ENHANCED EMPTY STATES ===== */
+  .empty-state-card {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 24px; text-align: center; gap: 12px;
+  }
+  .empty-state-card .empty-icon {
+    width: 64px; height: 64px; color: var(--text-faint); opacity: 0.4; margin-bottom: 4px;
+  }
+  .empty-state-card .empty-icon svg { width: 64px; height: 64px; }
+  .empty-state-card h4 {
+    font-size: 15px; font-weight: 600; color: var(--text-secondary); margin: 0;
+  }
+  .empty-state-card p {
+    font-size: 13px; color: var(--text-muted); max-width: 320px; line-height: 1.5; margin: 0;
+  }
+  .empty-state-card .btn { margin-top: 8px; }
+
+  /* ===== CHAT WELCOME ENHANCED ===== */
+  .chat-welcome-sparkle {
+    width: 72px; height: 72px; animation: sparkleFloat 3s ease-in-out infinite;
+  }
+  .chat-welcome-sparkle svg { width: 72px; height: 72px; filter: drop-shadow(0 0 20px rgba(124,58,237,0.4)); }
+  @keyframes sparkleFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(8deg); }
+  }
+  .chat-welcome-mesh {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 50% 40%, rgba(124,58,237,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 60%, rgba(217,70,239,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 30%, rgba(99,102,241,0.04) 0%, transparent 50%);
+  }
+  .chat-welcome { position: relative; z-index: 1; }
+  .suggestion-chips-group { display: flex; flex-direction: column; gap: 6px; align-items: center; margin-top: 4px; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+  /* ===== POLISH ===== */
+  /* Sidebar hover left border hint */
+  #sidebar nav a::before {
+    content: ''; position: absolute; left: 0; top: 6px; bottom: 6px;
+    width: 3px; border-radius: 2px; background: var(--gradient);
+    transform: scaleY(0); transition: transform var(--transition);
+  }
+  #sidebar nav a:hover::before { transform: scaleY(0.6); }
+  #sidebar nav a.active::before { transform: scaleY(1); }
+
+  /* Card subtle scale on hover */
+  .card:hover { transform: scale(1.01); }
+  .card { transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition); }
+
+  /* Chat input glow on focus */
+  #chat-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.1), 0 0 16px rgba(124,58,237,0.08);
+  }
+
+  /* Toast slide from right */
+  .toast {
+    transform: translateX(40px); opacity: 0;
+    transition: opacity 200ms, transform 200ms;
+  }
+  .toast.show { opacity: 1; transform: translateX(0); }
+
+  /* Wider scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { border-radius: 4px; }
+
+  /* Panel crossfade */
+  .panel.active { animation: panelCrossfade 250ms ease-out; }
+  @keyframes panelCrossfade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Thread delete smooth */
+  .thread-item { transition: all var(--transition), max-height 200ms ease, opacity 200ms ease; }
+
+  /* Stat card (unified) */
+  .stat-card {
+    background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 18px 20px; transition: all var(--transition);
+  }
+  .stat-card:hover { border-color: rgba(124,58,237,0.25); transform: scale(1.01); }
+  .stat-label {
+    font-size: 11px; color: var(--text-faint); text-transform: uppercase;
+    letter-spacing: 0.6px; font-weight: 600; margin-bottom: 8px;
+  }
+  .stat-value {
+    font-family: var(--display); font-size: 22px; font-weight: 700;
+    color: var(--text); letter-spacing: -0.5px;
+  }
+  .stat-value.ok { color: var(--green); }
+
+  /* OAuth integration row */
+  .oauth-row {
+    background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .oauth-row-left { display: flex; align-items: center; gap: 12px; }
+  .oauth-row-icon { font-size: 24px; }
+  .oauth-row-name { font-weight: 600; font-size: 14px; }
+  .oauth-row-desc { font-size: 12px; color: var(--text-secondary); }
+  .oauth-row-right { display: flex; align-items: center; gap: 10px; }
+
+  /* Secret row */
+  .secret-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .secret-name {
+    font-family: var(--mono); font-size: 13px; font-weight: 500;
+    color: var(--text); min-width: 140px;
+  }
+  .secret-service { font-size: 11px; color: var(--text-muted); min-width: 80px; }
+  .secret-value {
+    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* Channel status row */
+  .channel-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .channel-row-label { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
 </style>
 </head>
 <body>
@@ -663,54 +817,34 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   <nav>
     <div class="sidebar-section">Agent</div>
     <a href="#agent" class="active" onclick="showPanel('agent')">
-      <span class="nav-icon">\u{1F4AC}</span> Chat
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span> Chat
     </a>
     <div class="sidebar-divider"></div>
-    <div class="sidebar-section">Dashboard</div>
-    <a href="#status" onclick="showPanel('status')">
-      <span class="nav-icon">\u{1F4CA}</span> Status
-    </a>
-    <a href="#analytics" onclick="showPanel('analytics')">
-      <span class="nav-icon">\u{1F4C8}</span> Analytics
-    </a>
-    <a href="#system" onclick="showPanel('system')">
-      <span class="nav-icon">\u{2699}\u{FE0F}</span> System Prompt
+    <div class="sidebar-section">Overview</div>
+    <a href="#dashboard" onclick="showPanel('dashboard')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span> Dashboard
     </a>
     <a href="#memory" onclick="showPanel('memory')">
-      <span class="nav-icon">\u{1F9E0}</span> Memory
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 2 6 4.5 6 7c0 1.5.5 2.8 1.4 3.8C6.5 12 6 13.5 6 15c0 3.5 2.5 7 6 7s6-3.5 6-7c0-1.5-.5-3-1.4-4.2C17.5 9.8 18 8.5 18 7c0-2.5-2.5-5-6-5z"/><path d="M9 10h6"/><path d="M9 14h6"/></svg></span> Memory
     </a>
     <a href="#skills" onclick="showPanel('skills')">
-      <span class="nav-icon">\u{26A1}</span> Skills
-    </a>
-    <a href="#registry" onclick="showPanel('registry')">
-      <span class="nav-icon">\u{1F50D}</span> Registry
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span> Skills
     </a>
     <a href="#workflows" onclick="showPanel('workflows')">
-      <span class="nav-icon">\u{1F500}</span> Workflows
-    </a>
-    <a href="#cron" onclick="showPanel('cron')">
-      <span class="nav-icon">\u{1F504}</span> Cron Jobs
-    </a>
-    <a href="#logs" onclick="showPanel('logs')">
-      <span class="nav-icon">\u{1F4DD}</span> Logs
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></span> Workflows
     </a>
     <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Settings</div>
     <a href="#integrations" onclick="showPanel('integrations')">
-      <span class="nav-icon">\u{1F517}</span> Integrations
-    </a>
-    <a href="#privacy" onclick="showPanel('privacy')">
-      <span class="nav-icon">\u{1F512}</span> Privacy
-    </a>
-    <a href="#budget" onclick="showPanel('budget')">
-      <span class="nav-icon">\u{1F4B0}</span> Budget
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 8v6"/><path d="M6 12H2"/><path d="M22 12h-4"/><circle cx="12" cy="12" r="4"/><path d="M12 8V2"/></svg></span> Integrations
     </a>
     <a href="#settings" onclick="showPanel('settings')">
-      <span class="nav-icon">\u{2699}\u{FE0F}</span> Settings
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span> Settings
     </a>
   </nav>
   <div class="sidebar-footer">
-    <span>Zubo</span>
-    <span class="conn-badge" id="sidebar-conn-badge"></span>
+    <span class="footer-left"><span>Zubo</span><span class="conn-badge" id="sidebar-conn-badge"></span></span>
+    <a href="https://zubo.bot/docs/" target="_blank" rel="noopener" class="docs-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Docs</a>
   </div>
 </div>
 
@@ -738,15 +872,20 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <div style="flex:1;display:flex;flex-direction:column;position:relative;min-width:0;">
           <div class="drop-overlay" id="drop-overlay">Drop file to upload</div>
           <div id="chat-messages">
+            <div class="chat-welcome-mesh"></div>
             <div class="chat-empty chat-welcome">
-              <div class="chat-welcome-icon"></div>
-              <h3 class="gradient-text">What can I help you with?</h3>
+              <div class="chat-welcome-sparkle"><svg width="72" height="72" viewBox="0 0 100 100" fill="none"><path d="M50 8C52.5 35 65 47.5 92 50C65 52.5 52.5 65 50 92C47.5 65 35 52.5 8 50C35 47.5 47.5 35 50 8Z" fill="url(#sparkleGrad)" opacity="0.9"/><defs><linearGradient id="sparkleGrad" x1="8" y1="8" x2="92" y2="92"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#d946ef"/></linearGradient></defs></svg></div>
+              <h3 class="gradient-text" id="chat-greeting">What can I help you with?</h3>
               <div class="chat-empty-text">Ask me anything, or try a suggestion below</div>
-              <div class="suggestion-chips">
-                <button class="suggestion-chip" onclick="useSuggestion(this)">Summarize my day</button>
-                <button class="suggestion-chip" onclick="useSuggestion(this)">Check the weather</button>
-                <button class="suggestion-chip" onclick="useSuggestion(this)">What can you do?</button>
-                <button class="suggestion-chip" onclick="useSuggestion(this)">Set a reminder</button>
+              <div class="suggestion-chips-group">
+                <div class="chip-row">
+                  <button class="suggestion-chip" onclick="useSuggestion(this)">What can you do?</button>
+                  <button class="suggestion-chip" onclick="useSuggestion(this)">Check my schedule</button>
+                </div>
+                <div class="chip-row">
+                  <button class="suggestion-chip" onclick="useSuggestion(this)">Summarize recent emails</button>
+                  <button class="suggestion-chip" onclick="useSuggestion(this)">Set a reminder</button>
+                </div>
               </div>
             </div>
           </div>
@@ -764,103 +903,86 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- STATUS PANEL -->
-    <div id="panel-status" class="panel">
+    <!-- DASHBOARD PANEL (merged Status + Analytics) -->
+    <div id="panel-dashboard" class="panel">
       <div class="panel-body">
-        <div class="cards" id="status-cards"></div>
-        <div class="quick-actions" id="quick-actions">
-          <div class="quick-action" onclick="showPanel('agent')">
-            <div class="qa-icon">\u{1F4AC}</div>
-            <div class="qa-label">Chat</div>
-            <div class="qa-desc">Start a conversation</div>
-          </div>
-          <div class="quick-action" onclick="showPanel('skills')">
-            <div class="qa-icon">\u{26A1}</div>
-            <div class="qa-label">Skills</div>
-            <div class="qa-desc">View installed skills</div>
-          </div>
-          <div class="quick-action" onclick="showPanel('registry')">
-            <div class="qa-icon">\u{1F50D}</div>
-            <div class="qa-label">Registry</div>
-            <div class="qa-desc">Browse skill registry</div>
-          </div>
-          <div class="quick-action" onclick="showPanel('cron')">
-            <div class="qa-icon">\u{1F504}</div>
-            <div class="qa-label">Cron Jobs</div>
-            <div class="qa-desc">Schedule tasks</div>
-          </div>
-          <div class="quick-action" onclick="triggerFileUpload()">
-            <div class="qa-icon">\u{1F4C4}</div>
-            <div class="qa-label">Upload File</div>
-            <div class="qa-desc">Add a document</div>
-          </div>
-          <div class="quick-action" onclick="showPanel('workflows')">
-            <div class="qa-icon">\u{1F500}</div>
-            <div class="qa-label">Workflows</div>
-            <div class="qa-desc">Multi-agent pipelines</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ANALYTICS PANEL -->
-    <div id="panel-analytics" class="panel">
-      <div class="panel-body">
-        <div class="cards" id="analytics-summary"></div>
-        <div class="memory-section-title" style="margin-top:28px;">Token Usage (Last 7 Days)</div>
-        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-          <div class="bar-chart" id="usage-chart"></div>
-        </div>
-        <div class="memory-section-title" style="margin-top:28px;">
-          <span>Tool Usage</span>
-          <span class="badge" id="tool-count"></span>
-        </div>
-        <table id="tools-table">
-          <thead><tr><th>Tool</th><th>Calls</th><th>Avg Time</th><th>Errors</th></tr></thead>
-          <tbody id="tools-body"></tbody>
-        </table>
-        <div class="memory-section-title" style="margin-top:28px;">Sessions</div>
-        <table id="sessions-table">
-          <thead><tr><th>Session</th><th>Provider</th><th>Tokens</th><th>Cost</th><th>Last Used</th></tr></thead>
-          <tbody id="sessions-body"></tbody>
-        </table>
-
-        <div class="memory-section-title" style="margin-top:28px;">System Health</div>
-        <div class="perf-grid" id="perf-health"></div>
-        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:14px;">
-          <div style="font-size:11px;color:var(--text-faint);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">RSS Memory (7 Days)</div>
-          <div class="bar-chart" id="rss-chart"></div>
+        <div class="tab-bar" id="dashboard-tabs">
+          <button class="tab active" onclick="switchTab('dashboard','overview')">Overview</button>
+          <button class="tab" onclick="switchTab('dashboard','analytics')">Analytics</button>
+          <button class="tab" onclick="switchTab('dashboard','performance')">Performance</button>
         </div>
 
-        <div class="memory-section-title" style="margin-top:28px;">Cost Breakdown by Model</div>
-        <table id="cost-table">
-          <thead><tr><th>Provider</th><th>Model</th><th>Tokens</th><th>Cost</th><th style="width:30%;">Share</th></tr></thead>
-          <tbody id="cost-body"></tbody>
-        </table>
-
-        <div class="memory-section-title" style="margin-top:28px;">Response Time Trend (7 Days)</div>
-        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-          <div class="bar-chart" id="response-chart"></div>
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="dashboard-tab-overview">
+          <div class="cards" id="status-cards"></div>
+          <div class="quick-actions" id="quick-actions">
+            <div class="quick-action" onclick="showPanel('agent')">
+              <div class="qa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+              <div class="qa-label">Chat</div>
+              <div class="qa-desc">Start a conversation</div>
+            </div>
+            <div class="quick-action" onclick="showPanel('skills')">
+              <div class="qa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+              <div class="qa-label">Skills</div>
+              <div class="qa-desc">View installed skills</div>
+            </div>
+            <div class="quick-action" onclick="showPanel('integrations')">
+              <div class="qa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 8v6"/><path d="M6 12H2"/><path d="M22 12h-4"/><circle cx="12" cy="12" r="4"/></svg></div>
+              <div class="qa-label">Integrations</div>
+              <div class="qa-desc">Connect services</div>
+            </div>
+            <div class="quick-action" onclick="showPanel('workflows')">
+              <div class="qa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
+              <div class="qa-label">Workflows</div>
+              <div class="qa-desc">Multi-agent pipelines</div>
+            </div>
+          </div>
         </div>
 
-        <div class="memory-section-title" style="margin-top:28px;">Top Models</div>
-        <table id="top-models-table">
-          <thead><tr><th>Model</th><th>Requests</th><th>Tokens</th><th>Cost</th><th>Avg Response</th></tr></thead>
-          <tbody id="top-models-body"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SYSTEM PROMPT PANEL -->
-    <div id="panel-system" class="panel">
-      <div class="panel-body">
-        <div class="editor-wrap">
-          <div class="editor-toolbar">
-            <button class="btn btn-primary" onclick="saveSystem()">Save</button>
-            <button class="btn btn-ghost" onclick="loadSystem()">Reload</button>
-            <span id="system-status" class="status-text"></span>
+        <!-- Analytics Tab -->
+        <div class="tab-content" id="dashboard-tab-analytics">
+          <div class="cards" id="analytics-summary"></div>
+          <div class="memory-section-title" style="margin-top:28px;">Token Usage (Last 7 Days)</div>
+          <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <div class="bar-chart" id="usage-chart"></div>
           </div>
-          <textarea class="editor" id="system-editor" spellcheck="false"></textarea>
+          <div class="memory-section-title" style="margin-top:28px;">Cost Breakdown by Model</div>
+          <table id="cost-table">
+            <thead><tr><th>Provider</th><th>Model</th><th>Tokens</th><th>Cost</th><th style="width:30%;">Share</th></tr></thead>
+            <tbody id="cost-body"></tbody>
+          </table>
+          <div class="memory-section-title" style="margin-top:28px;">Top Models</div>
+          <table id="top-models-table">
+            <thead><tr><th>Model</th><th>Requests</th><th>Tokens</th><th>Cost</th><th>Avg Response</th></tr></thead>
+            <tbody id="top-models-body"></tbody>
+          </table>
+          <div class="memory-section-title" style="margin-top:28px;">
+            <span>Tool Usage</span>
+            <span class="badge" id="tool-count"></span>
+          </div>
+          <table id="tools-table">
+            <thead><tr><th>Tool</th><th>Calls</th><th>Avg Time</th><th>Errors</th></tr></thead>
+            <tbody id="tools-body"></tbody>
+          </table>
+          <div class="memory-section-title" style="margin-top:28px;">Sessions</div>
+          <table id="sessions-table">
+            <thead><tr><th>Session</th><th>Provider</th><th>Tokens</th><th>Cost</th><th>Last Used</th></tr></thead>
+            <tbody id="sessions-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Performance Tab -->
+        <div class="tab-content" id="dashboard-tab-performance">
+          <div class="memory-section-title">System Health</div>
+          <div class="perf-grid" id="perf-health"></div>
+          <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:14px;">
+            <div style="font-size:11px;color:var(--text-faint);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">RSS Memory (7 Days)</div>
+            <div class="bar-chart" id="rss-chart"></div>
+          </div>
+          <div class="memory-section-title" style="margin-top:28px;">Response Time Trend (7 Days)</div>
+          <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <div class="bar-chart" id="response-chart"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -888,26 +1010,39 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- SKILLS PANEL -->
+    <!-- SKILLS PANEL (with Browse/Registry tab) -->
     <div id="panel-skills" class="panel">
       <div class="panel-body">
-        <table>
-          <thead><tr><th>Name</th><th>Description</th><th>Status</th></tr></thead>
-          <tbody id="skills-body"></tbody>
-        </table>
-        <p id="skills-empty" class="empty-state" style="display:none;">No skills installed. <a href="#registry" onclick="showPanel('registry')" style="color:var(--accent);">Browse the registry</a></p>
-      </div>
-    </div>
-
-    <!-- REGISTRY PANEL -->
-    <div id="panel-registry" class="panel">
-      <div class="panel-body">
-        <div class="search-bar">
-          <input id="registry-search" type="text" placeholder="Search skills (e.g. email, calendar, weather...)">
-          <button class="btn btn-primary" onclick="searchRegistry()">Search</button>
+        <div class="tab-bar" id="skills-tabs">
+          <button class="tab active" onclick="switchTab('skills','installed')">Installed</button>
+          <button class="tab" onclick="switchTab('skills','browse')">Browse Registry</button>
         </div>
-        <div id="registry-results" style="display:flex;flex-direction:column;gap:10px;">
-          <p class="empty-state">Search the skill registry to find and install new skills.</p>
+
+        <div class="tab-content active" id="skills-tab-installed">
+          <table>
+            <thead><tr><th>Name</th><th>Description</th><th>Status</th></tr></thead>
+            <tbody id="skills-body"></tbody>
+          </table>
+          <div id="skills-empty" class="empty-state-card" style="display:none;">
+            <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+            <h4>No skills installed yet</h4>
+            <p>Browse the registry to add capabilities to your agent.</p>
+            <button class="btn btn-primary" onclick="switchTab('skills','browse')">Browse Registry</button>
+          </div>
+        </div>
+
+        <div class="tab-content" id="skills-tab-browse">
+          <div class="search-bar">
+            <input id="registry-search" type="text" placeholder="Search skills (e.g. email, calendar, weather...)">
+            <button class="btn btn-primary" onclick="searchRegistry()">Search</button>
+          </div>
+          <div id="registry-results" style="display:flex;flex-direction:column;gap:10px;">
+            <div class="empty-state-card">
+              <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+              <h4>Discover new skills</h4>
+              <p>Search the registry to find and install capabilities.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -930,192 +1065,10 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <span id="workflows-status" class="status-text"></span>
         </div>
         <div id="workflows-list" style="display:flex;flex-direction:column;gap:14px;"></div>
-        <p id="workflows-empty" class="empty-state" style="display:none;">No custom workflows defined. Ask Zubo to create a workflow in chat.</p>
-      </div>
-    </div>
-
-    <!-- CRON PANEL -->
-    <div id="panel-cron" class="panel">
-      <div class="panel-body">
-        <table>
-          <thead><tr><th>Name</th><th>Schedule</th><th>Task</th><th>Enabled</th><th>Last Run</th></tr></thead>
-          <tbody id="cron-body"></tbody>
-        </table>
-        <p id="cron-empty" class="empty-state" style="display:none;">No cron jobs configured.</p>
-      </div>
-    </div>
-
-    <!-- LOGS PANEL -->
-    <div id="panel-logs" class="panel">
-      <div class="panel-body" style="display:flex; flex-direction:column; height:100%;">
-        <div class="editor-toolbar">
-          <button class="btn btn-ghost" onclick="loadLogs()">Refresh</button>
-          <span id="logs-status" class="status-text"></span>
-        </div>
-        <div class="log-view" id="log-content"></div>
-      </div>
-    </div>
-
-    <!-- SETTINGS PANEL -->
-    <div id="panel-settings" class="panel">
-      <div class="panel-body">
-        <div class="settings-section">
-          <h3 class="settings-title" data-tooltip="Select which AI model powers Zubo">LLM Provider</h3>
-          <p class="settings-desc">Select which provider and model Zubo uses.</p>
-          <div class="settings-grid">
-            <div class="settings-field">
-              <label class="settings-label" data-tooltip="Cloud AI service" for="settings-provider">Provider</label>
-              <select id="settings-provider" class="settings-select" onchange="onProviderChange()"></select>
-            </div>
-            <div class="settings-field">
-              <label class="settings-label" for="settings-model">Model</label>
-              <input id="settings-model" type="text" class="settings-input" placeholder="e.g. claude-sonnet-4-5-20250929">
-            </div>
-          </div>
-          <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
-            <button class="btn btn-primary" onclick="saveModelConfig()">Save</button>
-            <button class="btn btn-ghost" onclick="testLlm()">Test Connection</button>
-            <span id="settings-status" class="status-text"></span>
-          </div>
-        </div>
-
-        <div class="settings-section">
-          <h3 class="settings-title" data-tooltip="Connected messaging channels">Channels
-            <span id="channel-count-badge" class="conn-badge" style="font-size:10px;"></span>
-          </h3>
-          <p class="settings-desc">Status of connected messaging channels.</p>
-          <div id="channel-status-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-        </div>
-
-        <div class="settings-section">
-          <h3 class="settings-title" data-tooltip="Background task frequency">Heartbeat Interval</h3>
-          <p class="settings-desc">How often the background heartbeat runs. Default: 30 minutes.</p>
-          <div class="settings-grid">
-            <div class="settings-field">
-              <label class="settings-label" data-tooltip="Minutes between heartbeats" for="settings-heartbeat">Interval (minutes)</label>
-              <input id="settings-heartbeat" type="number" class="settings-input" min="1" max="1440" step="1" placeholder="30">
-            </div>
-          </div>
-          <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
-            <button class="btn btn-primary" onclick="saveHeartbeat()">Save</button>
-            <span id="heartbeat-status" class="status-text"></span>
-          </div>
-        </div>
-
-        <div class="settings-section">
-          <h3 class="settings-title" data-tooltip="Route simple queries to a cheaper/faster model">Smart Routing</h3>
-          <p class="settings-desc">Automatically route simple queries to a fast, cheap model and complex ones to your primary model. Saves cost without sacrificing quality.</p>
-          <div class="settings-grid">
-            <div class="settings-field">
-              <label class="settings-label" for="sr-enabled">Enabled</label>
-              <select id="sr-enabled" class="settings-select">
-                <option value="false">Disabled</option>
-                <option value="true">Enabled</option>
-              </select>
-            </div>
-            <div class="settings-field">
-              <label class="settings-label" for="sr-fast-provider">Fast Provider</label>
-              <select id="sr-fast-provider" class="settings-select"></select>
-            </div>
-            <div class="settings-field">
-              <label class="settings-label" for="sr-fast-model">Fast Model</label>
-              <input id="sr-fast-model" type="text" class="settings-input" placeholder="e.g. gpt-4.1-mini">
-            </div>
-          </div>
-          <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
-            <button class="btn btn-primary" onclick="saveSmartRouting()">Save</button>
-            <span id="sr-status" class="status-text"></span>
-          </div>
-        </div>
-
-        <div class="settings-section">
-          <h3 class="settings-title">Data</h3>
-          <p class="settings-desc">Export, backup, or import your Zubo database.</p>
-          <div id="db-stats" style="font-size:12px;color:var(--text-muted);margin-bottom:16px;"></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="exportJson()">Export JSON</button>
-            <button class="btn btn-ghost" onclick="backupDb()">Backup SQLite</button>
-            <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">Import JSON</button>
-            <input type="file" id="import-file" style="display:none" accept=".json" onchange="importJson(event)">
-          </div>
-          <span id="data-status" class="status-text" style="display:block;margin-top:10px;"></span>
-        </div>
-
-        <div class="settings-section" style="max-width:700px;">
-          <h3 class="settings-title">Secrets &amp; API Keys</h3>
-          <p class="settings-desc">Manage API keys and credentials for integrations. Values are stored encrypted in your local database and never sent to external services by Zubo.</p>
-          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="showAddSecretForm()">Add Secret</button>
-            <button class="btn btn-ghost" onclick="loadSecrets()">Refresh</button>
-          </div>
-          <div id="secret-add-form" style="display:none;margin-bottom:16px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
-            <div style="display:flex;flex-direction:column;gap:12px;">
-              <div class="settings-field">
-                <label class="settings-label" for="secret-name-input">Name</label>
-                <input id="secret-name-input" type="text" class="settings-input" placeholder="e.g. github_token" pattern="[a-z0-9_]+" style="max-width:260px;">
-              </div>
-              <div class="settings-field">
-                <label class="settings-label" for="secret-value-input">Value</label>
-                <input id="secret-value-input" type="password" class="settings-input" placeholder="API key or token">
-              </div>
-              <div class="settings-field">
-                <label class="settings-label" for="secret-service-input">Service (optional)</label>
-                <input id="secret-service-input" type="text" class="settings-input" placeholder="e.g. github, openai" style="max-width:260px;">
-              </div>
-              <div style="display:flex;gap:10px;">
-                <button class="btn btn-primary" onclick="saveSecret()">Save</button>
-                <button class="btn btn-ghost" onclick="hideAddSecretForm()">Cancel</button>
-              </div>
-            </div>
-          </div>
-          <div id="secrets-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-          <p id="secrets-empty" class="empty-state" style="display:none;">No secrets stored. Add one to connect integrations.</p>
-        </div>
-
-        <div class="settings-section">
-          <h3 class="settings-title">Configuration</h3>
-          <p class="settings-desc">Manage your full config by editing <code>~/.zubo/config.json</code> directly, or re-run <code>zubo setup</code>.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- BUDGET PANEL -->
-    <div id="panel-budget" class="panel">
-      <div class="panel-body">
-        <div class="cards" id="budget-summary-cards"></div>
-
-        <div class="settings-section" style="margin-top:24px;">
-          <h3 class="settings-title">Budget Limits</h3>
-          <p class="settings-desc">Set spending limits to control costs. The agent will pause when limits are reached.</p>
-          <div class="settings-grid">
-            <div class="settings-field">
-              <label class="settings-label" for="budget-daily">Daily Limit (USD)</label>
-              <input id="budget-daily" type="number" class="settings-input" min="0" step="0.01" placeholder="e.g. 5.00">
-            </div>
-            <div class="settings-field">
-              <label class="settings-label" for="budget-monthly">Monthly Limit (USD)</label>
-              <input id="budget-monthly" type="number" class="settings-input" min="0" step="0.01" placeholder="e.g. 50.00">
-            </div>
-            <div class="settings-field">
-              <label class="settings-label" for="budget-alert">Alert Threshold</label>
-              <select id="budget-alert" class="settings-select">
-                <option value="0.5">50%</option>
-                <option value="0.7">70%</option>
-                <option value="0.8" selected>80%</option>
-                <option value="0.9">90%</option>
-              </select>
-            </div>
-          </div>
-          <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
-            <button class="btn btn-primary" onclick="saveBudget()">Save Limits</button>
-            <button class="btn btn-ghost" onclick="clearBudget()">Remove Limits</button>
-            <span id="budget-status" class="status-text"></span>
-          </div>
-        </div>
-
-        <div class="memory-section-title" style="margin-top:28px;">Daily Spend (Last 7 Days)</div>
-        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-          <div class="bar-chart" id="budget-chart"></div>
+        <div id="workflows-empty" class="empty-state-card" style="display:none;">
+          <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
+          <h4>No custom workflows yet</h4>
+          <p>Ask Zubo to create a workflow in chat, or activate a recipe above.</p>
         </div>
       </div>
     </div>
@@ -1131,73 +1084,419 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <div id="oauth-connections-list" style="display:flex;flex-direction:column;gap:12px;"></div>
 
         <div class="settings-section" style="margin-top:24px;">
-          <h3 class="settings-title">Setup Guide</h3>
-          <p class="settings-desc">To use OAuth, add provider credentials to your Zubo config file:</p>
-          <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:var(--mono);font-size:12px;overflow-x:auto;color:var(--text-secondary);margin-top:8px;">{
-  "oauth": {
-    "providers": {
-      "google": {
-        "clientId": "YOUR_CLIENT_ID.apps.googleusercontent.com",
-        "clientSecret": "GOCSPX-YOUR_SECRET"
-      },
-      "github": {
-        "clientId": "YOUR_GITHUB_CLIENT_ID",
-        "clientSecret": "YOUR_GITHUB_SECRET"
-      }
-    }
-  }
-}</pre>
-          <p class="settings-desc" style="margin-top:12px;">Supported providers: Google (Calendar, Gmail, Drive, Docs, Sheets), GitHub, Notion, Linear, Slack.</p>
+          <h3 class="settings-title">Configure Provider</h3>
+          <p class="settings-desc">Add OAuth credentials for a provider. You can get these from each provider's developer console.</p>
+          <div class="settings-grid">
+            <div class="settings-field">
+              <label class="settings-label" for="oauth-provider-select">Provider</label>
+              <select id="oauth-provider-select" class="settings-select" onchange="onOAuthProviderSelect()">
+                <option value="">-- Select a provider --</option>
+                <option value="google">Google (Calendar, Gmail, Drive, Docs, Sheets)</option>
+                <option value="github">GitHub (Issues, PRs, Repos)</option>
+                <option value="notion">Notion (Pages, Databases)</option>
+                <option value="linear">Linear (Issues, Projects)</option>
+                <option value="slack">Slack (Messages, Channels)</option>
+              </select>
+            </div>
+            <div class="settings-field">
+              <label class="settings-label" for="oauth-client-id">Client ID</label>
+              <input id="oauth-client-id" type="text" class="settings-input" placeholder="e.g. 123456789.apps.googleusercontent.com">
+            </div>
+            <div class="settings-field">
+              <label class="settings-label" for="oauth-client-secret">Client Secret</label>
+              <input id="oauth-client-secret" type="password" class="settings-input" placeholder="Your client secret">
+            </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-primary" onclick="saveOAuthConfig()">Save Credentials</button>
+            <button class="btn btn-ghost" onclick="removeOAuthConfig()" id="oauth-remove-btn" style="display:none;color:var(--red);">Remove</button>
+            <span id="oauth-config-status" class="status-text"></span>
+          </div>
+        </div>
+
+        <div class="settings-section" style="margin-top:16px;">
+          <details style="cursor:pointer;">
+            <summary style="font-size:13px;font-weight:600;color:var(--text-secondary);user-select:none;">Where do I get OAuth credentials?</summary>
+            <div style="margin-top:12px;">
+              <p class="settings-desc" style="margin-bottom:8px;"><strong>Google:</strong> <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--accent);">Google Cloud Console</a> &rarr; Create OAuth 2.0 Client ID. Add <code>http://localhost:PORT/oauth/google/callback</code> as a redirect URI.</p>
+              <p class="settings-desc" style="margin-bottom:8px;"><strong>GitHub:</strong> <a href="https://github.com/settings/developers" target="_blank" rel="noopener" style="color:var(--accent);">GitHub Developer Settings</a> &rarr; New OAuth App. Callback: <code>http://localhost:PORT/oauth/github/callback</code></p>
+              <p class="settings-desc" style="margin-bottom:8px;"><strong>Notion:</strong> <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener" style="color:var(--accent);">Notion Integrations</a> &rarr; Create integration with OAuth.</p>
+              <p class="settings-desc" style="margin-bottom:8px;"><strong>Linear:</strong> <a href="https://linear.app/settings/api" target="_blank" rel="noopener" style="color:var(--accent);">Linear API Settings</a> &rarr; Create OAuth application.</p>
+              <p class="settings-desc"><strong>Slack:</strong> <a href="https://api.slack.com/apps" target="_blank" rel="noopener" style="color:var(--accent);">Slack API Apps</a> &rarr; Create App &rarr; OAuth &amp; Permissions.</p>
+            </div>
+          </details>
         </div>
       </div>
     </div>
 
-    <!-- PRIVACY PANEL -->
-    <div id="panel-privacy" class="panel">
+    <!-- SETTINGS PANEL (unified with tabs) -->
+    <div id="panel-settings" class="panel">
       <div class="panel-body">
-        <div style="margin-bottom:20px;">
-          <h3 style="font-family:var(--display);font-weight:700;margin-bottom:4px;">Privacy &amp; Data</h3>
-          <p class="settings-desc">See exactly what data Zubo stores and what has been sent to AI providers. You own your data.</p>
+        <div class="tab-bar" id="settings-tabs">
+          <button class="tab active" onclick="switchTab('settings','general')">General</button>
+          <button class="tab" onclick="switchTab('settings','providers')">Providers</button>
+          <button class="tab" onclick="switchTab('settings','channels')">Channels</button>
+          <button class="tab" onclick="switchTab('settings','mcp')">MCP</button>
+          <button class="tab" onclick="switchTab('settings','routing')">Routing</button>
+          <button class="tab" onclick="switchTab('settings','data')">Data</button>
+          <button class="tab" onclick="switchTab('settings','secrets')">Secrets</button>
+          <button class="tab" onclick="switchTab('settings','system')">System Prompt</button>
+          <button class="tab" onclick="switchTab('settings','cron')">Cron</button>
+          <button class="tab" onclick="switchTab('settings','logs')">Logs</button>
+          <button class="tab" onclick="switchTab('settings','privacy')">Privacy</button>
+          <button class="tab" onclick="switchTab('settings','budget')">Budget</button>
         </div>
 
-        <div class="cards" id="privacy-summary-cards"></div>
+        <!-- General Tab -->
+        <div class="tab-content active" id="settings-tab-general">
+          <div class="settings-section">
+            <h3 class="settings-title" data-tooltip="Select which AI model powers Zubo">LLM Provider</h3>
+            <p class="settings-desc">Select which provider and model Zubo uses.</p>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label class="settings-label" data-tooltip="Cloud AI service" for="settings-provider">Provider</label>
+                <select id="settings-provider" class="settings-select" onchange="onProviderChange()"></select>
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="settings-model">Model</label>
+                <input id="settings-model" type="text" class="settings-input" placeholder="e.g. claude-sonnet-4-5-20250929">
+              </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+              <button class="btn btn-primary" onclick="saveModelConfig()">Save</button>
+              <button class="btn btn-ghost" onclick="testLlm()">Test Connection</button>
+              <span id="settings-status" class="status-text"></span>
+            </div>
+          </div>
 
-        <div class="settings-section" style="margin-top:24px;">
-          <h3 class="settings-title">Data Sent to AI Providers</h3>
-          <p class="settings-desc">Every API call Zubo makes to LLM providers (Anthropic, OpenAI, etc.) is logged here.</p>
-          <div id="privacy-providers" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
-          <table id="api-log-table">
-            <thead><tr><th>Time</th><th>Provider</th><th>Model</th><th>Tokens Sent</th><th>Tokens Received</th><th>Cost</th></tr></thead>
-            <tbody id="api-log-body"></tbody>
+          <div class="settings-section">
+            <h3 class="settings-title" data-tooltip="Background task frequency">Heartbeat Interval</h3>
+            <p class="settings-desc">How often the background heartbeat runs. Default: 30 minutes.</p>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label class="settings-label" data-tooltip="Minutes between heartbeats" for="settings-heartbeat">Interval (minutes)</label>
+                <input id="settings-heartbeat" type="number" class="settings-input" min="1" max="1440" step="1" placeholder="30">
+              </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+              <button class="btn btn-primary" onclick="saveHeartbeat()">Save</button>
+              <span id="heartbeat-status" class="status-text"></span>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-title">Configuration</h3>
+            <p class="settings-desc">Manage your full config by editing <code>~/.zubo/config.json</code> directly, or re-run <code>zubo setup</code>.</p>
+          </div>
+        </div>
+
+        <!-- Providers Tab -->
+        <div class="tab-content" id="settings-tab-providers">
+          <div class="settings-section">
+            <h3 class="settings-title">LLM Providers</h3>
+            <p class="settings-desc">Configure AI model providers. Set one as active for immediate use.</p>
+            <div id="providers-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+            <div style="margin-top:20px;">
+              <button class="btn btn-primary" onclick="showAddProviderForm()">Add Provider</button>
+            </div>
+            <div id="provider-add-form" style="display:none;margin-top:16px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
+              <h4 style="margin-bottom:12px;font-family:var(--display);font-weight:600;">Add Provider</h4>
+              <div class="settings-grid">
+                <div class="settings-field">
+                  <label class="settings-label" for="new-provider-name">Provider</label>
+                  <select id="new-provider-name" class="settings-select" onchange="onNewProviderSelect()">
+                    <option value="">-- Select --</option>
+                    <option value="anthropic">Anthropic</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="groq">Groq</option>
+                    <option value="together">Together</option>
+                    <option value="openrouter">OpenRouter</option>
+                    <option value="deepseek">DeepSeek</option>
+                    <option value="xai">xAI (Grok)</option>
+                    <option value="ollama">Ollama (local)</option>
+                    <option value="lmstudio">LM Studio (local)</option>
+                    <option value="custom">Custom (OpenAI-compat)</option>
+                  </select>
+                </div>
+                <div class="settings-field">
+                  <label class="settings-label" for="new-provider-key">API Key</label>
+                  <input id="new-provider-key" type="password" class="settings-input" placeholder="sk-...">
+                </div>
+                <div class="settings-field">
+                  <label class="settings-label" for="new-provider-model">Model</label>
+                  <input id="new-provider-model" type="text" class="settings-input" placeholder="e.g. claude-sonnet-4-5-20250929">
+                </div>
+                <div class="settings-field" id="new-provider-url-field" style="display:none;">
+                  <label class="settings-label" for="new-provider-url">Base URL</label>
+                  <input id="new-provider-url" type="text" class="settings-input" placeholder="https://...">
+                </div>
+              </div>
+              <div style="margin-top:12px;display:flex;gap:10px;">
+                <button class="btn btn-primary" onclick="saveNewProvider()">Save Provider</button>
+                <button class="btn btn-ghost" onclick="hideAddProviderForm()">Cancel</button>
+              </div>
+            </div>
+            <div class="settings-section" style="margin-top:24px;">
+              <h3 class="settings-title">Failover Order</h3>
+              <p class="settings-desc">When the active provider fails, Zubo will try these in order.</p>
+              <div id="failover-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
+              <button class="btn btn-ghost" onclick="saveFailover()">Save Failover Order</button>
+              <span id="failover-status" class="status-text" style="margin-left:10px;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Channels Tab -->
+        <div class="tab-content" id="settings-tab-channels">
+          <div class="settings-section">
+            <h3 class="settings-title" data-tooltip="Connected messaging channels">Channels
+              <span id="channel-count-badge" class="conn-badge" style="font-size:10px;"></span>
+            </h3>
+            <p class="settings-desc">Configure and manage messaging channels. Toggle channels on/off with immediate effect.</p>
+            <div id="channel-status-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <div id="channel-config-form" style="display:none;margin-top:16px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
+              <h4 id="channel-config-title" style="margin-bottom:12px;font-family:var(--display);font-weight:600;"></h4>
+              <div id="channel-config-fields" class="settings-grid"></div>
+              <div style="margin-top:12px;display:flex;gap:10px;">
+                <button class="btn btn-primary" onclick="saveChannelConfig()">Save &amp; Apply</button>
+                <button class="btn btn-ghost" onclick="hideChannelConfig()">Cancel</button>
+                <span id="channel-config-status" class="status-text"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MCP Tab -->
+        <div class="tab-content" id="settings-tab-mcp">
+          <div class="settings-section">
+            <h3 class="settings-title">MCP Servers</h3>
+            <p class="settings-desc">Model Context Protocol servers extend Zubo with additional tools. Changes apply immediately.</p>
+            <div id="mcp-servers-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+            <div style="margin-top:20px;">
+              <button class="btn btn-primary" onclick="showAddMcpForm()">Add MCP Server</button>
+            </div>
+            <div id="mcp-add-form" style="display:none;margin-top:16px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
+              <h4 style="margin-bottom:12px;font-family:var(--display);font-weight:600;">Add MCP Server</h4>
+              <div class="settings-grid">
+                <div class="settings-field">
+                  <label class="settings-label" for="mcp-name">Name</label>
+                  <input id="mcp-name" type="text" class="settings-input" placeholder="e.g. filesystem">
+                </div>
+                <div class="settings-field">
+                  <label class="settings-label" for="mcp-command">Command</label>
+                  <input id="mcp-command" type="text" class="settings-input" placeholder="e.g. npx or python">
+                </div>
+                <div class="settings-field">
+                  <label class="settings-label" for="mcp-args">Arguments (comma-separated)</label>
+                  <input id="mcp-args" type="text" class="settings-input" placeholder="e.g. -m, mcp_server, .">
+                </div>
+                <div class="settings-field">
+                  <label class="settings-label" for="mcp-env">Environment (KEY=value, one per line)</label>
+                  <textarea id="mcp-env" class="settings-input" rows="3" style="resize:vertical;font-family:var(--mono);font-size:12px;" placeholder="API_KEY=xxx\nDEBUG=1"></textarea>
+                </div>
+              </div>
+              <div style="margin-top:12px;display:flex;gap:10px;">
+                <button class="btn btn-primary" onclick="saveNewMcpServer()">Add &amp; Connect</button>
+                <button class="btn btn-ghost" onclick="hideAddMcpForm()">Cancel</button>
+                <span id="mcp-add-status" class="status-text"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Routing Tab -->
+        <div class="tab-content" id="settings-tab-routing">
+          <div class="settings-section">
+            <h3 class="settings-title" data-tooltip="Route simple queries to a cheaper/faster model">Smart Routing</h3>
+            <p class="settings-desc">Automatically route simple queries to a fast, cheap model and complex ones to your primary model. Saves cost without sacrificing quality.</p>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label class="settings-label" for="sr-enabled">Enabled</label>
+                <select id="sr-enabled" class="settings-select">
+                  <option value="false">Disabled</option>
+                  <option value="true">Enabled</option>
+                </select>
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="sr-fast-provider">Fast Provider</label>
+                <select id="sr-fast-provider" class="settings-select"></select>
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="sr-fast-model">Fast Model</label>
+                <input id="sr-fast-model" type="text" class="settings-input" placeholder="e.g. gpt-4.1-mini">
+              </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+              <button class="btn btn-primary" onclick="saveSmartRouting()">Save</button>
+              <span id="sr-status" class="status-text"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Tab -->
+        <div class="tab-content" id="settings-tab-data">
+          <div class="settings-section">
+            <h3 class="settings-title">Data</h3>
+            <p class="settings-desc">Export, backup, or import your Zubo database.</p>
+            <div id="db-stats" style="font-size:12px;color:var(--text-muted);margin-bottom:16px;"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="exportJson()">Export JSON</button>
+              <button class="btn btn-ghost" onclick="backupDb()">Backup SQLite</button>
+              <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">Import JSON</button>
+              <input type="file" id="import-file" style="display:none" accept=".json" onchange="importJson(event)">
+            </div>
+            <span id="data-status" class="status-text" style="display:block;margin-top:10px;"></span>
+          </div>
+        </div>
+
+        <!-- Secrets Tab -->
+        <div class="tab-content" id="settings-tab-secrets">
+          <div class="settings-section" style="max-width:700px;">
+            <h3 class="settings-title">Secrets &amp; API Keys</h3>
+            <p class="settings-desc">Manage API keys and credentials for integrations. Values are stored encrypted in your local database and never sent to external services by Zubo.</p>
+            <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="showAddSecretForm()">Add Secret</button>
+              <button class="btn btn-ghost" onclick="loadSecrets()">Refresh</button>
+            </div>
+            <div id="secret-add-form" style="display:none;margin-bottom:16px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div class="settings-field">
+                  <label class="settings-label" for="secret-name-input">Name</label>
+                  <input id="secret-name-input" type="text" class="settings-input" placeholder="e.g. github_token" pattern="[a-z0-9_]+" style="max-width:260px;">
+                </div>
+                <div class="settings-field">
+                  <label class="settings-label" for="secret-value-input">Value</label>
+                  <input id="secret-value-input" type="password" class="settings-input" placeholder="API key or token">
+                </div>
+                <div class="settings-field">
+                  <label class="settings-label" for="secret-service-input">Service (optional)</label>
+                  <input id="secret-service-input" type="text" class="settings-input" placeholder="e.g. github, openai" style="max-width:260px;">
+                </div>
+                <div style="display:flex;gap:10px;">
+                  <button class="btn btn-primary" onclick="saveSecret()">Save</button>
+                  <button class="btn btn-ghost" onclick="hideAddSecretForm()">Cancel</button>
+                </div>
+              </div>
+            </div>
+            <div id="secrets-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+            <p id="secrets-empty" class="empty-state" style="display:none;">No secrets stored. Add one to connect integrations.</p>
+          </div>
+        </div>
+
+        <!-- System Prompt Tab -->
+        <div class="tab-content" id="settings-tab-system">
+          <div class="editor-wrap" style="min-height:calc(100vh - 220px);">
+            <div class="editor-toolbar">
+              <button class="btn btn-primary" onclick="saveSystem()">Save</button>
+              <button class="btn btn-ghost" onclick="loadSystem()">Reload</button>
+              <span id="system-status" class="status-text"></span>
+            </div>
+            <textarea class="editor" id="system-editor" spellcheck="false" style="min-height:60vh;"></textarea>
+          </div>
+        </div>
+
+        <!-- Cron Tab -->
+        <div class="tab-content" id="settings-tab-cron">
+          <table>
+            <thead><tr><th>Name</th><th>Schedule</th><th>Task</th><th>Enabled</th><th>Last Run</th></tr></thead>
+            <tbody id="cron-body"></tbody>
           </table>
-          <div style="margin-top:10px;display:flex;gap:10px;">
-            <button class="btn btn-ghost" id="api-log-more" onclick="loadMoreApiLog()" style="display:none;">Load More</button>
+          <div id="cron-empty" class="empty-state-card" style="display:none;">
+            <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <h4>No scheduled tasks</h4>
+            <p>Ask Zubo to set up recurring tasks in chat.</p>
           </div>
         </div>
 
-        <div class="settings-section" style="margin-top:24px;">
-          <h3 class="settings-title">Tool Executions</h3>
-          <p class="settings-desc">Log of every tool/skill Zubo has executed on your behalf.</p>
-          <table id="tool-log-table">
-            <thead><tr><th>Time</th><th>Tool</th><th>Duration</th><th>Status</th></tr></thead>
-            <tbody id="tool-log-body"></tbody>
-          </table>
-          <div style="margin-top:10px;display:flex;gap:10px;">
-            <button class="btn btn-ghost" id="tool-log-more" onclick="loadMoreToolLog()" style="display:none;">Load More</button>
+        <!-- Logs Tab -->
+        <div class="tab-content" id="settings-tab-logs" style="display:none;">
+          <div class="editor-toolbar">
+            <button class="btn btn-ghost" onclick="loadLogs()">Refresh</button>
+            <span id="logs-status" class="status-text"></span>
+          </div>
+          <div class="log-view" id="log-content" style="min-height:400px;"></div>
+        </div>
+
+        <!-- Privacy Tab -->
+        <div class="tab-content" id="settings-tab-privacy">
+          <div style="margin-bottom:20px;">
+            <h3 style="font-family:var(--display);font-weight:700;margin-bottom:4px;">Privacy &amp; Data</h3>
+            <p class="settings-desc">See exactly what data Zubo stores and what has been sent to AI providers. You own your data.</p>
+          </div>
+          <div class="cards" id="privacy-summary-cards"></div>
+          <div class="settings-section" style="margin-top:24px;">
+            <h3 class="settings-title">Data Sent to AI Providers</h3>
+            <p class="settings-desc">Every API call Zubo makes to LLM providers is logged here.</p>
+            <div id="privacy-providers" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+            <table id="api-log-table">
+              <thead><tr><th>Time</th><th>Provider</th><th>Model</th><th>Tokens Sent</th><th>Tokens Received</th><th>Cost</th></tr></thead>
+              <tbody id="api-log-body"></tbody>
+            </table>
+            <div style="margin-top:10px;display:flex;gap:10px;">
+              <button class="btn btn-ghost" id="api-log-more" onclick="loadMoreApiLog()" style="display:none;">Load More</button>
+            </div>
+          </div>
+          <div class="settings-section" style="margin-top:24px;">
+            <h3 class="settings-title">Tool Executions</h3>
+            <p class="settings-desc">Log of every tool/skill Zubo has executed on your behalf.</p>
+            <table id="tool-log-table">
+              <thead><tr><th>Time</th><th>Tool</th><th>Duration</th><th>Status</th></tr></thead>
+              <tbody id="tool-log-body"></tbody>
+            </table>
+            <div style="margin-top:10px;display:flex;gap:10px;">
+              <button class="btn btn-ghost" id="tool-log-more" onclick="loadMoreToolLog()" style="display:none;">Load More</button>
+            </div>
+          </div>
+          <div class="settings-section" style="margin-top:24px;border-color:rgba(239,68,68,0.2);">
+            <h3 class="settings-title" style="color:var(--red);">Data Controls</h3>
+            <p class="settings-desc">Delete stored data. These actions cannot be undone.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-ghost" onclick="wipeData('memories')" style="color:var(--yellow);">Delete All Memories</button>
+              <button class="btn btn-ghost" onclick="wipeData('messages')" style="color:var(--yellow);">Delete All Messages</button>
+              <button class="btn btn-ghost" onclick="wipeData('usage')" style="color:var(--yellow);">Delete Usage Data</button>
+              <button class="btn btn-ghost" onclick="wipeData('all')" style="color:var(--red);border-color:rgba(239,68,68,0.3);">Delete Everything</button>
+            </div>
+            <span id="wipe-status" class="status-text" style="display:block;margin-top:10px;"></span>
           </div>
         </div>
 
-        <div class="settings-section" style="margin-top:24px;border-color:rgba(239,68,68,0.2);">
-          <h3 class="settings-title" style="color:var(--red);">Data Controls</h3>
-          <p class="settings-desc">Delete stored data. These actions cannot be undone.</p>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-ghost" onclick="wipeData('memories')" style="color:var(--yellow);">Delete All Memories</button>
-            <button class="btn btn-ghost" onclick="wipeData('messages')" style="color:var(--yellow);">Delete All Messages</button>
-            <button class="btn btn-ghost" onclick="wipeData('usage')" style="color:var(--yellow);">Delete Usage Data</button>
-            <button class="btn btn-ghost" onclick="wipeData('all')" style="color:var(--red);border-color:rgba(239,68,68,0.3);">Delete Everything</button>
+        <!-- Budget Tab -->
+        <div class="tab-content" id="settings-tab-budget">
+          <div class="cards" id="budget-summary-cards"></div>
+          <div class="settings-section" style="margin-top:24px;">
+            <h3 class="settings-title">Budget Limits</h3>
+            <p class="settings-desc">Set spending limits to control costs. The agent will pause when limits are reached.</p>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label class="settings-label" for="budget-daily">Daily Limit (USD)</label>
+                <input id="budget-daily" type="number" class="settings-input" min="0" step="0.01" placeholder="e.g. 5.00">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="budget-monthly">Monthly Limit (USD)</label>
+                <input id="budget-monthly" type="number" class="settings-input" min="0" step="0.01" placeholder="e.g. 50.00">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="budget-alert">Alert Threshold</label>
+                <select id="budget-alert" class="settings-select">
+                  <option value="0.5">50%</option>
+                  <option value="0.7">70%</option>
+                  <option value="0.8" selected>80%</option>
+                  <option value="0.9">90%</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+              <button class="btn btn-primary" onclick="saveBudget()">Save Limits</button>
+              <button class="btn btn-ghost" onclick="clearBudget()">Remove Limits</button>
+              <span id="budget-status" class="status-text"></span>
+            </div>
           </div>
-          <span id="wipe-status" class="status-text" style="display:block;margin-top:10px;"></span>
+          <div class="memory-section-title" style="margin-top:28px;">Daily Spend (Last 7 Days)</div>
+          <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <div class="bar-chart" id="budget-chart"></div>
+          </div>
         </div>
+
       </div>
     </div>
 
@@ -1237,10 +1536,29 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <script>
 // --- Panel routing ---
-var panelNames = ['agent','status','analytics','system','memory','skills','registry','workflows','cron','logs','integrations','privacy','budget','settings'];
-var panelTitles = { agent:'Agent', status:'Status', analytics:'Analytics', system:'System Prompt', memory:'Memory', skills:'Skills', registry:'Skill Registry', workflows:'Workflows', cron:'Cron Jobs', logs:'Logs', integrations:'Integrations', privacy:'Privacy & Data', budget:'Budget', settings:'Settings' };
+var panelNames = ['agent','dashboard','memory','skills','workflows','integrations','settings'];
+var panelTitles = { agent:'Chat', dashboard:'Dashboard', memory:'Memory', skills:'Skills', workflows:'Workflows', integrations:'Integrations', settings:'Settings' };
+
+// Legacy panel name mapping (old names -> new names + tab)
+var legacyPanelMap = {
+  status: { panel: 'dashboard', tab: 'overview' },
+  analytics: { panel: 'dashboard', tab: 'analytics' },
+  system: { panel: 'settings', tab: 'system' },
+  registry: { panel: 'skills', tab: 'browse' },
+  cron: { panel: 'settings', tab: 'cron' },
+  logs: { panel: 'settings', tab: 'logs' },
+  privacy: { panel: 'settings', tab: 'privacy' },
+  budget: { panel: 'settings', tab: 'budget' }
+};
 
 function showPanel(name) {
+  // Handle legacy panel names
+  if (legacyPanelMap[name]) {
+    var mapped = legacyPanelMap[name];
+    showPanel(mapped.panel);
+    switchTab(mapped.panel, mapped.tab);
+    return;
+  }
   if (panelNames.indexOf(name) === -1) name = 'agent';
   document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('#sidebar nav a').forEach(function(a) { a.classList.remove('active'); });
@@ -1253,20 +1571,170 @@ function showPanel(name) {
   window.location.hash = name;
 
   if (name === 'agent') { document.getElementById('chat-input').focus(); }
-  if (name === 'status') loadStatus();
-  if (name === 'analytics') loadAnalytics();
-  if (name === 'system') loadSystem();
+  if (name === 'dashboard') loadDashboard();
   if (name === 'memory') loadMemory();
   if (name === 'skills') loadSkills();
-  if (name === 'cron') loadCron();
-  if (name === 'logs') loadLogs();
-  if (name === 'settings') loadSettings();
   if (name === 'workflows') loadWorkflows();
-  if (name === 'budget') loadBudget();
   if (name === 'integrations') loadIntegrations();
-  if (name === 'privacy') loadPrivacy();
+  if (name === 'settings') loadSettingsPanel();
   closeMobileMenu();
 }
+
+// --- Tab Switching ---
+function switchTab(panelId, tabName) {
+  var tabBar = document.getElementById(panelId + '-tabs');
+  if (!tabBar) return;
+  tabBar.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + panelId);
+  if (!panel) return;
+  panel.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); tc.style.display = 'none'; });
+  var targetTab = document.getElementById(panelId + '-tab-' + tabName);
+  if (targetTab) { targetTab.classList.add('active'); targetTab.style.display = 'block'; }
+  // Highlight the matching tab button
+  tabBar.querySelectorAll('.tab').forEach(function(t) {
+    if (t.textContent.toLowerCase().replace(/\\s+/g, '') === tabName.replace(/\\s+/g, '') ||
+        t.getAttribute('onclick').indexOf("'" + tabName + "'") !== -1) {
+      t.classList.add('active');
+    }
+  });
+  // Trigger data loading for specific tabs
+  if (panelId === 'settings') {
+    if (tabName === 'cron') loadCron();
+    if (tabName === 'logs') loadLogs();
+    if (tabName === 'privacy') loadPrivacy();
+    if (tabName === 'budget') loadBudget();
+    if (tabName === 'system') loadSystem();
+    if (tabName === 'channels') loadChannelStatus();
+    if (tabName === 'providers') loadProviders();
+    if (tabName === 'mcp') loadMcpServers();
+    if (tabName === 'routing') loadSmartRouting();
+    if (tabName === 'secrets') loadSecrets();
+    if (tabName === 'data') loadDbStats();
+  }
+  if (panelId === 'dashboard') {
+    if (tabName === 'analytics') loadAnalytics();
+    if (tabName === 'performance') loadPerformance();
+  }
+  if (panelId === 'skills' && tabName === 'browse') {
+    // Focus search
+    var searchInput = document.getElementById('registry-search');
+    if (searchInput) searchInput.focus();
+  }
+}
+
+// --- Unified Dashboard loader ---
+function loadDashboard() {
+  loadStatus();
+  // Preload analytics data too if the analytics tab was active
+  var analyticsTab = document.getElementById('dashboard-tab-analytics');
+  if (analyticsTab && analyticsTab.classList.contains('active')) loadAnalytics();
+  var perfTab = document.getElementById('dashboard-tab-performance');
+  if (perfTab && perfTab.classList.contains('active')) loadPerformance();
+}
+
+function loadPerformance() {
+  // System Health — perf snapshots
+  api('/analytics/perf-snapshots').then(function(data) {
+    var container = document.getElementById('perf-health');
+    var chart = document.getElementById('rss-chart');
+    if (!container || !chart) return;
+    container.replaceChildren();
+    chart.replaceChildren();
+    var snaps = data.snapshots || [];
+    if (!snaps.length) {
+      var emptyCard = document.createElement('div');
+      emptyCard.className = 'perf-card';
+      var emptyLabel = document.createElement('div');
+      emptyLabel.className = 'perf-label';
+      emptyLabel.textContent = 'No Data';
+      var emptyVal = document.createElement('div');
+      emptyVal.className = 'perf-value';
+      emptyVal.style.cssText = 'font-size:14px;color:var(--text-muted);';
+      emptyVal.textContent = 'Performance data will appear after the first heartbeat.';
+      emptyCard.appendChild(emptyLabel);
+      emptyCard.appendChild(emptyVal);
+      container.appendChild(emptyCard);
+      chart.textContent = 'No data yet';
+      return;
+    }
+    var latest = snaps[snaps.length - 1];
+    var cardData = [
+      { label: 'RSS Memory', value: (latest.rss_mb || 0).toFixed(1) + ' MB' },
+      { label: 'Heap Memory', value: (latest.heap_mb || 0).toFixed(1) + ' MB' },
+      { label: 'Database Size', value: (latest.db_size_mb || 0).toFixed(1) + ' MB' },
+    ];
+    cardData.forEach(function(c) {
+      var card = document.createElement('div');
+      card.className = 'perf-card';
+      var lbl = document.createElement('div');
+      lbl.className = 'perf-label';
+      lbl.textContent = c.label;
+      var val = document.createElement('div');
+      val.className = 'perf-value';
+      val.textContent = c.value;
+      card.appendChild(lbl);
+      card.appendChild(val);
+      container.appendChild(card);
+    });
+    // RSS chart
+    var maxRss = 1;
+    snaps.forEach(function(s) { if ((s.rss_mb || 0) > maxRss) maxRss = s.rss_mb; });
+    snaps.forEach(function(s) {
+      var col = document.createElement('div');
+      col.className = 'bar-col';
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = Math.max(2, ((s.rss_mb || 0) / maxRss) * 100) + 'px';
+      bar.setAttribute('data-tooltip', (s.rss_mb || 0).toFixed(1) + ' MB');
+      var label = document.createElement('div');
+      label.className = 'bar-label';
+      label.textContent = (s.created_at || '').slice(5, 10);
+      col.appendChild(bar);
+      col.appendChild(label);
+      chart.appendChild(col);
+    });
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
+
+  // Response time trend
+  api('/analytics/response-time-trend').then(function(data) {
+    var chart = document.getElementById('response-chart');
+    if (!chart) return;
+    chart.replaceChildren();
+    var trend = data.trend || [];
+    if (!trend.length) { chart.textContent = 'No data yet'; return; }
+    var maxMs = 1;
+    trend.forEach(function(t) { if ((t.avg_ms || 0) > maxMs) maxMs = t.avg_ms; });
+    trend.forEach(function(t) {
+      var col = document.createElement('div');
+      col.className = 'bar-col';
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = Math.max(2, ((t.avg_ms || 0) / maxMs) * 100) + 'px';
+      bar.setAttribute('data-tooltip', Math.round(t.avg_ms || 0) + 'ms avg (' + Math.round(t.min_ms || 0) + '-' + Math.round(t.max_ms || 0) + 'ms)');
+      var label = document.createElement('div');
+      label.className = 'bar-label';
+      label.textContent = (t.day || '').slice(5);
+      col.appendChild(bar);
+      col.appendChild(label);
+      chart.appendChild(col);
+    });
+  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
+}
+
+// --- Unified Settings loader ---
+function loadSettingsPanel() {
+  loadSettings();
+}
+
+// --- Time-aware greeting ---
+function updateGreeting() {
+  var el = document.getElementById('chat-greeting');
+  if (!el) return;
+  var hour = new Date().getHours();
+  var greeting = hour < 12 ? 'Good morning' : (hour < 18 ? 'Good afternoon' : 'Good evening');
+  el.textContent = greeting + ', what can I help you with?';
+}
+updateGreeting();
 
 function routeFromHash() {
   var hash = window.location.hash.replace('#', '') || 'agent';
@@ -1634,68 +2102,6 @@ function loadAnalytics() {
     });
   });
 
-  // System Health — perf snapshots
-  api('/analytics/perf-snapshots').then(function(data) {
-    var container = document.getElementById('perf-health');
-    var chart = document.getElementById('rss-chart');
-    if (!container || !chart) return;
-    container.replaceChildren();
-    chart.replaceChildren();
-    var snaps = data.snapshots || [];
-    if (!snaps.length) {
-      var emptyCard = document.createElement('div');
-      emptyCard.className = 'perf-card';
-      var emptyLabel = document.createElement('div');
-      emptyLabel.className = 'perf-label';
-      emptyLabel.textContent = 'No Data';
-      var emptyVal = document.createElement('div');
-      emptyVal.className = 'perf-value';
-      emptyVal.style.cssText = 'font-size:14px;color:var(--text-muted);';
-      emptyVal.textContent = 'Performance data will appear after the first heartbeat.';
-      emptyCard.appendChild(emptyLabel);
-      emptyCard.appendChild(emptyVal);
-      container.appendChild(emptyCard);
-      chart.textContent = 'No data yet';
-      return;
-    }
-    var latest = snaps[snaps.length - 1];
-    var cardData = [
-      { label: 'RSS Memory', value: (latest.rss_mb || 0).toFixed(1) + ' MB' },
-      { label: 'Heap Memory', value: (latest.heap_mb || 0).toFixed(1) + ' MB' },
-      { label: 'Database Size', value: (latest.db_size_mb || 0).toFixed(1) + ' MB' },
-    ];
-    cardData.forEach(function(c) {
-      var card = document.createElement('div');
-      card.className = 'perf-card';
-      var lbl = document.createElement('div');
-      lbl.className = 'perf-label';
-      lbl.textContent = c.label;
-      var val = document.createElement('div');
-      val.className = 'perf-value';
-      val.textContent = c.value;
-      card.appendChild(lbl);
-      card.appendChild(val);
-      container.appendChild(card);
-    });
-    // RSS chart
-    var maxRss = 1;
-    snaps.forEach(function(s) { if ((s.rss_mb || 0) > maxRss) maxRss = s.rss_mb; });
-    snaps.forEach(function(s) {
-      var col = document.createElement('div');
-      col.className = 'bar-col';
-      var bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.style.height = Math.max(2, ((s.rss_mb || 0) / maxRss) * 100) + 'px';
-      bar.setAttribute('data-tooltip', (s.rss_mb || 0).toFixed(1) + ' MB');
-      var label = document.createElement('div');
-      label.className = 'bar-label';
-      label.textContent = (s.created_at || '').slice(5, 10);
-      col.appendChild(bar);
-      col.appendChild(label);
-      chart.appendChild(col);
-    });
-  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
-
   // Cost breakdown
   api('/analytics/cost-breakdown').then(function(data) {
     var body = document.getElementById('cost-body');
@@ -1748,31 +2154,6 @@ function loadAnalytics() {
       td5.appendChild(barWrap);
       tr.appendChild(td5);
       body.appendChild(tr);
-    });
-  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
-
-  // Response time trend
-  api('/analytics/response-time-trend').then(function(data) {
-    var chart = document.getElementById('response-chart');
-    if (!chart) return;
-    chart.replaceChildren();
-    var trend = data.trend || [];
-    if (!trend.length) { chart.textContent = 'No data yet'; return; }
-    var maxMs = 1;
-    trend.forEach(function(t) { if ((t.avg_ms || 0) > maxMs) maxMs = t.avg_ms; });
-    trend.forEach(function(t) {
-      var col = document.createElement('div');
-      col.className = 'bar-col';
-      var bar = document.createElement('div');
-      bar.className = 'bar';
-      bar.style.height = Math.max(2, ((t.avg_ms || 0) / maxMs) * 100) + 'px';
-      bar.setAttribute('data-tooltip', Math.round(t.avg_ms || 0) + 'ms avg (' + Math.round(t.min_ms || 0) + '-' + Math.round(t.max_ms || 0) + 'ms)');
-      var label = document.createElement('div');
-      label.className = 'bar-label';
-      label.textContent = (t.day || '').slice(5);
-      col.appendChild(bar);
-      col.appendChild(label);
-      chart.appendChild(col);
     });
   }).catch(function(err) { console.warn('Dashboard API request failed', err); });
 
@@ -2652,37 +3033,636 @@ function saveSmartRouting() {
   });
 }
 
-// --- Channel Status ---
-var channelLabels = { webchat: 'Web Chat', telegram: 'Telegram', discord: 'Discord', slack: 'Slack', whatsapp: 'WhatsApp', signal: 'Signal' };
+// --- Channel Status (interactive) ---
+var channelLabels = { webchat: 'Web Chat', telegram: 'Telegram', discord: 'Discord', slack: 'Slack', whatsapp: 'WhatsApp', signal: 'Signal', email: 'Email' };
+var channelIcons = { telegram: '\u{2708}\u{FE0F}', discord: '\u{1F3AE}', slack: '\u{1F4AC}', whatsapp: '\u{1F4F1}', signal: '\u{1F510}', email: '\u{2709}\u{FE0F}' };
+var editingChannel = '';
+
+var channelFieldDefs = {
+  telegram: [
+    { key: 'botToken', label: 'Bot Token', type: 'password' },
+    { key: 'allowedUsers', label: 'Allowed User IDs (comma-separated)', type: 'text' }
+  ],
+  discord: [
+    { key: 'botToken', label: 'Bot Token', type: 'password' },
+    { key: 'allowedUsers', label: 'Allowed Users (comma-separated)', type: 'text' }
+  ],
+  slack: [
+    { key: 'botToken', label: 'Bot Token', type: 'password' },
+    { key: 'appToken', label: 'App Token', type: 'password' },
+    { key: 'allowedUsers', label: 'Allowed Users (comma-separated)', type: 'text' }
+  ],
+  whatsapp: [
+    { key: 'authDir', label: 'Auth Directory', type: 'text' },
+    { key: 'allowedNumbers', label: 'Allowed Numbers (comma-separated)', type: 'text' }
+  ],
+  signal: [
+    { key: 'phoneNumber', label: 'Phone Number', type: 'text' },
+    { key: 'signalCliPath', label: 'signal-cli Path', type: 'text' },
+    { key: 'allowedNumbers', label: 'Allowed Numbers (comma-separated)', type: 'text' }
+  ],
+  email: [
+    { key: 'imap.host', label: 'IMAP Host', type: 'text' },
+    { key: 'imap.port', label: 'IMAP Port', type: 'number' },
+    { key: 'imap.user', label: 'IMAP User', type: 'text' },
+    { key: 'imap.password', label: 'IMAP Password', type: 'password' },
+    { key: 'smtp.host', label: 'SMTP Host', type: 'text' },
+    { key: 'smtp.port', label: 'SMTP Port', type: 'number' },
+    { key: 'smtp.user', label: 'SMTP User', type: 'text' },
+    { key: 'smtp.password', label: 'SMTP Password', type: 'password' },
+    { key: 'pollIntervalSeconds', label: 'Poll Interval (seconds)', type: 'number' },
+    { key: 'fromName', label: 'From Name', type: 'text' },
+    { key: 'allowedSenders', label: 'Allowed Senders (comma-separated)', type: 'text' }
+  ]
+};
 
 function loadChannelStatus() {
-  api('/channel-status').then(function(data) {
+  api('/channels/config').then(function(data) {
     var list = document.getElementById('channel-status-list');
     list.replaceChildren();
     var channels = data.channels || {};
     var connCount = 0;
-    Object.keys(channels).forEach(function(name) {
+    var names = ['telegram','discord','slack','whatsapp','signal','email'];
+    names.forEach(function(name) {
       var ch = channels[name];
-      if (ch.enabled) connCount++;
+      if (!ch) return;
+      if (ch.running) connCount++;
+
       var row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;';
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;';
+
+      var icon = document.createElement('span');
+      icon.style.cssText = 'font-size:18px;width:28px;text-align:center;';
+      icon.textContent = channelIcons[name] || '\u{1F517}';
+      row.appendChild(icon);
+
       var dot = document.createElement('span');
-      dot.className = 'status-dot ' + (ch.enabled ? 'ok' : '');
-      if (!ch.enabled) dot.style.background = 'var(--text-faint)';
+      dot.className = 'status-dot ' + (ch.running ? 'ok' : '');
+      if (!ch.running) dot.style.background = 'var(--text-faint)';
+      row.appendChild(dot);
+
       var label = document.createElement('span');
       label.style.cssText = 'font-size:13px;font-weight:500;color:var(--text);flex:1;';
       label.textContent = channelLabels[name] || name;
-      var status = document.createElement('span');
-      status.style.cssText = 'font-size:11px;color:' + (ch.enabled ? 'var(--green)' : 'var(--text-faint)') + ';';
-      status.textContent = ch.enabled ? 'Connected' : (ch.configured ? 'Disabled' : 'Not configured');
-      row.appendChild(dot);
       row.appendChild(label);
+
+      var status = document.createElement('span');
+      status.style.cssText = 'font-size:11px;color:' + (ch.running ? 'var(--green)' : 'var(--text-faint)') + ';margin-right:8px;';
+      status.textContent = ch.running ? 'Running' : (ch.configured ? 'Stopped' : 'Not configured');
       row.appendChild(status);
+
+      // Toggle button
+      var toggleBtn = document.createElement('button');
+      toggleBtn.className = 'btn ' + (ch.enabled ? 'btn-ghost' : 'btn-primary');
+      toggleBtn.style.cssText = 'font-size:11px;padding:4px 12px;';
+      toggleBtn.textContent = ch.enabled ? 'Disable' : 'Enable';
+      toggleBtn.setAttribute('data-channel', name);
+      toggleBtn.setAttribute('data-enabled', ch.enabled ? 'true' : 'false');
+      toggleBtn.addEventListener('click', function() {
+        var chName = this.getAttribute('data-channel');
+        var wasEnabled = this.getAttribute('data-enabled') === 'true';
+        toggleChannel(chName, !wasEnabled);
+      });
+      row.appendChild(toggleBtn);
+
+      // Configure button
+      var configBtn = document.createElement('button');
+      configBtn.className = 'btn btn-ghost';
+      configBtn.style.cssText = 'font-size:11px;padding:4px 12px;';
+      configBtn.textContent = 'Configure';
+      configBtn.setAttribute('data-channel', name);
+      configBtn.addEventListener('click', function() {
+        showChannelConfig(this.getAttribute('data-channel'), channels[this.getAttribute('data-channel')]);
+      });
+      row.appendChild(configBtn);
+
       list.appendChild(row);
     });
-    document.getElementById('channel-count-badge').textContent = connCount + ' active';
-    document.getElementById('sidebar-conn-badge').textContent = connCount + ' channels';
-  }).catch(function(err) { console.warn('Dashboard API request failed', err); });
+    var badge = document.getElementById('channel-count-badge');
+    if (badge) badge.textContent = connCount + ' active';
+    var sidebarBadge = document.getElementById('sidebar-conn-badge');
+    if (sidebarBadge) sidebarBadge.textContent = connCount + ' channels';
+  }).catch(function(err) { console.warn('Channel config load failed', err); });
+}
+
+function toggleChannel(name, enabled) {
+  api('/channels/' + name + '/toggle', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ enabled: enabled })
+  }).then(function(data) {
+    if (data.ok) {
+      toast(channelLabels[name] + ' ' + (enabled ? 'enabled' : 'disabled'));
+      loadChannelStatus();
+    } else {
+      toast('Error: ' + (data.error || 'Unknown'));
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
+}
+
+function getNestedValue(obj, path) {
+  return path.split('.').reduce(function(o, k) { return o && o[k]; }, obj);
+}
+
+function showChannelConfig(name, channelData) {
+  editingChannel = name;
+  var form = document.getElementById('channel-config-form');
+  var title = document.getElementById('channel-config-title');
+  var fields = document.getElementById('channel-config-fields');
+  title.textContent = 'Configure ' + (channelLabels[name] || name);
+  fields.replaceChildren();
+  document.getElementById('channel-config-status').textContent = '';
+
+  var defs = channelFieldDefs[name] || [];
+  defs.forEach(function(def) {
+    var div = document.createElement('div');
+    div.className = 'settings-field';
+    var lbl = document.createElement('label');
+    lbl.className = 'settings-label';
+    lbl.textContent = def.label;
+    div.appendChild(lbl);
+
+    var val = getNestedValue(channelData.config, def.key);
+    if (Array.isArray(val)) val = val.join(', ');
+
+    var inp = document.createElement('input');
+    inp.className = 'settings-input';
+    inp.type = def.type || 'text';
+    inp.id = 'ch-field-' + def.key.replace(/\\./g, '-');
+    inp.value = val || '';
+    inp.placeholder = def.label;
+    div.appendChild(inp);
+    fields.appendChild(div);
+  });
+
+  form.style.display = '';
+}
+
+function hideChannelConfig() {
+  document.getElementById('channel-config-form').style.display = 'none';
+  editingChannel = '';
+}
+
+function saveChannelConfig() {
+  if (!editingChannel) return;
+  var defs = channelFieldDefs[editingChannel] || [];
+  var body = { enabled: true };
+
+  defs.forEach(function(def) {
+    var inp = document.getElementById('ch-field-' + def.key.replace(/\\./g, '-'));
+    if (!inp) return;
+    var val = inp.value.trim();
+
+    // Handle nested keys like 'imap.host'
+    var parts = def.key.split('.');
+    if (parts.length === 2) {
+      if (!body[parts[0]]) body[parts[0]] = {};
+      if (def.type === 'number') {
+        body[parts[0]][parts[1]] = parseInt(val, 10) || 0;
+      } else {
+        body[parts[0]][parts[1]] = val;
+      }
+    } else {
+      // Handle comma-separated arrays
+      if (def.key === 'allowedUsers' || def.key === 'allowedNumbers' || def.key === 'allowedSenders') {
+        body[def.key] = val ? val.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+        // Telegram allowedUsers are numbers
+        if (editingChannel === 'telegram' && def.key === 'allowedUsers') {
+          body[def.key] = body[def.key].map(function(s) { return parseInt(s, 10); }).filter(function(n) { return !isNaN(n); });
+        }
+      } else if (def.type === 'number') {
+        body[def.key] = parseInt(val, 10) || 0;
+      } else {
+        body[def.key] = val;
+      }
+    }
+  });
+
+  document.getElementById('channel-config-status').textContent = 'Saving...';
+  api('/channels/' + editingChannel + '/config', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  }).then(function(data) {
+    if (data.ok) {
+      toast(channelLabels[editingChannel] + ' saved');
+      document.getElementById('channel-config-status').textContent = 'Saved';
+      hideChannelConfig();
+      loadChannelStatus();
+    } else {
+      document.getElementById('channel-config-status').textContent = data.error || 'Error';
+    }
+  }).catch(function(e) {
+    document.getElementById('channel-config-status').textContent = 'Error: ' + e.message;
+  });
+}
+
+// --- Providers ---
+function loadProviders() {
+  api('/providers').then(function(data) {
+    var list = document.getElementById('providers-list');
+    list.replaceChildren();
+    var providers = data.providers || [];
+    var active = data.activeProvider || '';
+
+    if (!providers.length) {
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'No providers configured. Add one to get started.';
+      list.appendChild(empty);
+    }
+
+    providers.forEach(function(p) {
+      var card = document.createElement('div');
+      card.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);' + (p.name === active ? 'border-color:var(--accent);' : '');
+
+      var info = document.createElement('div');
+      info.style.cssText = 'flex:1;';
+
+      var nameRow = document.createElement('div');
+      nameRow.style.cssText = 'font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;';
+      nameRow.textContent = p.name;
+      if (p.name === active) {
+        var activeBadge = document.createElement('span');
+        activeBadge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:10px;background:var(--accent-bg);color:var(--accent);font-weight:600;';
+        activeBadge.textContent = 'Active';
+        nameRow.appendChild(activeBadge);
+      }
+      info.appendChild(nameRow);
+
+      var modelRow = document.createElement('div');
+      modelRow.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-top:2px;';
+      modelRow.textContent = p.model + (p.apiKey ? ' \\u00B7 ' + p.apiKey : '');
+      info.appendChild(modelRow);
+
+      card.appendChild(info);
+
+      // Set Active button
+      if (p.name !== active) {
+        var setActiveBtn = document.createElement('button');
+        setActiveBtn.className = 'btn btn-primary';
+        setActiveBtn.style.cssText = 'font-size:11px;padding:4px 12px;';
+        setActiveBtn.textContent = 'Set Active';
+        setActiveBtn.setAttribute('data-provider', p.name);
+        setActiveBtn.addEventListener('click', function() { setActiveProvider(this.getAttribute('data-provider')); });
+        card.appendChild(setActiveBtn);
+      }
+
+      // Delete button
+      var delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-ghost';
+      delBtn.style.cssText = 'font-size:11px;padding:4px 12px;color:var(--red);';
+      delBtn.textContent = 'Delete';
+      delBtn.setAttribute('data-provider', p.name);
+      delBtn.addEventListener('click', function() { deleteProvider(this.getAttribute('data-provider')); });
+      card.appendChild(delBtn);
+
+      list.appendChild(card);
+    });
+
+    // Failover
+    var failoverList = document.getElementById('failover-list');
+    failoverList.replaceChildren();
+    var failover = data.failover || [];
+    if (failover.length) {
+      failover.forEach(function(f, i) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg-hover);border-radius:6px;font-size:12px;';
+        row.textContent = (i + 1) + '. ' + f;
+        failoverList.appendChild(row);
+      });
+    } else {
+      var noFail = document.createElement('div');
+      noFail.style.cssText = 'font-size:12px;color:var(--text-muted);';
+      noFail.textContent = 'No failover providers configured.';
+      failoverList.appendChild(noFail);
+    }
+  }).catch(function(err) { console.warn('Providers load failed', err); });
+}
+
+function setActiveProvider(name) {
+  api('/providers/active', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ provider: name })
+  }).then(function(data) {
+    if (data.ok) {
+      toast('Active provider set to ' + name + ' (hot-reloaded)');
+      loadProviders();
+      loadSettings();
+    } else {
+      toast('Error: ' + (data.error || 'Unknown'));
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
+}
+
+function deleteProvider(name) {
+  if (!confirm('Delete provider "' + name + '"?')) return;
+  api('/providers/' + encodeURIComponent(name), { method: 'DELETE' }).then(function(data) {
+    if (data.ok) {
+      toast('Provider deleted');
+      loadProviders();
+      loadSettings();
+    } else {
+      toast('Error: ' + (data.error || 'Unknown'));
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
+}
+
+var defaultModels = {
+  anthropic: 'claude-sonnet-4-5-20250929',
+  openai: 'gpt-4o',
+  groq: 'mixtral-8x7b-32768',
+  together: 'meta-llama/Llama-3-70b-chat-hf',
+  openrouter: 'anthropic/claude-sonnet-4-5',
+  deepseek: 'deepseek-chat',
+  xai: 'grok-2',
+  ollama: 'llama3',
+  lmstudio: 'local-model'
+};
+
+function showAddProviderForm() {
+  document.getElementById('provider-add-form').style.display = '';
+  document.getElementById('new-provider-name').value = '';
+  document.getElementById('new-provider-key').value = '';
+  document.getElementById('new-provider-model').value = '';
+  document.getElementById('new-provider-url').value = '';
+  document.getElementById('new-provider-url-field').style.display = 'none';
+}
+
+function hideAddProviderForm() {
+  document.getElementById('provider-add-form').style.display = 'none';
+}
+
+function onNewProviderSelect() {
+  var name = document.getElementById('new-provider-name').value;
+  document.getElementById('new-provider-model').value = defaultModels[name] || '';
+  var showUrl = (name === 'custom' || name === 'ollama' || name === 'lmstudio');
+  document.getElementById('new-provider-url-field').style.display = showUrl ? '' : 'none';
+  // Local providers don't need API key
+  var keyInput = document.getElementById('new-provider-key');
+  if (name === 'ollama' || name === 'lmstudio') {
+    keyInput.placeholder = 'Optional for local providers';
+  } else {
+    keyInput.placeholder = 'sk-...';
+  }
+}
+
+function saveNewProvider() {
+  var name = document.getElementById('new-provider-name').value;
+  var apiKey = document.getElementById('new-provider-key').value.trim();
+  var model = document.getElementById('new-provider-model').value.trim();
+  var baseUrl = document.getElementById('new-provider-url').value.trim();
+  if (!name || !model) { toast('Provider and model are required'); return; }
+  if (name === 'custom' && !name) { toast('Custom provider requires a name'); return; }
+
+  var providerKey = name === 'custom' ? prompt('Enter a name for this provider:') : name;
+  if (!providerKey) return;
+
+  var body = { model: model };
+  if (apiKey) body.apiKey = apiKey;
+  if (baseUrl) body.baseUrl = baseUrl;
+
+  api('/providers/' + encodeURIComponent(providerKey), {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  }).then(function(data) {
+    if (data.ok) {
+      toast('Provider "' + providerKey + '" added');
+      hideAddProviderForm();
+      loadProviders();
+      loadSettings();
+    } else {
+      toast('Error: ' + (data.error || 'Unknown'));
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
+}
+
+function saveFailover() {
+  // Collect failover from provider list (all non-active providers in order)
+  api('/providers').then(function(data) {
+    var active = data.activeProvider || '';
+    var others = (data.providers || []).filter(function(p) { return p.name !== active; }).map(function(p) { return p.name; });
+    return api('/providers/failover', {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ failover: others })
+    });
+  }).then(function(data) {
+    if (data.ok) {
+      toast('Failover order saved');
+      document.getElementById('failover-status').textContent = 'Saved';
+      loadProviders();
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
+}
+
+// --- MCP Servers ---
+function loadMcpServers() {
+  api('/mcp/servers').then(function(data) {
+    var list = document.getElementById('mcp-servers-list');
+    list.replaceChildren();
+    var servers = data.servers || [];
+
+    if (!servers.length) {
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'No MCP servers configured. Add one to extend Zubo with new tools.';
+      list.appendChild(empty);
+      return;
+    }
+
+    servers.forEach(function(s) {
+      var card = document.createElement('div');
+      card.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);';
+
+      var dot = document.createElement('span');
+      dot.className = 'status-dot ' + (s.connected ? 'ok' : 'error');
+      card.appendChild(dot);
+
+      var info = document.createElement('div');
+      info.style.cssText = 'flex:1;';
+
+      var nameRow = document.createElement('div');
+      nameRow.style.cssText = 'font-weight:600;font-size:14px;';
+      nameRow.textContent = s.name;
+      info.appendChild(nameRow);
+
+      var detailRow = document.createElement('div');
+      detailRow.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-top:2px;';
+      detailRow.textContent = s.command + (s.args.length ? ' ' + s.args.join(' ') : '') + ' \\u00B7 ' + s.tools + ' tools';
+      info.appendChild(detailRow);
+
+      card.appendChild(info);
+
+      // Restart button
+      var restartBtn = document.createElement('button');
+      restartBtn.className = 'btn btn-ghost';
+      restartBtn.style.cssText = 'font-size:11px;padding:4px 12px;';
+      restartBtn.textContent = 'Restart';
+      restartBtn.setAttribute('data-server', s.name);
+      restartBtn.addEventListener('click', function() { restartMcpServer(this.getAttribute('data-server')); });
+      card.appendChild(restartBtn);
+
+      // Remove button
+      var removeBtn = document.createElement('button');
+      removeBtn.className = 'btn btn-ghost';
+      removeBtn.style.cssText = 'font-size:11px;padding:4px 12px;color:var(--red);';
+      removeBtn.textContent = 'Remove';
+      removeBtn.setAttribute('data-server', s.name);
+      removeBtn.addEventListener('click', function() { removeMcpServer(this.getAttribute('data-server')); });
+      card.appendChild(removeBtn);
+
+      list.appendChild(card);
+    });
+  }).catch(function(err) { console.warn('MCP servers load failed', err); });
+}
+
+function restartMcpServer(name) {
+  toast('Restarting ' + name + '...');
+  api('/mcp/servers/' + encodeURIComponent(name) + '/restart', { method: 'POST' }).then(function(data) {
+    if (data.ok) {
+      toast(name + ' restarted');
+      loadMcpServers();
+    } else {
+      toast('Error: ' + (data.error || 'Unknown'));
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
+}
+
+function removeMcpServer(name) {
+  if (!confirm('Remove MCP server "' + name + '"? This will disconnect it.')) return;
+  api('/mcp/servers/' + encodeURIComponent(name), { method: 'DELETE' }).then(function(data) {
+    if (data.ok) {
+      toast(name + ' removed');
+      loadMcpServers();
+    } else {
+      toast('Error: ' + (data.error || 'Unknown'));
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
+}
+
+function showAddMcpForm() {
+  document.getElementById('mcp-add-form').style.display = '';
+  document.getElementById('mcp-name').value = '';
+  document.getElementById('mcp-command').value = '';
+  document.getElementById('mcp-args').value = '';
+  document.getElementById('mcp-env').value = '';
+  document.getElementById('mcp-add-status').textContent = '';
+}
+
+function hideAddMcpForm() {
+  document.getElementById('mcp-add-form').style.display = 'none';
+}
+
+function saveNewMcpServer() {
+  var name = document.getElementById('mcp-name').value.trim();
+  var command = document.getElementById('mcp-command').value.trim();
+  var argsStr = document.getElementById('mcp-args').value.trim();
+  var envStr = document.getElementById('mcp-env').value.trim();
+
+  if (!name || !command) { toast('Name and command are required'); return; }
+
+  var args = argsStr ? argsStr.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+  var env = {};
+  if (envStr) {
+    envStr.split('\\n').forEach(function(line) {
+      var eq = line.indexOf('=');
+      if (eq > 0) env[line.slice(0, eq).trim()] = line.slice(eq + 1).trim();
+    });
+  }
+
+  document.getElementById('mcp-add-status').textContent = 'Connecting...';
+  api('/mcp/servers', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name: name, command: command, args: args, env: env })
+  }).then(function(data) {
+    if (data.ok) {
+      toast(name + ' added' + (data.connected ? ' and connected' : ''));
+      if (data.error) document.getElementById('mcp-add-status').textContent = 'Warning: ' + data.error;
+      else hideAddMcpForm();
+      loadMcpServers();
+    } else {
+      document.getElementById('mcp-add-status').textContent = 'Error: ' + (data.error || 'Unknown');
+    }
+  }).catch(function(e) {
+    document.getElementById('mcp-add-status').textContent = 'Error: ' + e.message;
+  });
+}
+
+// --- OAuth Config Functions ---
+function onOAuthProviderSelect() {
+  var provider = document.getElementById('oauth-provider-select').value;
+  var clientIdInput = document.getElementById('oauth-client-id');
+  var clientSecretInput = document.getElementById('oauth-client-secret');
+  var removeBtn = document.getElementById('oauth-remove-btn');
+  var statusEl = document.getElementById('oauth-config-status');
+
+  clientIdInput.value = '';
+  clientSecretInput.value = '';
+  statusEl.textContent = '';
+  removeBtn.style.display = 'none';
+
+  if (!provider) return;
+
+  // Try to load existing config for this provider
+  statusEl.textContent = 'Loading...';
+  api('/oauth/status').then(function(data) {
+    var connections = data.connections || [];
+    var conn = connections.find(function(c) { return c.provider === provider; });
+    if (conn && conn.configured) {
+      clientIdInput.placeholder = 'Configured (hidden)';
+      clientSecretInput.placeholder = 'Configured (hidden)';
+      removeBtn.style.display = '';
+      statusEl.textContent = 'Credentials saved. Update to replace.';
+    } else {
+      statusEl.textContent = '';
+    }
+  }).catch(function() { statusEl.textContent = ''; });
+}
+
+function saveOAuthConfig() {
+  var provider = document.getElementById('oauth-provider-select').value;
+  if (!provider) { toast('Select a provider first'); return; }
+  var clientId = document.getElementById('oauth-client-id').value.trim();
+  var clientSecret = document.getElementById('oauth-client-secret').value.trim();
+  if (!clientId || !clientSecret) { toast('Client ID and secret are required'); return; }
+
+  var statusEl = document.getElementById('oauth-config-status');
+  statusEl.textContent = 'Saving...';
+
+  api('/oauth/' + provider + '/config', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ clientId: clientId, clientSecret: clientSecret })
+  }).then(function(data) {
+    if (data.ok) {
+      toast(provider + ' credentials saved');
+      statusEl.textContent = 'Saved';
+      loadIntegrations();
+    } else {
+      statusEl.textContent = 'Error: ' + (data.error || 'Unknown');
+    }
+  }).catch(function(e) { statusEl.textContent = 'Error: ' + e.message; });
+}
+
+function removeOAuthConfig() {
+  var provider = document.getElementById('oauth-provider-select').value;
+  if (!provider) return;
+  if (!confirm('Remove ' + provider + ' OAuth credentials?')) return;
+
+  api('/oauth/' + provider + '/config', { method: 'DELETE' }).then(function(data) {
+    if (data.ok) {
+      toast(provider + ' credentials removed');
+      document.getElementById('oauth-client-id').value = '';
+      document.getElementById('oauth-client-secret').value = '';
+      document.getElementById('oauth-remove-btn').style.display = 'none';
+      document.getElementById('oauth-config-status').textContent = 'Removed';
+      loadIntegrations();
+    }
+  }).catch(function(e) { toast('Error: ' + e.message); });
 }
 
 // --- DATA EXPORT/IMPORT ---
@@ -2986,9 +3966,28 @@ function closeCommandPalette() {
 function renderCmdResults(query) {
   var container = document.getElementById('cmd-results');
   container.replaceChildren();
+  // Main panels + sub-tab shortcuts
   var items = panelNames.map(function(name) {
-    return { name: name, title: panelTitles[name] || name };
+    return { name: name, title: panelTitles[name] || name, action: function() { showPanel(name); } };
   });
+  // Add sub-tab items for quick access
+  var subTabs = [
+    { title: 'Analytics', action: function() { showPanel('dashboard'); switchTab('dashboard','analytics'); } },
+    { title: 'Performance', action: function() { showPanel('dashboard'); switchTab('dashboard','performance'); } },
+    { title: 'System Prompt', action: function() { showPanel('settings'); switchTab('settings','system'); } },
+    { title: 'Cron Jobs', action: function() { showPanel('settings'); switchTab('settings','cron'); } },
+    { title: 'Logs', action: function() { showPanel('settings'); switchTab('settings','logs'); } },
+    { title: 'Privacy & Data', action: function() { showPanel('settings'); switchTab('settings','privacy'); } },
+    { title: 'Budget', action: function() { showPanel('settings'); switchTab('settings','budget'); } },
+    { title: 'Secrets', action: function() { showPanel('settings'); switchTab('settings','secrets'); } },
+    { title: 'Channels', action: function() { showPanel('settings'); switchTab('settings','channels'); } },
+    { title: 'Providers', action: function() { showPanel('settings'); switchTab('settings','providers'); } },
+    { title: 'MCP Servers', action: function() { showPanel('settings'); switchTab('settings','mcp'); } },
+    { title: 'Smart Routing', action: function() { showPanel('settings'); switchTab('settings','routing'); } },
+    { title: 'Browse Registry', action: function() { showPanel('skills'); switchTab('skills','browse'); } },
+  ];
+  subTabs.forEach(function(st) { items.push({ name: st.title.toLowerCase(), title: st.title, action: st.action }); });
+
   if (query) {
     items = items.filter(function(item) {
       return item.title.toLowerCase().includes(query.toLowerCase());
@@ -2998,7 +3997,7 @@ function renderCmdResults(query) {
     var div = document.createElement('div');
     div.className = 'cmd-result';
     div.textContent = item.title;
-    div.onclick = function() { showPanel(item.name); closeCommandPalette(); };
+    div.onclick = function() { item.action(); closeCommandPalette(); };
     container.appendChild(div);
   });
 }
@@ -3078,35 +4077,72 @@ function deleteThread(id) {
   });
 }
 
+function createSparkleSvg(gradId) {
+  var ns = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('width', '72');
+  svg.setAttribute('height', '72');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('fill', 'none');
+  var defs = document.createElementNS(ns, 'defs');
+  var grad = document.createElementNS(ns, 'linearGradient');
+  grad.setAttribute('id', gradId);
+  grad.setAttribute('x1', '8'); grad.setAttribute('y1', '8');
+  grad.setAttribute('x2', '92'); grad.setAttribute('y2', '92');
+  var stop1 = document.createElementNS(ns, 'stop');
+  stop1.setAttribute('offset', '0%'); stop1.setAttribute('stop-color', '#7c3aed');
+  var stop2 = document.createElementNS(ns, 'stop');
+  stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', '#d946ef');
+  grad.appendChild(stop1); grad.appendChild(stop2);
+  defs.appendChild(grad); svg.appendChild(defs);
+  var path = document.createElementNS(ns, 'path');
+  path.setAttribute('d', 'M50 8C52.5 35 65 47.5 92 50C65 52.5 52.5 65 50 92C47.5 65 35 52.5 8 50C35 47.5 47.5 35 50 8Z');
+  path.setAttribute('fill', 'url(#' + gradId + ')');
+  path.setAttribute('opacity', '0.9');
+  svg.appendChild(path);
+  return svg;
+}
+
 function clearChatMessages() {
   var container = document.getElementById('chat-messages');
   container.replaceChildren();
-  // Rebuild the static welcome state using DOM methods
+  // Rebuild the mesh background
+  var mesh = document.createElement('div');
+  mesh.className = 'chat-welcome-mesh';
+  container.appendChild(mesh);
+  // Rebuild the welcome state
   var welcome = document.createElement('div');
   welcome.className = 'chat-empty chat-welcome';
-  var icon = document.createElement('div');
-  icon.className = 'chat-welcome-icon';
-  icon.textContent = '';
+  var sparkle = document.createElement('div');
+  sparkle.className = 'chat-welcome-sparkle';
+  sparkle.appendChild(createSparkleSvg('sparkleGrad2'));
   var heading = document.createElement('h3');
   heading.className = 'gradient-text';
-  heading.textContent = 'What can I help you with?';
+  heading.id = 'chat-greeting';
   var subtext = document.createElement('div');
   subtext.className = 'chat-empty-text';
   subtext.textContent = 'Ask me anything, or try a suggestion below';
-  var chips = document.createElement('div');
-  chips.className = 'suggestion-chips';
-  ['Summarize my day','Check the weather','What can you do?','Set a reminder'].forEach(function(label) {
-    var chip = document.createElement('button');
-    chip.className = 'suggestion-chip';
-    chip.textContent = label;
-    chip.onclick = function() { useSuggestion(chip); };
-    chips.appendChild(chip);
+  var chipsGroup = document.createElement('div');
+  chipsGroup.className = 'suggestion-chips-group';
+  var rows = [['What can you do?','Check my schedule'],['Summarize recent emails','Set a reminder']];
+  rows.forEach(function(rowLabels) {
+    var row = document.createElement('div');
+    row.className = 'chip-row';
+    rowLabels.forEach(function(label) {
+      var chip = document.createElement('button');
+      chip.className = 'suggestion-chip';
+      chip.textContent = label;
+      chip.onclick = function() { useSuggestion(chip); };
+      row.appendChild(chip);
+    });
+    chipsGroup.appendChild(row);
   });
-  welcome.appendChild(icon);
+  welcome.appendChild(sparkle);
   welcome.appendChild(heading);
   welcome.appendChild(subtext);
-  welcome.appendChild(chips);
+  welcome.appendChild(chipsGroup);
   container.appendChild(welcome);
+  updateGreeting();
 }
 
 // --- EXPORT THREAD ---
@@ -3126,9 +4162,14 @@ function exportThread() {
   }).catch(function(e) { toast('Export failed: ' + e.message); });
 }
 
-// Auto-refresh channel status every 30s
+// Auto-refresh status every 30s (when settings panel visible tabs are active)
 setInterval(function() {
-  if (document.getElementById('panel-settings').classList.contains('active')) loadChannelStatus();
+  if (document.getElementById('panel-settings').classList.contains('active')) {
+    var channelsTab = document.getElementById('settings-tab-channels');
+    if (channelsTab && channelsTab.classList.contains('active')) loadChannelStatus();
+    var mcpTab = document.getElementById('settings-tab-mcp');
+    if (mcpTab && mcpTab.classList.contains('active')) loadMcpServers();
+  }
 }, 30000);
 
 // Init
