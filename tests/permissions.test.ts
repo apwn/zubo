@@ -14,8 +14,8 @@ describe("getToolPermission", () => {
     expect(getToolPermission("file_write")).toBe("confirm");
   });
 
-  it("returns 'auto' for unknown tools (user-installed skills)", () => {
-    expect(getToolPermission("my_custom_skill")).toBe("auto");
-    expect(getToolPermission("weather")).toBe("auto");
+  it("returns 'confirm' for unknown tools (user-installed skills, MCP)", () => {
+    expect(getToolPermission("my_custom_skill")).toBe("confirm");
+    expect(getToolPermission("weather")).toBe("confirm");
   });
 });

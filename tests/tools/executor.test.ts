@@ -41,13 +41,24 @@ describe("executeTool", () => {
     });
 
     try {
-      const result = await executeTool(
+      // Unknown tools default to "confirm" — first call returns confirmation token
+      const confirmResult = await executeTool(
         testToolName,
         "call-789",
         {},
         [testToolName]
       );
+      expect(confirmResult.content).toContain("Confirmation Token:");
+      const tokenMatch = confirmResult.content.match(/Confirmation Token: ([a-f0-9-]+)/);
+      expect(tokenMatch).toBeTruthy();
 
+      // Second call with token executes the tool
+      const result = await executeTool(
+        testToolName,
+        "call-789b",
+        { _confirmToken: tokenMatch![1] },
+        [testToolName]
+      );
       expect(result.is_error).toBe(false);
       expect(result.content).toBe("success");
     } finally {
@@ -56,15 +67,6 @@ describe("executeTool", () => {
   });
 
   test("returns a denied error for tools with deny permission", async () => {
-    // Register a tool and give it the "deny" permission by temporarily
-    // adding it to the permissions map. Since getToolPermission defaults
-    // to "auto" for unknown tools, we test with the "shell" tool which
-    // has "confirm" permission instead. Let's test the confirm flow.
-    // We'll test denied tools by checking the mechanism works correctly.
-
-    // The "shell" tool has "confirm" permission in the default map.
-    // For a truly denied tool, we'd need to modify the permissions map.
-    // Instead, let's verify that when allowedTools blocks a tool, it works.
     const result = await executeTool(
       "shell",
       "call-deny",
@@ -92,13 +94,23 @@ describe("executeTool", () => {
     });
 
     try {
-      const result = await executeTool(testToolName, "call-exec", {
+      // First call: get confirmation token (unknown tools default to "confirm")
+      const confirmResult = await executeTool(testToolName, "call-exec", {
         message: "hello",
+      });
+      expect(confirmResult.content).toContain("Confirmation Token:");
+      const tokenMatch = confirmResult.content.match(/Confirmation Token: ([a-f0-9-]+)/);
+      expect(tokenMatch).toBeTruthy();
+
+      // Second call with token: actually execute
+      const result = await executeTool(testToolName, "call-exec2", {
+        message: "hello",
+        _confirmToken: tokenMatch![1],
       });
 
       expect(result.is_error).toBe(false);
       expect(result.content).toBe("echo: hello");
-      expect(result.tool_use_id).toBe("call-exec");
+      expect(result.tool_use_id).toBe("call-exec2");
     } finally {
       unregisterTool(testToolName);
     }
@@ -119,7 +131,15 @@ describe("executeTool", () => {
     });
 
     try {
-      const result = await executeTool(testToolName, "call-throw", {});
+      // First call: get confirmation token
+      const confirmResult = await executeTool(testToolName, "call-throw", {});
+      const tokenMatch = confirmResult.content.match(/Confirmation Token: ([a-f0-9-]+)/);
+      expect(tokenMatch).toBeTruthy();
+
+      // Second call with token: tool throws
+      const result = await executeTool(testToolName, "call-throw2", {
+        _confirmToken: tokenMatch![1],
+      });
 
       expect(result.is_error).toBe(true);
       expect(result.content).toContain("Something went wrong");
