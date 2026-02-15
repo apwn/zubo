@@ -1,11 +1,5 @@
 const API = "https://gmail.googleapis.com/gmail/v1/users/me";
 
-/** RFC 2047 encode a header value if it contains non-ASCII characters (e.g. emojis) */
-function mimeEncode(value: string): string {
-  if (/^[\x20-\x7E]*$/.test(value)) return value;
-  return `=?UTF-8?B?${Buffer.from(value, "utf-8").toString("base64")}?=`;
-}
-
 async function getToken(): Promise<string> {
   // Try the new multi-provider OAuth system first
   try {
@@ -91,7 +85,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
       case "send": {
         if (!to) return JSON.stringify({ error: "to is required" });
         if (!subject) return JSON.stringify({ error: "subject is required" });
-        const raw = Buffer.from(`To: ${to}\r\nSubject: ${mimeEncode(subject)}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${body || ""}`).toString("base64url");
+        const raw = Buffer.from(`MIME-Version: 1.0\r\nTo: ${to}\r\nSubject: ${subject}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${body || ""}`).toString("base64url");
         const res = await fetch(`${API}/messages/send`, {
           method: "POST", headers,
           body: JSON.stringify({ raw }),
@@ -117,7 +111,7 @@ export default async function (input: Record<string, unknown>): Promise<string> 
         const replyTo = getHeader("From");
         const subj = getHeader("Subject").startsWith("Re:") ? getHeader("Subject") : `Re: ${getHeader("Subject")}`;
         const msgId = getHeader("Message-ID");
-        const raw = Buffer.from(`To: ${replyTo}\r\nSubject: ${mimeEncode(subj)}\r\nIn-Reply-To: ${msgId}\r\nReferences: ${msgId}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${body}`).toString("base64url");
+        const raw = Buffer.from(`MIME-Version: 1.0\r\nTo: ${replyTo}\r\nSubject: ${subj}\r\nIn-Reply-To: ${msgId}\r\nReferences: ${msgId}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${body}`).toString("base64url");
         const res = await fetch(`${API}/messages/send`, {
           method: "POST", headers,
           body: JSON.stringify({ raw, threadId: origData.threadId }),
