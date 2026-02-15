@@ -35,7 +35,9 @@ export function registerDelegateTool(llm: LlmProvider) {
 
       // Dynamic import to avoid circular dependency
       const { delegateToAgent } = await import("../../agent/delegate");
-      const result = await delegateToAgent(llm, agent, task);
+      const crypto = await import("crypto");
+      const contextId = "delegation-" + crypto.randomUUID().slice(0, 8);
+      const result = await delegateToAgent(llm, agent, task, contextId);
       return result;
     },
   });

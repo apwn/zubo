@@ -147,8 +147,6 @@ export class SmartRouterProvider implements LlmProvider {
         model: this.fast.model,
         reason: "simple query",
       });
-      this.providerName = this.fast.providerName;
-      this.model = this.fast.model;
       return this.fast;
     }
 
@@ -157,8 +155,6 @@ export class SmartRouterProvider implements LlmProvider {
       model: this.primary.model,
       reason: "complex query",
     });
-    this.providerName = this.primary.providerName;
-    this.model = this.primary.model;
     return this.primary;
   }
 
@@ -172,8 +168,6 @@ export class SmartRouterProvider implements LlmProvider {
         logger.warn("Fast model failed, falling back to primary", {
           error: err.message,
         });
-        this.providerName = this.primary.providerName;
-        this.model = this.primary.model;
         return this.primary.chat(request);
       }
     }
@@ -212,13 +206,9 @@ export class SmartRouterProvider implements LlmProvider {
         }
 
         // Fallback to primary stream
-        this.providerName = this.primary.providerName;
-        this.model = this.primary.model;
       } else {
         // Fast model has no streaming, fall back to primary
         logger.info("Fast model has no streaming support, using primary");
-        this.providerName = this.primary.providerName;
-        this.model = this.primary.model;
       }
     }
 

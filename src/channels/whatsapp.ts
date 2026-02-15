@@ -13,7 +13,7 @@ export function createWhatsAppAdapter(
   let sock: any = null;
   const sessionDir = authDir ?? join(paths.root, "whatsapp-auth");
 
-  return {
+  const adapter: ChannelAdapter = {
     channelName: "whatsapp",
 
     start() {
@@ -40,8 +40,11 @@ export function createWhatsAppAdapter(
             const shouldReconnect =
               lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
             if (shouldReconnect) {
-              logger.info("WhatsApp reconnecting...");
-              // Re-create connection
+              logger.info("WhatsApp reconnecting in 3s...");
+              sock = null;
+              setTimeout(() => adapter.start(), 3000);
+            } else {
+              logger.info("WhatsApp logged out — not reconnecting");
             }
           } else if (connection === "open") {
             logger.info("WhatsApp connected");
@@ -116,4 +119,6 @@ export function createWhatsAppAdapter(
       }
     },
   };
+
+  return adapter;
 }

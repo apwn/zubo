@@ -154,8 +154,12 @@ class ImapClient {
     const bodyMatch = result.match(/\r\n\r\n([\s\S]*?)(?:\r\n\)|\r\nA\d+)/);
     if (bodyMatch) body = bodyMatch[1].trim();
 
-    // Strip HTML tags if present
-    body = body.replace(/<[^>]+>/g, "").trim();
+    // Strip script/style blocks and all HTML tags
+    body = body
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+      .replace(/<[^>]+>/g, "")
+      .trim();
     // Decode basic quoted-printable
     body = body.replace(/=\r?\n/g, "").replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 

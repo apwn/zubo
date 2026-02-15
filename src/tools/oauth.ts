@@ -433,6 +433,11 @@ export async function getToken(provider: string): Promise<string | null> {
           return await refreshPromise;
         } catch (err: any) {
           logger.warn(`[OAuth] Token refresh failed for ${provider}`, { error: err.message });
+          // If refresh token is invalid/revoked, remove stale token to stop retry loops
+          if (err.message?.includes("400") || err.message?.includes("401") || err.message?.includes("invalid")) {
+            logger.warn(`[OAuth] Removing stale token for ${provider} — user must re-authenticate`);
+            try { revokeToken(provider); } catch {}
+          }
           return null;
         }
       }

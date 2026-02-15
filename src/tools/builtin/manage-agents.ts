@@ -75,6 +75,7 @@ export function registerManageAgentsTool() {
           const FORBIDDEN_SUBAGENT_TOOLS = [
             "manage_agents",   // Prevents recursive agent creation
             "delegate",        // Prevents delegation loops
+            "delegate_task",   // Prevents ad-hoc delegation loops
             "config_update",   // Prevents config tampering
             "secret_set",      // Prevents secret manipulation
             "secret_delete",   // Prevents secret deletion

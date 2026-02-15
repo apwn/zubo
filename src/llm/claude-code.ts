@@ -67,11 +67,16 @@ export class ClaudeCodeProvider implements LlmProvider {
         try { proc.kill(); } catch {}
       }, 300000);
 
-      const exitCode = await proc.exited;
-      clearTimeout(timeout);
-
-      const stdout = await new Response(proc.stdout as ReadableStream).text();
-      const stderr = await new Response(proc.stderr as ReadableStream).text();
+      let exitCode: number;
+      let stdout: string;
+      let stderr: string;
+      try {
+        exitCode = await proc.exited;
+        stdout = await new Response(proc.stdout as ReadableStream).text();
+        stderr = await new Response(proc.stderr as ReadableStream).text();
+      } finally {
+        clearTimeout(timeout);
+      }
 
       if (exitCode !== 0) {
         throw new Error(`Claude Code CLI exited with code ${exitCode}: ${stderr.slice(0, 500)}`);

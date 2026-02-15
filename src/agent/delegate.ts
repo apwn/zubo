@@ -104,8 +104,8 @@ export async function delegateToAgent(
 
   // Filter out privileged tools from sub-agents to prevent escalation
   const FORBIDDEN_DELEGATION_TOOLS = new Set([
-    "delegate", "manage_agents", "config_update",
-    "secret_set", "secret_delete", "manage_skills",
+    "delegate", "delegate_task", "manage_agents",
+    "config_update", "secret_set", "secret_delete", "manage_skills",
   ]);
   const filteredTools = agent.tools.filter(
     (t) => !FORBIDDEN_DELEGATION_TOOLS.has(t)

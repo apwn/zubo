@@ -2013,8 +2013,15 @@ async function handleRequest(
           // CORS protection: reject cross-origin API requests
           if (url.pathname.startsWith("/api/")) {
             const origin = req.headers.get("origin");
-            if (origin && !origin.startsWith("http://localhost:") && !origin.startsWith("http://127.0.0.1:")) {
-              return Response.json({ error: "Cross-origin requests are not allowed" }, { status: 403 });
+            if (origin) {
+              const actualPort = server?.port ?? port;
+              const allowed = [
+                `http://localhost:${actualPort}`,
+                `http://127.0.0.1:${actualPort}`,
+              ];
+              if (!allowed.includes(origin)) {
+                return Response.json({ error: "Cross-origin requests are not allowed" }, { status: 403 });
+              }
             }
           }
 
@@ -2038,14 +2045,19 @@ async function handleRequest(
             });
           }
 
-          // --- OAuth routes (no auth required — part of OAuth flow) ---
+          // --- OAuth routes ---
 
-          // GET /oauth/:provider/authorize — redirect user to provider's auth page
+          // GET /oauth/:provider/authorize — redirect user to provider's auth page (requires session key)
           const ALLOWED_OAUTH_PROVIDERS = new Set(["google", "github", "notion", "linear", "slack"]);
           if (url.pathname.match(/^\/oauth\/[a-z]+\/authorize$/) && req.method === "GET") {
             const provider = url.pathname.split("/")[2];
             if (!ALLOWED_OAUTH_PROVIDERS.has(provider)) {
               return Response.json({ error: "Unknown OAuth provider" }, { status: 400 });
+            }
+            // Require session key to prevent unauthorized OAuth initiation
+            const sk = url.searchParams.get("sk");
+            if (sk !== sessionKey) {
+              return Response.json({ error: "Unauthorized" }, { status: 401 });
             }
             try {
               const { getAuthUrl } = await import("../tools/oauth");
