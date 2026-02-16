@@ -943,6 +943,23 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M14 12h4"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/></svg></span> Extensions
     </a>
     <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Personal</div>
+    <a href="#todos" onclick="showPanel('todos')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span> Todos
+    </a>
+    <a href="#notes" onclick="showPanel('notes')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span> Notes
+    </a>
+    <a href="#preferences" onclick="showPanel('preferences')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Preferences
+    </a>
+    <a href="#topics" onclick="showPanel('topics')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Topics
+    </a>
+    <a href="#followups" onclick="showPanel('followups')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> Follow-ups
+    </a>
+    <div class="sidebar-divider"></div>
     <div class="sidebar-section">Settings</div>
     <a href="#integrations" onclick="showPanel('integrations')">
       <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 8v6"/><path d="M6 12H2"/><path d="M22 12h-4"/><circle cx="12" cy="12" r="4"/><path d="M12 8V2"/></svg></span> Integrations
@@ -1833,6 +1850,119 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       </div>
     </div>
 
+    <!-- TODOS PANEL -->
+    <div id="panel-todos" class="panel">
+      <div class="panel-body">
+        <p class="settings-desc" style="margin-bottom:16px;">Your tasks and to-dos. Add items, set priorities and due dates.</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
+          <select id="todo-filter" class="settings-select" style="width:auto;" onchange="loadTodos()">
+            <option value="pending">Active</option>
+            <option value="done">Done</option>
+            <option value="all">All</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="toggleTodoForm()">+ Add</button>
+        </div>
+        <div id="todo-add-form" style="display:none;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+          <input id="todo-title" type="text" placeholder="What needs to be done?" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <select id="todo-priority" class="settings-select" style="width:auto;font-size:12px;">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+            <input id="todo-due" type="date" style="padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;">
+            <button class="btn btn-primary btn-sm" onclick="addTodo()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleTodoForm()">Cancel</button>
+          </div>
+        </div>
+        <div id="todos-list"></div>
+      </div>
+    </div>
+
+    <!-- NOTES PANEL -->
+    <div id="panel-notes" class="panel">
+      <div class="panel-body">
+        <p class="settings-desc" style="margin-bottom:16px;">Your saved notes. Search, pin, and organize information.</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
+          <input id="notes-search" type="text" placeholder="Search notes..." style="flex:1;min-width:150px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;" onkeydown="if(event.key==='Enter')loadNotes()">
+          <button class="btn btn-ghost btn-sm" onclick="loadNotes()">Search</button>
+          <button class="btn btn-primary btn-sm" onclick="toggleNoteForm()">+ Add</button>
+        </div>
+        <div id="note-add-form" style="display:none;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+          <input id="note-title" type="text" placeholder="Title" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          <textarea id="note-content" placeholder="Content..." rows="4" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;resize:vertical;"></textarea>
+          <input id="note-tags" type="text" placeholder="Tags (comma-separated)" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="addNote()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleNoteForm()">Cancel</button>
+          </div>
+        </div>
+        <div id="notes-list"></div>
+      </div>
+    </div>
+
+    <!-- PREFERENCES PANEL -->
+    <div id="panel-preferences" class="panel">
+      <div class="panel-body">
+        <p class="settings-desc" style="margin-bottom:16px;">Your preferences. These are used by the agent to personalize responses.</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+          <button class="btn btn-primary btn-sm" onclick="togglePrefForm()">+ Add</button>
+        </div>
+        <div id="pref-add-form" style="display:none;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+          <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+            <input id="pref-category" type="text" placeholder="Category (e.g. work)" style="flex:1;min-width:100px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;" value="general">
+            <input id="pref-key" type="text" placeholder="Key (e.g. language)" style="flex:1;min-width:100px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          </div>
+          <input id="pref-value" type="text" placeholder="Value (e.g. TypeScript)" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="addPref()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="togglePrefForm()">Cancel</button>
+          </div>
+        </div>
+        <div id="prefs-list"></div>
+      </div>
+    </div>
+
+    <!-- TOPICS PANEL -->
+    <div id="panel-topics" class="panel">
+      <div class="panel-body">
+        <p class="settings-desc" style="margin-bottom:16px;">Conversation topics. Each topic keeps a separate thread of context.</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+          <button class="btn btn-primary btn-sm" onclick="toggleTopicForm()">+ Add</button>
+        </div>
+        <div id="topic-add-form" style="display:none;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+          <input id="topic-name" type="text" placeholder="Topic name" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          <input id="topic-desc" type="text" placeholder="Description (optional)" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="addTopic()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleTopicForm()">Cancel</button>
+          </div>
+        </div>
+        <div id="topics-list"></div>
+      </div>
+    </div>
+
+    <!-- FOLLOW-UPS PANEL -->
+    <div id="panel-followups" class="panel">
+      <div class="panel-body">
+        <p class="settings-desc" style="margin-bottom:16px;">Scheduled follow-ups. The agent will proactively remind you at the set time.</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;">
+          <button class="btn btn-primary btn-sm" onclick="toggleFollowupForm()">+ Add</button>
+        </div>
+        <div id="followup-add-form" style="display:none;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+          <input id="followup-context" type="text" placeholder="About what? (e.g. dentist appointment)" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          <input id="followup-message" type="text" placeholder="Reminder message" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          <input id="followup-at" type="datetime-local" style="width:100%;margin-bottom:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="addFollowup()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleFollowupForm()">Cancel</button>
+          </div>
+        </div>
+        <div id="followups-list"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1920,8 +2050,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <script>
 // --- Panel routing ---
-var panelNames = ['agent','history','dashboard','memory','skills','workflows','webhooks','mcp','integrations','settings'];
-var panelTitles = { agent:'Chat', history:'History', dashboard:'Dashboard', memory:'Knowledge', skills:'Skills', workflows:'Workflows', webhooks:'Webhooks', mcp:'Extensions', integrations:'Integrations', settings:'Settings' };
+var panelNames = ['agent','history','dashboard','memory','skills','workflows','webhooks','mcp','todos','notes','preferences','topics','followups','integrations','settings'];
+var panelTitles = { agent:'Chat', history:'History', dashboard:'Dashboard', memory:'Knowledge', skills:'Skills', workflows:'Workflows', webhooks:'Webhooks', mcp:'Extensions', todos:'Todos', notes:'Notes', preferences:'Preferences', topics:'Topics', followups:'Follow-ups', integrations:'Integrations', settings:'Settings' };
 
 // Legacy panel name mapping (old names -> new names + tab)
 var legacyPanelMap = {
@@ -1963,6 +2093,11 @@ function showPanel(name) {
   if (name === 'integrations') loadIntegrations();
   if (name === 'webhooks') loadWebhooks();
   if (name === 'mcp') loadMcpPanel();
+  if (name === 'todos') loadTodos();
+  if (name === 'notes') loadNotes();
+  if (name === 'preferences') loadPrefs();
+  if (name === 'topics') loadTopics();
+  if (name === 'followups') loadFollowups();
   if (name === 'settings') loadSettingsPanel();
   closeMobileMenu();
 }
@@ -5531,6 +5666,421 @@ function sendTestDigest() {
   api('/digests/send', { method: 'POST' })
     .then(function() { toast('Test digest sent'); loadDigestConfig(); })
     .catch(function(e) { toast('Send failed: ' + (e.message || '')); });
+}
+
+// ── TODOS ──
+
+function toggleTodoForm() {
+  var f = document.getElementById('todo-add-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display === 'block') document.getElementById('todo-title').focus();
+}
+
+function loadTodos() {
+  var filter = document.getElementById('todo-filter').value;
+  api('/todos?filter=' + filter).then(function(data) { renderTodos(data.todos || []); });
+}
+
+function addTodo() {
+  var title = document.getElementById('todo-title').value.trim();
+  if (!title) return;
+  var body = { title: title, priority: document.getElementById('todo-priority').value, due_date: document.getElementById('todo-due').value || null };
+  api('/todos', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(function() { document.getElementById('todo-title').value=''; toggleTodoForm(); loadTodos(); toast('Todo added'); });
+}
+
+function completeTodo(id) {
+  api('/todos/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'done'}) })
+    .then(function() { loadTodos(); });
+}
+
+function uncompleteTodo(id) {
+  api('/todos/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'pending'}) })
+    .then(function() { loadTodos(); });
+}
+
+function deleteTodo(id) {
+  api('/todos/' + id, { method:'DELETE' }).then(function() { loadTodos(); toast('Todo removed'); });
+}
+
+function renderTodos(todos) {
+  var c = document.getElementById('todos-list');
+  c.replaceChildren();
+  if (!todos.length) { c.textContent = ''; var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No todos yet'; p.appendChild(t); c.appendChild(p); return; }
+  todos.forEach(function(t) {
+    var item = document.createElement('div');
+    item.className = 'memory-item';
+    item.style.display = 'flex';
+    item.style.alignItems = 'flex-start';
+    item.style.gap = '12px';
+    var isDone = t.status === 'done';
+
+    var check = document.createElement('input');
+    check.type = 'checkbox';
+    check.checked = isDone;
+    check.style.cssText = 'margin-top:3px;cursor:pointer;accent-color:var(--accent);';
+    check.onchange = function() { isDone ? uncompleteTodo(t.id) : completeTodo(t.id); };
+
+    var body = document.createElement('div');
+    body.style.flex = '1';
+    var titleEl = document.createElement('div');
+    titleEl.style.cssText = isDone ? 'text-decoration:line-through;color:var(--text-muted);' : 'color:var(--text);';
+    titleEl.textContent = t.title;
+    body.appendChild(titleEl);
+
+    var meta = document.createElement('div');
+    meta.style.cssText = 'font-size:11px;color:var(--text-faint);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;';
+    var prColors = { urgent:'var(--red)', high:'var(--yellow)', medium:'var(--text-muted)', low:'var(--text-faint)' };
+    var prSpan = document.createElement('span');
+    prSpan.style.color = prColors[t.priority] || 'var(--text-faint)';
+    prSpan.textContent = t.priority;
+    meta.appendChild(prSpan);
+    if (t.due_date) { var ds = document.createElement('span'); ds.textContent = t.due_date; meta.appendChild(ds); }
+    if (t.tags && t.tags !== '[]') {
+      try { var tags = JSON.parse(t.tags); if (tags.length) { var ts = document.createElement('span'); ts.textContent = tags.join(', '); meta.appendChild(ts); } } catch(e){}
+    }
+    body.appendChild(meta);
+
+    var del = document.createElement('button');
+    del.className = 'btn btn-ghost btn-sm';
+    del.textContent = 'Delete';
+    del.style.cssText = 'font-size:11px;padding:2px 8px;color:var(--text-faint);';
+    del.onclick = function() { deleteTodo(t.id); };
+
+    item.appendChild(check);
+    item.appendChild(body);
+    item.appendChild(del);
+    c.appendChild(item);
+  });
+}
+
+// ── NOTES ──
+
+function toggleNoteForm() {
+  var f = document.getElementById('note-add-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display === 'block') document.getElementById('note-title').focus();
+}
+
+function loadNotes() {
+  var q = document.getElementById('notes-search').value.trim();
+  var url = '/notes' + (q ? '?q=' + encodeURIComponent(q) : '');
+  api(url).then(function(data) { renderNotes(data.notes || []); });
+}
+
+function addNote() {
+  var title = document.getElementById('note-title').value.trim();
+  var content = document.getElementById('note-content').value.trim();
+  if (!title || !content) return;
+  var body = { title: title, content: content, tags: document.getElementById('note-tags').value };
+  api('/notes', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(function() {
+      document.getElementById('note-title').value='';
+      document.getElementById('note-content').value='';
+      document.getElementById('note-tags').value='';
+      toggleNoteForm(); loadNotes(); toast('Note saved');
+    });
+}
+
+function togglePin(id, pinned) {
+  api('/notes/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({pinned:!pinned}) })
+    .then(function() { loadNotes(); });
+}
+
+function deleteNote(id) {
+  api('/notes/' + id, { method:'DELETE' }).then(function() { loadNotes(); toast('Note deleted'); });
+}
+
+function renderNotes(notes) {
+  var c = document.getElementById('notes-list');
+  c.replaceChildren();
+  if (!notes.length) { var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No notes yet'; p.appendChild(t); c.appendChild(p); return; }
+  notes.forEach(function(n) {
+    var item = document.createElement('div');
+    item.className = 'memory-item';
+
+    var header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;gap:8px;';
+    var titleEl = document.createElement('div');
+    titleEl.style.cssText = 'font-weight:500;color:var(--text);';
+    titleEl.textContent = (n.pinned ? '\u{1F4CC} ' : '') + n.title;
+    header.appendChild(titleEl);
+
+    var actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:4px;flex-shrink:0;';
+    var pinBtn = document.createElement('button');
+    pinBtn.className = 'btn btn-ghost btn-sm';
+    pinBtn.style.cssText = 'font-size:11px;padding:2px 8px;color:var(--text-faint);';
+    pinBtn.textContent = n.pinned ? 'Unpin' : 'Pin';
+    pinBtn.onclick = function() { togglePin(n.id, n.pinned); };
+    var delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-ghost btn-sm';
+    delBtn.style.cssText = 'font-size:11px;padding:2px 8px;color:var(--text-faint);';
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = function() { deleteNote(n.id); };
+    actions.appendChild(pinBtn);
+    actions.appendChild(delBtn);
+    header.appendChild(actions);
+    item.appendChild(header);
+
+    var content = document.createElement('div');
+    content.style.cssText = 'font-size:13px;color:var(--text-secondary);margin-top:8px;white-space:pre-wrap;max-height:120px;overflow:hidden;';
+    content.textContent = n.content;
+    item.appendChild(content);
+
+    var meta = document.createElement('div');
+    meta.style.cssText = 'font-size:11px;color:var(--text-faint);margin-top:8px;';
+    var parts = [n.updated_at ? n.updated_at.split('T')[0] : ''];
+    if (n.tags && n.tags !== '[]') { try { var tags = JSON.parse(n.tags); if (tags.length) parts.push(tags.join(', ')); } catch(e){} }
+    meta.textContent = parts.filter(Boolean).join(' \u00B7 ');
+    item.appendChild(meta);
+    c.appendChild(item);
+  });
+}
+
+// ── PREFERENCES ──
+
+function togglePrefForm() {
+  var f = document.getElementById('pref-add-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display === 'block') document.getElementById('pref-key').focus();
+}
+
+function loadPrefs() {
+  api('/preferences').then(function(data) { renderPrefs(data.preferences || []); });
+}
+
+function addPref() {
+  var key = document.getElementById('pref-key').value.trim();
+  var value = document.getElementById('pref-value').value.trim();
+  if (!key || !value) return;
+  var body = { category: document.getElementById('pref-category').value.trim() || 'general', key: key, value: value };
+  api('/preferences', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(function() {
+      document.getElementById('pref-key').value='';
+      document.getElementById('pref-value').value='';
+      togglePrefForm(); loadPrefs(); toast('Preference saved');
+    });
+}
+
+function deletePref(id) {
+  api('/preferences/' + id, { method:'DELETE' }).then(function() { loadPrefs(); toast('Preference removed'); });
+}
+
+function renderPrefs(prefs) {
+  var c = document.getElementById('prefs-list');
+  c.replaceChildren();
+  if (!prefs.length) { var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No preferences yet'; p.appendChild(t); c.appendChild(p); return; }
+
+  // Group by category
+  var groups = {};
+  prefs.forEach(function(p) {
+    if (!groups[p.category]) groups[p.category] = [];
+    groups[p.category].push(p);
+  });
+
+  Object.keys(groups).sort().forEach(function(cat) {
+    var section = document.createElement('div');
+    section.style.cssText = 'margin-bottom:16px;';
+    var heading = document.createElement('div');
+    heading.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;';
+    heading.textContent = cat;
+    section.appendChild(heading);
+
+    groups[cat].forEach(function(p) {
+      var item = document.createElement('div');
+      item.className = 'memory-item';
+      item.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;';
+      var left = document.createElement('span');
+      var keySpan = document.createElement('span'); keySpan.style.color='var(--text)'; keySpan.textContent = p.key;
+      var eqSpan = document.createElement('span'); eqSpan.style.cssText='color:var(--text-faint);margin:0 6px'; eqSpan.textContent = '=';
+      var valSpan = document.createElement('span'); valSpan.style.color='var(--accent)'; valSpan.textContent = p.value;
+      left.appendChild(keySpan); left.appendChild(eqSpan); left.appendChild(valSpan);
+      if (p.source === 'inferred') { var src = document.createElement('span'); src.style.cssText='font-size:10px;color:var(--text-faint);margin-left:8px'; src.textContent='(inferred)'; left.appendChild(src); }
+      var del = document.createElement('button');
+      del.className = 'btn btn-ghost btn-sm';
+      del.style.cssText = 'font-size:11px;padding:2px 8px;color:var(--text-faint);';
+      del.textContent = 'Delete';
+      del.onclick = function() { deletePref(p.id); };
+      item.appendChild(left);
+      item.appendChild(del);
+      section.appendChild(item);
+    });
+    c.appendChild(section);
+  });
+}
+
+// ── TOPICS ──
+
+function toggleTopicForm() {
+  var f = document.getElementById('topic-add-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display === 'block') document.getElementById('topic-name').focus();
+}
+
+function loadTopics() {
+  api('/topics').then(function(data) { renderTopics(data.topics || []); });
+}
+
+function addTopic() {
+  var name = document.getElementById('topic-name').value.trim();
+  if (!name) return;
+  var body = { name: name, description: document.getElementById('topic-desc').value.trim() || null };
+  api('/topics', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(function() {
+      document.getElementById('topic-name').value='';
+      document.getElementById('topic-desc').value='';
+      toggleTopicForm(); loadTopics(); toast('Topic created');
+    });
+}
+
+function toggleTopicStatus(id, currentStatus) {
+  var newStatus = currentStatus === 'active' ? 'archived' : 'active';
+  api('/topics/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:newStatus}) })
+    .then(function() { loadTopics(); });
+}
+
+function deleteTopic(id) {
+  api('/topics/' + id, { method:'DELETE' }).then(function() { loadTopics(); toast('Topic deleted'); });
+}
+
+function renderTopics(topics) {
+  var c = document.getElementById('topics-list');
+  c.replaceChildren();
+  if (!topics.length) { var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No topics yet'; p.appendChild(t); c.appendChild(p); return; }
+  topics.forEach(function(t) {
+    var item = document.createElement('div');
+    item.className = 'memory-item';
+    item.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;gap:8px;';
+
+    var left = document.createElement('div');
+    left.style.flex = '1';
+    var nameEl = document.createElement('div');
+    nameEl.style.cssText = 'color:var(--text);font-weight:500;';
+    var dot = document.createElement('span');
+    dot.style.cssText = 'display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;background:' + (t.status === 'active' ? 'var(--green)' : 'var(--text-faint)');
+    nameEl.appendChild(dot);
+    nameEl.appendChild(document.createTextNode(t.name));
+    left.appendChild(nameEl);
+    if (t.description) {
+      var desc = document.createElement('div');
+      desc.style.cssText = 'font-size:12px;color:var(--text-muted);margin-top:4px;';
+      desc.textContent = t.description;
+      left.appendChild(desc);
+    }
+    var meta = document.createElement('div');
+    meta.style.cssText = 'font-size:11px;color:var(--text-faint);margin-top:4px;';
+    meta.textContent = 'Last active: ' + (t.last_message_at ? t.last_message_at.split('T')[0] : 'never');
+    left.appendChild(meta);
+
+    var actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:4px;flex-shrink:0;';
+    var archBtn = document.createElement('button');
+    archBtn.className = 'btn btn-ghost btn-sm';
+    archBtn.style.cssText = 'font-size:11px;padding:2px 8px;color:var(--text-faint);';
+    archBtn.textContent = t.status === 'active' ? 'Archive' : 'Activate';
+    archBtn.onclick = function() { toggleTopicStatus(t.id, t.status); };
+    var delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-ghost btn-sm';
+    delBtn.style.cssText = 'font-size:11px;padding:2px 8px;color:var(--text-faint);';
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = function() { deleteTopic(t.id); };
+    actions.appendChild(archBtn);
+    actions.appendChild(delBtn);
+
+    item.appendChild(left);
+    item.appendChild(actions);
+    c.appendChild(item);
+  });
+}
+
+// ── FOLLOW-UPS ──
+
+function toggleFollowupForm() {
+  var f = document.getElementById('followup-add-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display === 'block') document.getElementById('followup-context').focus();
+}
+
+function loadFollowups() {
+  api('/followups').then(function(data) { renderFollowups(data.followups || []); });
+}
+
+function addFollowup() {
+  var context = document.getElementById('followup-context').value.trim();
+  var message = document.getElementById('followup-message').value.trim();
+  var at = document.getElementById('followup-at').value;
+  if (!context || !message || !at) return;
+  var body = { context: context, message: message, follow_up_at: new Date(at).toISOString() };
+  api('/followups', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(function() {
+      document.getElementById('followup-context').value='';
+      document.getElementById('followup-message').value='';
+      document.getElementById('followup-at').value='';
+      toggleFollowupForm(); loadFollowups(); toast('Follow-up scheduled');
+    });
+}
+
+function cancelFollowup(id) {
+  api('/followups/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'cancelled'}) })
+    .then(function() { loadFollowups(); toast('Follow-up cancelled'); });
+}
+
+function deleteFollowup(id) {
+  api('/followups/' + id, { method:'DELETE' }).then(function() { loadFollowups(); toast('Follow-up removed'); });
+}
+
+function renderFollowups(followups) {
+  var c = document.getElementById('followups-list');
+  c.replaceChildren();
+  if (!followups.length) { var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No follow-ups scheduled'; p.appendChild(t); c.appendChild(p); return; }
+  followups.forEach(function(f) {
+    var item = document.createElement('div');
+    item.className = 'memory-item';
+    item.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;gap:8px;';
+
+    var left = document.createElement('div');
+    left.style.flex = '1';
+    var contextEl = document.createElement('div');
+    contextEl.style.cssText = 'color:var(--text);font-weight:500;';
+    contextEl.textContent = f.context;
+    left.appendChild(contextEl);
+    var msgEl = document.createElement('div');
+    msgEl.style.cssText = 'font-size:13px;color:var(--text-secondary);margin-top:4px;';
+    msgEl.textContent = f.message;
+    left.appendChild(msgEl);
+
+    var meta = document.createElement('div');
+    meta.style.cssText = 'font-size:11px;color:var(--text-faint);margin-top:4px;display:flex;gap:8px;';
+    var statusColors = { pending:'var(--yellow)', sent:'var(--green)', cancelled:'var(--text-faint)' };
+    var statusSpan = document.createElement('span');
+    statusSpan.style.color = statusColors[f.status] || 'var(--text-faint)';
+    statusSpan.textContent = f.status;
+    meta.appendChild(statusSpan);
+    if (f.follow_up_at) { var whenSpan = document.createElement('span'); whenSpan.textContent = new Date(f.follow_up_at).toLocaleString(); meta.appendChild(whenSpan); }
+    left.appendChild(meta);
+
+    var actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:4px;flex-shrink:0;';
+    if (f.status === 'pending') {
+      var cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn btn-ghost btn-sm';
+      cancelBtn.style.cssText = 'font-size:11px;padding:2px 8px;color:var(--text-faint);';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = function() { cancelFollowup(f.id); };
+      actions.appendChild(cancelBtn);
+    }
+    var delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-ghost btn-sm';
+    delBtn.style.cssText = 'font-size:11px;padding:2px 8px;color:var(--text-faint);';
+    delBtn.textContent = 'Delete';
+    delBtn.onclick = function() { deleteFollowup(f.id); };
+    actions.appendChild(delBtn);
+
+    item.appendChild(left);
+    item.appendChild(actions);
+    c.appendChild(item);
+  });
 }
 
 // Init

@@ -439,52 +439,15 @@ Shows:
 
 ---
 
-## Implementation Priority
+## Completed
 
-What to build first, based on impact vs. effort:
+Most phases above are now implemented:
 
-```
-HIGH IMPACT, LOW EFFORT (do first)
-├── Phase 1.1  OpenAI-compatible provider        ★★★★★
-├── Phase 1.2  Provider factory + config          ★★★★★
-├── Phase 1.5  `bun run model` command            ★★★★
-├── Phase 7.1  TUI / `bun run chat`              ★★★★
-├── Phase 4.3  Cost + token tracking              ★★★★
-└── Phase 5.2  Agent-managed cron tools           ★★★★
-
-HIGH IMPACT, MEDIUM EFFORT (do second)
-├── Phase 1.3  Failover wrapper                   ★★★★
-├── Phase 3.1  Skill format + loader              ★★★★
-├── Phase 3.3  web-search + url-fetch skills      ★★★★
-├── Phase 2.4  WebChat (local HTTP UI)            ★★★★
-├── Phase 4.1  Streaming responses                ★★★
-└── Phase 4.4  Context window awareness           ★★★
-
-MEDIUM IMPACT, MEDIUM EFFORT (do third)
-├── Phase 2.2  Discord channel                    ★★★
-├── Phase 2.3  WhatsApp channel                   ★★★
-├── Phase 5.1  Webhook inbound                    ★★★
-├── Phase 6.1  Tool approval / permissions        ★★★
-└── Phase 5.3  Daily digest                       ★★★
-
-NICE TO HAVE (do when stable)
-├── Phase 1.4  Ollama auto-discovery              ★★
-├── Phase 4.2  Extended thinking                  ★★
-├── Phase 6.2  Message pairing / auth             ★★
-└── Phase 7.2  Web dashboard                      ★★
-```
-
----
-
-## Next Concrete Step
-
-**Phase 1.1 + 1.2**: Multi-LLM support. One session of work:
-
-1. Create `src/llm/openai-compat.ts` — OpenAI-compatible provider
-2. Create `src/llm/factory.ts` — Provider factory
-3. Update `src/config/schema.ts` — New provider config fields
-4. Update `src/start.ts` — Use factory
-5. Update `src/setup.ts` — Provider selection in wizard
-6. Test with Ollama locally
-
-This single change makes Zubo usable with any model, which unlocks everything else.
+- Phase 1 (Multi-LLM) — 11+ providers, failover, smart routing, CLI providers (Codex, Claude Code)
+- Phase 2 (Channels) — Telegram, Discord, Slack, WhatsApp, Signal, Email, WebChat
+- Phase 3 (Skills) — Skill loader, sandboxed execution, community registry, MCP support
+- Phase 4 (Agent) — Streaming, cost tracking, context window awareness, knowledge graph
+- Phase 5 (Automation) — Webhooks, agent-managed cron, daily digests, follow-ups
+- Phase 6 (Security) — Tool permissions (auto/confirm/deny), confirmation tokens, API key auth
+- Phase 7 (Interfaces) — Web dashboard with analytics, memory, skills, settings, and personal tools (todos, notes, preferences, topics, follow-ups)
+- Personal features — Todos, notes, preferences, topics, follow-ups with full CRUD in the dashboard

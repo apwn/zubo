@@ -331,6 +331,236 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
     return Response.json({ skills: getSkillsData() });
   }
 
+  // ── TODOS ──
+
+  // GET /api/dashboard/todos?filter=pending|done|all
+  if (path === "/todos" && req.method === "GET") {
+    const db = getDb();
+    const filter = url.searchParams.get("filter") || "pending";
+    let query = "SELECT * FROM todos";
+    if (filter === "pending") query += " WHERE status != 'done'";
+    else if (filter === "done") query += " WHERE status = 'done'";
+    query += " ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 END, due_date ASC NULLS LAST";
+    return Response.json({ todos: db.query(query).all() });
+  }
+
+  // POST /api/dashboard/todos
+  if (path === "/todos" && req.method === "POST") {
+    return (async () => {
+      const body = (await req.json()) as any;
+      if (!body.title) return Response.json({ error: "title required" }, { status: 400 });
+      const db = getDb();
+      const tags = body.tags ? JSON.stringify(body.tags.split(",").map((t: string) => t.trim()).filter(Boolean)) : "[]";
+      const result = db.prepare(
+        "INSERT INTO todos (title, description, priority, due_date, tags) VALUES (?, ?, ?, ?, ?)"
+      ).run(body.title, body.description || null, body.priority || "medium", body.due_date || null, tags);
+      return Response.json({ ok: true, id: result.lastInsertRowid });
+    })() as any;
+  }
+
+  // PUT /api/dashboard/todos/:id
+  if (path.match(/^\/todos\/\d+$/) && req.method === "PUT") {
+    return (async () => {
+      const id = path.split("/").pop()!;
+      const body = (await req.json()) as any;
+      const db = getDb();
+      const sets: string[] = [];
+      const vals: any[] = [];
+      if (body.title !== undefined) { sets.push("title = ?"); vals.push(body.title); }
+      if (body.description !== undefined) { sets.push("description = ?"); vals.push(body.description || null); }
+      if (body.priority !== undefined) { sets.push("priority = ?"); vals.push(body.priority); }
+      if (body.due_date !== undefined) { sets.push("due_date = ?"); vals.push(body.due_date || null); }
+      if (body.status !== undefined) {
+        sets.push("status = ?"); vals.push(body.status);
+        if (body.status === "done") { sets.push("completed_at = datetime('now')"); }
+      }
+      if (body.tags !== undefined) {
+        sets.push("tags = ?");
+        vals.push(JSON.stringify(body.tags.split(",").map((t: string) => t.trim()).filter(Boolean)));
+      }
+      if (sets.length === 0) return Response.json({ error: "nothing to update" }, { status: 400 });
+      vals.push(id);
+      db.prepare("UPDATE todos SET " + sets.join(", ") + " WHERE id = ?").run(...vals);
+      return Response.json({ ok: true });
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/todos/:id
+  if (path.match(/^\/todos\/\d+$/) && req.method === "DELETE") {
+    const id = path.split("/").pop()!;
+    const db = getDb();
+    db.prepare("DELETE FROM todos WHERE id = ?").run(id);
+    return Response.json({ ok: true });
+  }
+
+  // ── NOTES ──
+
+  // GET /api/dashboard/notes?q=search
+  if (path === "/notes" && req.method === "GET") {
+    const db = getDb();
+    const q = url.searchParams.get("q");
+    let rows;
+    if (q) {
+      rows = db.prepare("SELECT n.* FROM notes n JOIN notes_fts f ON n.id = f.rowid WHERE notes_fts MATCH ? ORDER BY n.pinned DESC, rank").all(q);
+    } else {
+      rows = db.query("SELECT * FROM notes ORDER BY pinned DESC, updated_at DESC").all();
+    }
+    return Response.json({ notes: rows });
+  }
+
+  // POST /api/dashboard/notes
+  if (path === "/notes" && req.method === "POST") {
+    return (async () => {
+      const body = (await req.json()) as any;
+      if (!body.title || !body.content) return Response.json({ error: "title and content required" }, { status: 400 });
+      const db = getDb();
+      const tags = body.tags ? JSON.stringify(body.tags.split(",").map((t: string) => t.trim()).filter(Boolean)) : "[]";
+      const result = db.prepare("INSERT INTO notes (title, content, tags) VALUES (?, ?, ?)").run(body.title, body.content, tags);
+      return Response.json({ ok: true, id: result.lastInsertRowid });
+    })() as any;
+  }
+
+  // PUT /api/dashboard/notes/:id
+  if (path.match(/^\/notes\/\d+$/) && req.method === "PUT") {
+    return (async () => {
+      const id = path.split("/").pop()!;
+      const body = (await req.json()) as any;
+      const db = getDb();
+      const sets: string[] = [];
+      const vals: any[] = [];
+      if (body.title !== undefined) { sets.push("title = ?"); vals.push(body.title); }
+      if (body.content !== undefined) { sets.push("content = ?"); vals.push(body.content); }
+      if (body.pinned !== undefined) { sets.push("pinned = ?"); vals.push(body.pinned ? 1 : 0); }
+      if (body.tags !== undefined) {
+        sets.push("tags = ?");
+        vals.push(JSON.stringify(body.tags.split(",").map((t: string) => t.trim()).filter(Boolean)));
+      }
+      sets.push("updated_at = datetime('now')");
+      if (sets.length <= 1) return Response.json({ error: "nothing to update" }, { status: 400 });
+      vals.push(id);
+      db.prepare("UPDATE notes SET " + sets.join(", ") + " WHERE id = ?").run(...vals);
+      return Response.json({ ok: true });
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/notes/:id
+  if (path.match(/^\/notes\/\d+$/) && req.method === "DELETE") {
+    const id = path.split("/").pop()!;
+    const db = getDb();
+    db.prepare("DELETE FROM notes WHERE id = ?").run(id);
+    return Response.json({ ok: true });
+  }
+
+  // ── PREFERENCES ──
+
+  // GET /api/dashboard/preferences
+  if (path === "/preferences" && req.method === "GET") {
+    const db = getDb();
+    const rows = db.query("SELECT * FROM user_preferences ORDER BY category, key").all();
+    return Response.json({ preferences: rows });
+  }
+
+  // POST /api/dashboard/preferences
+  if (path === "/preferences" && req.method === "POST") {
+    return (async () => {
+      const body = (await req.json()) as any;
+      if (!body.key || !body.value) return Response.json({ error: "key and value required" }, { status: 400 });
+      const db = getDb();
+      db.prepare(
+        "INSERT INTO user_preferences (category, key, value, source) VALUES (?, ?, ?, 'explicit') ON CONFLICT(category, key) DO UPDATE SET value = excluded.value, source = 'explicit', updated_at = datetime('now')"
+      ).run(body.category || "general", body.key, body.value);
+      return Response.json({ ok: true });
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/preferences/:id
+  if (path.match(/^\/preferences\/\d+$/) && req.method === "DELETE") {
+    const id = path.split("/").pop()!;
+    const db = getDb();
+    db.prepare("DELETE FROM user_preferences WHERE id = ?").run(id);
+    return Response.json({ ok: true });
+  }
+
+  // ── TOPICS ──
+
+  // GET /api/dashboard/topics
+  if (path === "/topics" && req.method === "GET") {
+    const db = getDb();
+    const rows = db.query("SELECT * FROM conversation_topics ORDER BY last_message_at DESC").all();
+    return Response.json({ topics: rows });
+  }
+
+  // POST /api/dashboard/topics
+  if (path === "/topics" && req.method === "POST") {
+    return (async () => {
+      const body = (await req.json()) as any;
+      if (!body.name) return Response.json({ error: "name required" }, { status: 400 });
+      const db = getDb();
+      const result = db.prepare("INSERT INTO conversation_topics (name, description) VALUES (?, ?)").run(body.name, body.description || null);
+      return Response.json({ ok: true, id: result.lastInsertRowid });
+    })() as any;
+  }
+
+  // PUT /api/dashboard/topics/:id
+  if (path.match(/^\/topics\/\d+$/) && req.method === "PUT") {
+    return (async () => {
+      const id = path.split("/").pop()!;
+      const body = (await req.json()) as any;
+      const db = getDb();
+      if (body.status) db.prepare("UPDATE conversation_topics SET status = ? WHERE id = ?").run(body.status, id);
+      if (body.name) db.prepare("UPDATE conversation_topics SET name = ? WHERE id = ?").run(body.name, id);
+      if (body.description !== undefined) db.prepare("UPDATE conversation_topics SET description = ? WHERE id = ?").run(body.description || null, id);
+      return Response.json({ ok: true });
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/topics/:id
+  if (path.match(/^\/topics\/\d+$/) && req.method === "DELETE") {
+    const id = path.split("/").pop()!;
+    const db = getDb();
+    db.prepare("DELETE FROM conversation_topics WHERE id = ?").run(id);
+    return Response.json({ ok: true });
+  }
+
+  // ── FOLLOW-UPS ──
+
+  // GET /api/dashboard/followups
+  if (path === "/followups" && req.method === "GET") {
+    const db = getDb();
+    const rows = db.query("SELECT * FROM follow_ups ORDER BY follow_up_at ASC").all();
+    return Response.json({ followups: rows });
+  }
+
+  // POST /api/dashboard/followups
+  if (path === "/followups" && req.method === "POST") {
+    return (async () => {
+      const body = (await req.json()) as any;
+      if (!body.context || !body.message || !body.follow_up_at) return Response.json({ error: "context, message, and follow_up_at required" }, { status: 400 });
+      const db = getDb();
+      const result = db.prepare("INSERT INTO follow_ups (context, message, follow_up_at) VALUES (?, ?, ?)").run(body.context, body.message, body.follow_up_at);
+      return Response.json({ ok: true, id: result.lastInsertRowid });
+    })() as any;
+  }
+
+  // PUT /api/dashboard/followups/:id
+  if (path.match(/^\/followups\/\d+$/) && req.method === "PUT") {
+    return (async () => {
+      const id = path.split("/").pop()!;
+      const body = (await req.json()) as any;
+      const db = getDb();
+      if (body.status) db.prepare("UPDATE follow_ups SET status = ? WHERE id = ?").run(body.status, id);
+      return Response.json({ ok: true });
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/followups/:id
+  if (path.match(/^\/followups\/\d+$/) && req.method === "DELETE") {
+    const id = path.split("/").pop()!;
+    const db = getDb();
+    db.prepare("DELETE FROM follow_ups WHERE id = ?").run(id);
+    return Response.json({ ok: true });
+  }
+
   // GET /api/dashboard/config
   if (path === "/config" && req.method === "GET") {
     return Response.json(getConfigInfo());

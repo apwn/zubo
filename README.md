@@ -35,7 +35,8 @@
 - **Workflows** — Multi-agent pipelines with delegation
 - **Natural language scheduling** — "Every weekday at 9am" just works. Cron jobs, heartbeat, proactive tasks.
 - **Voice** — Speech-to-text (Whisper) and text-to-speech (OpenAI, ElevenLabs)
-- **Dashboard** — Built-in web UI with analytics, memory management, and settings
+- **Personal tools** — Todos, notes, preferences, topics, and follow-ups — all manageable from the dashboard or via chat
+- **Dashboard** — Built-in web UI with analytics, memory management, personal tools, and settings
 - **Document ingestion** — Upload PDF, DOCX, TXT, CSV, JSON, and more
 - **Budget controls** — Daily/monthly spending limits with per-model cost tracking
 - **100% local** — SQLite database, local vector store. Your data never leaves your machine.
