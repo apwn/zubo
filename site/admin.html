@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Admin Dashboard — Zubo</title>
+  <meta name="theme-color" content="#060608">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><path d='M50 15C52 37 63 48 85 50C63 52 52 63 50 85C48 63 37 52 15 50C37 48 48 37 50 15Z' fill='white'/></svg>">
+  <style>
+    /* ─── Admin Layout ─── */
+    .admin-wrap {
+      min-height: 100vh;
+      padding: 100px 0 60px;
+    }
+
+    /* ─── Login Gate ─── */
+    .admin-login {
+      max-width: 400px;
+      margin: 80px auto 0;
+      text-align: center;
+    }
+    .admin-login h1 {
+      font-family: var(--display);
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .admin-login p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .admin-login-form {
+      display: flex;
+      gap: 8px;
+    }
+    .admin-login-form input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .admin-login-form input:focus {
+      border-color: var(--violet);
+    }
+    .admin-login-error {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #f87171;
+      min-height: 20px;
+    }
+
+    /* ─── Dashboard Header ─── */
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .admin-header h1 {
+      font-family: var(--display);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .admin-signout {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-signout:hover {
+      background: rgba(239,68,68,0.1);
+      border-color: rgba(239,68,68,0.3);
+      color: #f87171;
+    }
+
+    /* ─── Stats Bar ─── */
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .admin-stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+    .admin-stat-card:hover {
+      border-color: var(--border-light);
+    }
+    .admin-stat-number {
+      font-family: var(--display);
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+    .admin-stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+    }
+
+    /* ─── Tabs ─── */
+    .admin-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .admin-tab {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: -1px;
+    }
+    .admin-tab:hover {
+      color: var(--text-secondary);
+    }
+    .admin-tab.active {
+      color: #fff;
+      border-bottom-color: var(--violet);
+    }
+    .admin-tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      background: rgba(245,158,11,0.15);
+      border-radius: 100px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: #fbbf24;
+      margin-left: 6px;
+    }
+
+    .admin-pane {
+      display: none;
+    }
+    .admin-pane.active {
+      display: block;
+      animation: fadeSlideIn 0.3s var(--ease);
+    }
+
+    /* ─── Flagged Skills Cards ─── */
+    .admin-flagged-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 16px;
+    }
+    .admin-flagged-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.3s;
+    }
+    .admin-flagged-card:hover {
+      border-color: var(--border-light);
+    }
+    .admin-flagged-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .admin-flagged-name {
+      font-family: var(--display);
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .admin-risk-badge {
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+    .admin-risk-high {
+      background: rgba(239,68,68,0.12);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+    .admin-risk-medium {
+      background: rgba(245,158,11,0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+    .admin-risk-low {
+      background: rgba(16,185,129,0.12);
+      color: #34d399;
+      border: 1px solid rgba(16,185,129,0.25);
+    }
+    .admin-flagged-author {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .admin-flagged-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .admin-findings-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .admin-findings-list {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .admin-findings-list li {
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 6px;
+      font-family: var(--mono);
+    }
+    .admin-findings-list li strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .admin-flagged-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .admin-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .admin-btn-approve {
+      background: rgba(16,185,129,0.12);
+      border-color: rgba(16,185,129,0.25);
+      color: #34d399;
+    }
+    .admin-btn-approve:hover {
+      background: rgba(16,185,129,0.2);
+      border-color: rgba(16,185,129,0.4);
+    }
+    .admin-btn-reject {
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.25);
+      color: #f87171;
+    }
+    .admin-btn-reject:hover {
+      background: rgba(239,68,68,0.2);
+      border-color: rgba(239,68,68,0.4);
+    }
+    .admin-btn-code {
+      background: rgba(124,58,237,0.12);
+      border-color: rgba(124,58,237,0.25);
+      color: #c4b5fd;
+      margin-left: auto;
+    }
+    .admin-btn-code:hover {
+      background: rgba(124,58,237,0.2);
+      border-color: rgba(124,58,237,0.4);
+    }
+    .admin-btn-delete {
+      background: rgba(239,68,68,0.08);
+      border-color: rgba(239,68,68,0.2);
+      color: #f87171;
+    }
+    .admin-btn-delete:hover {
+      background: rgba(239,68,68,0.15);
+      border-color: rgba(239,68,68,0.35);
+    }
+    .admin-btn-resolve {
+      background: rgba(16,185,129,0.12);
+      border-color: rgba(16,185,129,0.25);
+      color: #34d399;
+    }
+    .admin-btn-resolve:hover {
+      background: rgba(16,185,129,0.2);
+    }
+    .admin-btn-dismiss {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--border);
+      color: var(--text-secondary);
+    }
+    .admin-btn-dismiss:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+    .admin-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ─── Reports Table ─── */
+    .admin-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .admin-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .admin-table td {
+      padding: 12px 16px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .admin-table tr:last-child td {
+      border-bottom: none;
+    }
+    .admin-table tr:hover td {
+      background: rgba(255,255,255,0.015);
+    }
+    .admin-table td.admin-td-name {
+      color: #fff;
+      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .admin-table td.admin-td-details {
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .admin-table td.admin-td-actions {
+      white-space: nowrap;
+    }
+    .admin-table td.admin-td-actions .admin-btn {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    /* ─── All Skills Tab ─── */
+    .admin-skills-search {
+      margin-bottom: 16px;
+    }
+    .admin-skills-search input {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #fff;
+      font-family: var(--font);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .admin-skills-search input:focus {
+      border-color: var(--violet);
+    }
+    .admin-skills-search input::placeholder {
+      color: var(--text-muted);
+    }
+    .admin-status-select {
+      padding: 4px 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .admin-status-select:focus {
+      border-color: var(--violet);
+    }
+
+    /* ─── Empty States ─── */
+    .admin-empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* ─── Code Modal ─── */
+    .admin-code-modal .modal-content {
+      max-width: 720px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .admin-code-body {
+      flex: 1;
+      overflow: auto;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 4px;
+    }
+    .admin-code-body pre {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* ─── Confirm Modal ─── */
+    .admin-confirm-modal .modal-content {
+      max-width: 400px;
+      text-align: center;
+    }
+    .admin-confirm-msg {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .admin-confirm-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .admin-confirm-cancel {
+      padding: 10px 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-confirm-cancel:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+    .admin-confirm-ok {
+      padding: 10px 24px;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      color: #f87171;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-confirm-ok:hover {
+      background: rgba(239,68,68,0.25);
+    }
+
+    /* ─── Toast ─── */
+    .admin-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 2000;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.3s var(--ease);
+      pointer-events: none;
+    }
+    .admin-toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .admin-toast.toast-success {
+      border-color: rgba(16,185,129,0.3);
+      color: #34d399;
+    }
+    .admin-toast.toast-error {
+      border-color: rgba(239,68,68,0.3);
+      color: #f87171;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .admin-stats {
+        grid-template-columns: 1fr;
+      }
+      .admin-flagged-grid {
+        grid-template-columns: 1fr;
+      }
+      .admin-tab {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <span class="logo-wordmark">zubo</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/skills">Skills</a>
+        <a href="/docs/">Docs</a>
+      </nav>
+      <div class="nav-right">
+        <span style="font-family:var(--mono);font-size:12px;color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;">Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-wrap">
+    <div class="container">
+
+      <!-- Login Gate -->
+      <div id="admin-login" class="admin-login">
+        <h1>Admin Dashboard</h1>
+        <p>Enter the registry admin key to continue.</p>
+        <div class="admin-login-form">
+          <input type="password" id="admin-key-input" placeholder="Admin key..." autocomplete="off">
+          <button class="btn btn-primary" id="admin-login-btn" style="padding:12px 24px;">Sign In</button>
+        </div>
+        <div class="admin-login-error" id="admin-login-error"></div>
+      </div>
+
+      <!-- Dashboard (hidden until auth) -->
+      <div id="admin-dashboard" style="display:none;">
+
+        <!-- Header -->
+        <div class="admin-header">
+          <h1>Dashboard</h1>
+          <button class="admin-signout" id="admin-signout">Sign Out</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="admin-stats">
+          <div class="admin-stat-card">
+            <div class="admin-stat-number" id="stat-total">—</div>
+            <div class="admin-stat-label">Total Skills</div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-number" id="stat-flagged">—</div>
+            <div class="admin-stat-label">Flagged</div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-number" id="stat-reports">—</div>
+            <div class="admin-stat-label">Open Reports</div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="flagged">Flagged Skills <span class="admin-tab-badge" id="tab-badge-flagged">0</span></button>
+          <button class="admin-tab" data-tab="reports">Reports <span class="admin-tab-badge" id="tab-badge-reports">0</span></button>
+          <button class="admin-tab" data-tab="all-skills">All Skills</button>
+        </div>
+
+        <!-- Flagged Skills Pane -->
+        <div class="admin-pane active" id="pane-flagged">
+          <div class="admin-flagged-grid" id="flagged-grid"></div>
+          <div class="admin-empty" id="flagged-empty" style="display:none;">No flagged skills. All clear.</div>
+        </div>
+
+        <!-- Reports Pane -->
+        <div class="admin-pane" id="pane-reports">
+          <div class="admin-table-wrap" id="reports-table-wrap" style="display:none;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Skill</th>
+                  <th>Reporter</th>
+                  <th>Reason</th>
+                  <th>Details</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reports-tbody"></tbody>
+            </table>
+          </div>
+          <div class="admin-empty" id="reports-empty" style="display:none;">No open reports.</div>
+        </div>
+
+        <!-- All Skills Pane -->
+        <div class="admin-pane" id="pane-all-skills">
+          <div class="admin-skills-search">
+            <input type="text" id="all-skills-search" placeholder="Search skills..." autocomplete="off">
+          </div>
+          <div class="admin-table-wrap" id="all-skills-table-wrap" style="display:none;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Author</th>
+                  <th>Status</th>
+                  <th>Stars</th>
+                  <th>Installs</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="all-skills-tbody"></tbody>
+            </table>
+          </div>
+          <div class="admin-empty" id="all-skills-empty" style="display:none;">No skills found.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Viewer Modal -->
+  <div id="code-modal" class="modal-overlay admin-code-modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="code-modal-title">Handler Code</h3>
+        <button class="modal-close" id="code-modal-close">&times;</button>
+      </div>
+      <div class="admin-code-body">
+        <pre><code id="code-modal-content"></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirm-modal" class="modal-overlay admin-confirm-modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="confirm-modal-title">Confirm</h3>
+        <button class="modal-close" id="confirm-modal-close">&times;</button>
+      </div>
+      <p class="admin-confirm-msg" id="confirm-modal-msg"></p>
+      <div class="admin-confirm-actions">
+        <button class="admin-confirm-cancel" id="confirm-cancel">Cancel</button>
+        <button class="admin-confirm-ok" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="admin-toast" id="admin-toast"></div>
+
+  <script>
+  (function() {
+    'use strict';
+
+    var API = '/api/registry';
+    var adminKey = sessionStorage.getItem('zubo_admin_key') || '';
+    var allSkillsLoaded = false;
+    var allSkillsData = [];
+    var confirmCallback = null;
+
+    // ─── Client-side Rate Limiter ─────────────────────────────────────
+    // Prevents rapid-fire admin actions (approve/reject/delete/resolve)
+    var rateBuckets = {};
+    function checkClientRate(action, maxPerWindow, windowMs) {
+      maxPerWindow = maxPerWindow || 10;
+      windowMs = windowMs || 60000;
+      var now = Date.now();
+      var bucket = rateBuckets[action];
+      if (!bucket || now > bucket.resetAt) {
+        rateBuckets[action] = { count: 1, resetAt: now + windowMs };
+        return true;
+      }
+      bucket.count++;
+      if (bucket.count > maxPerWindow) {
+        showToast('Too many actions. Please slow down.', 'error');
+        return false;
+      }
+      return true;
+    }
+
+    // ─── Helpers ───────────────────────────────────────────────────────
+
+    function adminFetch(path, opts) {
+      opts = opts || {};
+      opts.headers = opts.headers || {};
+      opts.headers['Authorization'] = 'Bearer ' + adminKey;
+      if (opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(opts.body);
+      }
+      return fetch(API + path, opts);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '\u2014';
+      var d = new Date(dateStr + 'Z');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function showToast(msg, type) {
+      var toast = document.getElementById('admin-toast');
+      toast.textContent = msg;
+      toast.className = 'admin-toast visible' + (type ? ' toast-' + type : '');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(function() {
+        toast.className = 'admin-toast';
+      }, 3000);
+    }
+
+    // ─── Auth ─────────────────────────────────────────────────────────
+
+    var loginAttempts = 0;
+    var loginLockoutUntil = 0;
+
+    function tryLogin(key) {
+      var now = Date.now();
+      if (now < loginLockoutUntil) {
+        var secs = Math.ceil((loginLockoutUntil - now) / 1000);
+        return Promise.reject(new Error('Too many attempts. Try again in ' + secs + 's.'));
+      }
+      adminKey = key;
+      return adminFetch('/admin/reports').then(function(r) {
+        if (r.status === 403) {
+          loginAttempts++;
+          if (loginAttempts >= 5) {
+            loginLockoutUntil = Date.now() + 30000;
+            loginAttempts = 0;
+          }
+          throw new Error('Invalid admin key');
+        }
+        if (!r.ok) throw new Error('Server error');
+        loginAttempts = 0;
+        return r.json();
+      });
+    }
+
+    function showDashboard() {
+      document.getElementById('admin-login').style.display = 'none';
+      document.getElementById('admin-dashboard').style.display = 'block';
+      loadDashboard();
+    }
+
+    function showLogin() {
+      adminKey = '';
+      sessionStorage.removeItem('zubo_admin_key');
+      allSkillsLoaded = false;
+      allSkillsData = [];
+      document.getElementById('admin-login').style.display = 'block';
+      document.getElementById('admin-dashboard').style.display = 'none';
+      document.getElementById('admin-key-input').value = '';
+    }
+
+    // Auto-login from session
+    if (adminKey) {
+      tryLogin(adminKey)
+        .then(function() { showDashboard(); })
+        .catch(function() { showLogin(); });
+    }
+
+    document.getElementById('admin-login-btn').addEventListener('click', function() {
+      var key = document.getElementById('admin-key-input').value.trim();
+      var errEl = document.getElementById('admin-login-error');
+      if (!key) {
+        errEl.textContent = 'Please enter a key.';
+        return;
+      }
+      errEl.textContent = '';
+      this.disabled = true;
+      this.textContent = 'Checking...';
+      var btn = this;
+      tryLogin(key)
+        .then(function() {
+          sessionStorage.setItem('zubo_admin_key', key);
+          showDashboard();
+        })
+        .catch(function(err) {
+          errEl.textContent = err.message;
+        })
+        .finally(function() {
+          btn.disabled = false;
+          btn.textContent = 'Sign In';
+        });
+    });
+
+    document.getElementById('admin-key-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('admin-login-btn').click();
+    });
+
+    document.getElementById('admin-signout').addEventListener('click', function() {
+      showLogin();
+    });
+
+    // ─── Dashboard Load ───────────────────────────────────────────────
+
+    function loadDashboard() {
+      loadStats();
+      loadFlagged();
+      loadReports();
+    }
+
+    function loadStats() {
+      Promise.all([
+        fetch(API + '/skills?status=approved&limit=1').then(function(r) { return r.json(); }),
+        fetch(API + '/skills?status=flagged&limit=1').then(function(r) { return r.json(); }),
+        fetch(API + '/skills?status=rejected&limit=1').then(function(r) { return r.json(); }),
+        adminFetch('/admin/reports').then(function(r) { return r.json(); })
+      ]).then(function(results) {
+        var approvedTotal = results[0].total || 0;
+        var flaggedTotal = results[1].total || 0;
+        var rejectedTotal = results[2].total || 0;
+        var total = approvedTotal + flaggedTotal + rejectedTotal;
+        var reportsCount = (results[3].reports || []).length;
+
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-flagged').textContent = flaggedTotal;
+        document.getElementById('stat-reports').textContent = reportsCount;
+        document.getElementById('tab-badge-flagged').textContent = flaggedTotal;
+        document.getElementById('tab-badge-reports').textContent = reportsCount;
+      }).catch(function() {});
+    }
+
+    // ─── Flagged Skills ───────────────────────────────────────────────
+
+    function loadFlagged() {
+      fetch(API + '/skills?status=flagged&limit=100')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var skills = data.skills || [];
+          var grid = document.getElementById('flagged-grid');
+          var empty = document.getElementById('flagged-empty');
+          grid.textContent = '';
+
+          if (!skills.length) {
+            empty.style.display = 'block';
+            return;
+          }
+          empty.style.display = 'none';
+
+          skills.forEach(function(skill) {
+            grid.appendChild(createFlaggedCard(skill));
+          });
+        });
+    }
+
+    function createFlaggedCard(skill) {
+      var card = document.createElement('div');
+      card.className = 'admin-flagged-card';
+
+      // Header
+      var header = document.createElement('div');
+      header.className = 'admin-flagged-header';
+      var name = document.createElement('div');
+      name.className = 'admin-flagged-name';
+      name.textContent = skill.name;
+      header.appendChild(name);
+
+      var risk = document.createElement('span');
+      risk.className = 'admin-risk-badge admin-risk-' + (skill.risk_level || 'medium');
+      risk.textContent = (skill.risk_level || 'medium') + ' risk';
+      header.appendChild(risk);
+      card.appendChild(header);
+
+      // Author
+      var author = document.createElement('div');
+      author.className = 'admin-flagged-author';
+      author.textContent = 'by ' + (skill.author_username || 'unknown');
+      card.appendChild(author);
+
+      // Description
+      if (skill.description) {
+        var desc = document.createElement('div');
+        desc.className = 'admin-flagged-desc';
+        desc.textContent = skill.description;
+        card.appendChild(desc);
+      }
+
+      // Findings
+      var findings = [];
+      try { findings = JSON.parse(skill.review_notes || '[]'); } catch(e) {}
+      if (findings.length) {
+        var findingsWrap = document.createElement('div');
+        var findingsTitle = document.createElement('div');
+        findingsTitle.className = 'admin-findings-title';
+        findingsTitle.textContent = 'Review Findings';
+        findingsWrap.appendChild(findingsTitle);
+
+        var ul = document.createElement('ul');
+        ul.className = 'admin-findings-list';
+        findings.forEach(function(f) {
+          var li = document.createElement('li');
+          var lineLabel = document.createElement('strong');
+          lineLabel.textContent = 'Line ' + f.line + ': ';
+          li.appendChild(lineLabel);
+          li.appendChild(document.createTextNode(f.description));
+          ul.appendChild(li);
+        });
+        findingsWrap.appendChild(ul);
+        card.appendChild(findingsWrap);
+      }
+
+      // Actions
+      var actions = document.createElement('div');
+      actions.className = 'admin-flagged-actions';
+
+      var approveBtn = document.createElement('button');
+      approveBtn.className = 'admin-btn admin-btn-approve';
+      approveBtn.textContent = 'Approve';
+      approveBtn.addEventListener('click', function() {
+        if (!checkClientRate('status', 15, 60000)) return;
+        approveBtn.disabled = true;
+        adminFetch('/admin/skills/' + skill.id + '/status', {
+          method: 'PUT',
+          body: { status: 'approved' }
+        }).then(function(r) {
+          if (r.ok) {
+            showToast('Approved: ' + skill.name, 'success');
+            card.remove();
+            loadStats();
+            allSkillsLoaded = false;
+            if (!document.getElementById('flagged-grid').children.length) {
+              document.getElementById('flagged-empty').style.display = 'block';
+            }
+          } else {
+            showToast('Failed to approve', 'error');
+            approveBtn.disabled = false;
+          }
+        });
+      });
+      actions.appendChild(approveBtn);
+
+      var rejectBtn = document.createElement('button');
+      rejectBtn.className = 'admin-btn admin-btn-reject';
+      rejectBtn.textContent = 'Reject';
+      rejectBtn.addEventListener('click', function() {
+        showConfirm('Reject "' + skill.name + '"?', 'This skill will be marked as rejected and hidden from the registry.', function() {
+          if (!checkClientRate('status', 15, 60000)) return;
+          rejectBtn.disabled = true;
+          adminFetch('/admin/skills/' + skill.id + '/status', {
+            method: 'PUT',
+            body: { status: 'rejected' }
+          }).then(function(r) {
+            if (r.ok) {
+              showToast('Rejected: ' + skill.name, 'success');
+              card.remove();
+              loadStats();
+              allSkillsLoaded = false;
+              if (!document.getElementById('flagged-grid').children.length) {
+                document.getElementById('flagged-empty').style.display = 'block';
+              }
+            } else {
+              showToast('Failed to reject', 'error');
+              rejectBtn.disabled = false;
+            }
+          });
+        });
+      });
+      actions.appendChild(rejectBtn);
+
+      var codeBtn = document.createElement('button');
+      codeBtn.className = 'admin-btn admin-btn-code';
+      codeBtn.textContent = 'View Code';
+      codeBtn.addEventListener('click', function() {
+        showCodeModal(skill.name, skill.handler_code);
+      });
+      actions.appendChild(codeBtn);
+
+      card.appendChild(actions);
+      return card;
+    }
+
+    // ─── Reports ──────────────────────────────────────────────────────
+
+    function loadReports() {
+      adminFetch('/admin/reports')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var reports = data.reports || [];
+          var tbody = document.getElementById('reports-tbody');
+          var wrap = document.getElementById('reports-table-wrap');
+          var empty = document.getElementById('reports-empty');
+          tbody.textContent = '';
+
+          if (!reports.length) {
+            wrap.style.display = 'none';
+            empty.style.display = 'block';
+            return;
+          }
+          wrap.style.display = 'block';
+          empty.style.display = 'none';
+
+          reports.forEach(function(report) {
+            var tr = document.createElement('tr');
+
+            var tdName = document.createElement('td');
+            tdName.className = 'admin-td-name';
+            tdName.textContent = report.skill_name || ('Skill #' + report.skill_id);
+            tr.appendChild(tdName);
+
+            var tdEmail = document.createElement('td');
+            tdEmail.textContent = report.reporter_email;
+            tr.appendChild(tdEmail);
+
+            var tdReason = document.createElement('td');
+            tdReason.textContent = report.reason;
+            tr.appendChild(tdReason);
+
+            var tdDetails = document.createElement('td');
+            tdDetails.className = 'admin-td-details';
+            tdDetails.textContent = report.details || '\u2014';
+            tr.appendChild(tdDetails);
+
+            var tdDate = document.createElement('td');
+            tdDate.style.whiteSpace = 'nowrap';
+            tdDate.textContent = formatDate(report.created_at);
+            tr.appendChild(tdDate);
+
+            var tdActions = document.createElement('td');
+            tdActions.className = 'admin-td-actions';
+
+            var resolveBtn = document.createElement('button');
+            resolveBtn.className = 'admin-btn admin-btn-resolve';
+            resolveBtn.textContent = 'Resolve';
+            resolveBtn.addEventListener('click', function() {
+              if (!checkClientRate('report', 15, 60000)) return;
+              resolveBtn.disabled = true;
+              adminFetch('/admin/reports/' + report.id, {
+                method: 'PUT',
+                body: { status: 'resolved' }
+              }).then(function(r) {
+                if (r.ok) {
+                  showToast('Report resolved', 'success');
+                  tr.remove();
+                  loadStats();
+                  if (!document.getElementById('reports-tbody').children.length) {
+                    document.getElementById('reports-table-wrap').style.display = 'none';
+                    document.getElementById('reports-empty').style.display = 'block';
+                  }
+                } else {
+                  showToast('Failed', 'error');
+                  resolveBtn.disabled = false;
+                }
+              });
+            });
+            tdActions.appendChild(resolveBtn);
+
+            var dismissBtn = document.createElement('button');
+            dismissBtn.className = 'admin-btn admin-btn-dismiss';
+            dismissBtn.textContent = 'Dismiss';
+            dismissBtn.style.marginLeft = '6px';
+            dismissBtn.addEventListener('click', function() {
+              if (!checkClientRate('report', 15, 60000)) return;
+              dismissBtn.disabled = true;
+              adminFetch('/admin/reports/' + report.id, {
+                method: 'PUT',
+                body: { status: 'dismissed' }
+              }).then(function(r) {
+                if (r.ok) {
+                  showToast('Report dismissed', 'success');
+                  tr.remove();
+                  loadStats();
+                  if (!document.getElementById('reports-tbody').children.length) {
+                    document.getElementById('reports-table-wrap').style.display = 'none';
+                    document.getElementById('reports-empty').style.display = 'block';
+                  }
+                } else {
+                  showToast('Failed', 'error');
+                  dismissBtn.disabled = false;
+                }
+              });
+            });
+            tdActions.appendChild(dismissBtn);
+
+            tr.appendChild(tdActions);
+            tbody.appendChild(tr);
+          });
+        });
+    }
+
+    // ─── All Skills ───────────────────────────────────────────────────
+
+    function loadAllSkills() {
+      if (allSkillsLoaded) return;
+      allSkillsLoaded = true;
+      allSkillsData = [];
+
+      Promise.all([
+        fetch(API + '/skills?status=approved&limit=500').then(function(r) { return r.json(); }),
+        fetch(API + '/skills?status=flagged&limit=500').then(function(r) { return r.json(); }),
+        fetch(API + '/skills?status=rejected&limit=500').then(function(r) { return r.json(); })
+      ]).then(function(results) {
+        allSkillsData = [].concat(results[0].skills || [], results[1].skills || [], results[2].skills || []);
+        allSkillsData.sort(function(a, b) {
+          return new Date(b.created_at + 'Z') - new Date(a.created_at + 'Z');
+        });
+        renderAllSkills(allSkillsData);
+      });
+    }
+
+    function renderAllSkills(skills) {
+      var tbody = document.getElementById('all-skills-tbody');
+      var wrap = document.getElementById('all-skills-table-wrap');
+      var empty = document.getElementById('all-skills-empty');
+      tbody.textContent = '';
+
+      if (!skills.length) {
+        wrap.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+      wrap.style.display = 'block';
+      empty.style.display = 'none';
+
+      skills.forEach(function(skill) {
+        var tr = document.createElement('tr');
+
+        var tdName = document.createElement('td');
+        tdName.className = 'admin-td-name';
+        tdName.textContent = skill.name;
+        tr.appendChild(tdName);
+
+        var tdAuthor = document.createElement('td');
+        tdAuthor.textContent = skill.author_username || '\u2014';
+        tr.appendChild(tdAuthor);
+
+        var tdStatus = document.createElement('td');
+        var select = document.createElement('select');
+        select.className = 'admin-status-select';
+        ['approved', 'flagged', 'rejected'].forEach(function(s) {
+          var opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s;
+          if (s === skill.status) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.addEventListener('change', function() {
+          if (!checkClientRate('status', 15, 60000)) {
+            select.value = skill.status;
+            return;
+          }
+          var newStatus = select.value;
+          adminFetch('/admin/skills/' + skill.id + '/status', {
+            method: 'PUT',
+            body: { status: newStatus }
+          }).then(function(r) {
+            if (r.ok) {
+              skill.status = newStatus;
+              showToast(skill.name + ' \u2192 ' + newStatus, 'success');
+              loadStats();
+              loadFlagged();
+            } else {
+              showToast('Failed to update status', 'error');
+              select.value = skill.status;
+            }
+          });
+        });
+        tdStatus.appendChild(select);
+        tr.appendChild(tdStatus);
+
+        var tdStars = document.createElement('td');
+        tdStars.textContent = skill.stars_count || 0;
+        tr.appendChild(tdStars);
+
+        var tdInstalls = document.createElement('td');
+        tdInstalls.textContent = skill.install_count || 0;
+        tr.appendChild(tdInstalls);
+
+        var tdDate = document.createElement('td');
+        tdDate.style.whiteSpace = 'nowrap';
+        tdDate.textContent = formatDate(skill.created_at);
+        tr.appendChild(tdDate);
+
+        var tdActions = document.createElement('td');
+        tdActions.className = 'admin-td-actions';
+
+        var codeBtn = document.createElement('button');
+        codeBtn.className = 'admin-btn admin-btn-code';
+        codeBtn.textContent = 'Code';
+        codeBtn.addEventListener('click', function() {
+          showCodeModal(skill.name, skill.handler_code);
+        });
+        tdActions.appendChild(codeBtn);
+
+        var delBtn = document.createElement('button');
+        delBtn.className = 'admin-btn admin-btn-delete';
+        delBtn.textContent = 'Delete';
+        delBtn.style.marginLeft = '6px';
+        delBtn.addEventListener('click', function() {
+          showConfirm('Delete "' + skill.name + '"?', 'This will permanently delete the skill and all associated data. This cannot be undone.', function() {
+            if (!checkClientRate('delete', 10, 60000)) return;
+            delBtn.disabled = true;
+            adminFetch('/admin/skills/' + skill.id, {
+              method: 'DELETE'
+            }).then(function(r) {
+              if (r.ok) {
+                showToast('Deleted: ' + skill.name, 'success');
+                tr.remove();
+                allSkillsData = allSkillsData.filter(function(s) { return s.id !== skill.id; });
+                loadStats();
+                loadFlagged();
+                if (!document.getElementById('all-skills-tbody').children.length) {
+                  document.getElementById('all-skills-table-wrap').style.display = 'none';
+                  document.getElementById('all-skills-empty').style.display = 'block';
+                }
+              } else {
+                showToast('Failed to delete', 'error');
+                delBtn.disabled = false;
+              }
+            });
+          });
+        });
+        tdActions.appendChild(delBtn);
+
+        tr.appendChild(tdActions);
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Search filter for All Skills
+    var allSkillsSearchTimeout;
+    document.getElementById('all-skills-search').addEventListener('input', function() {
+      var q = this.value.toLowerCase().trim();
+      clearTimeout(allSkillsSearchTimeout);
+      allSkillsSearchTimeout = setTimeout(function() {
+        if (!q) {
+          renderAllSkills(allSkillsData);
+          return;
+        }
+        var filtered = allSkillsData.filter(function(s) {
+          return (s.name + ' ' + (s.author_username || '') + ' ' + (s.description || '') + ' ' + s.status).toLowerCase().indexOf(q) !== -1;
+        });
+        renderAllSkills(filtered);
+      }, 200);
+    });
+
+    // ─── Tabs ─────────────────────────────────────────────────────────
+
+    document.querySelector('.admin-tabs').addEventListener('click', function(e) {
+      var tab = e.target.closest('.admin-tab');
+      if (!tab) return;
+
+      document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.admin-pane').forEach(function(p) { p.classList.remove('active'); });
+
+      tab.classList.add('active');
+      var pane = document.getElementById('pane-' + tab.getAttribute('data-tab'));
+      if (pane) pane.classList.add('active');
+
+      // Lazy-load all skills on first click
+      if (tab.getAttribute('data-tab') === 'all-skills') {
+        loadAllSkills();
+      }
+    });
+
+    // ─── Code Modal ───────────────────────────────────────────────────
+
+    function showCodeModal(name, code) {
+      document.getElementById('code-modal-title').textContent = name + ' \u2014 handler.ts';
+      document.getElementById('code-modal-content').textContent = code || '(no code)';
+      document.getElementById('code-modal').style.display = 'flex';
+    }
+
+    document.getElementById('code-modal-close').addEventListener('click', function() {
+      document.getElementById('code-modal').style.display = 'none';
+    });
+    document.getElementById('code-modal').addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
+
+    // ─── Confirm Modal ────────────────────────────────────────────────
+
+    function showConfirm(title, msg, onConfirm) {
+      document.getElementById('confirm-modal-title').textContent = title;
+      document.getElementById('confirm-modal-msg').textContent = msg;
+      document.getElementById('confirm-modal').style.display = 'flex';
+      confirmCallback = onConfirm;
+    }
+
+    document.getElementById('confirm-ok').addEventListener('click', function() {
+      document.getElementById('confirm-modal').style.display = 'none';
+      if (confirmCallback) confirmCallback();
+      confirmCallback = null;
+    });
+    document.getElementById('confirm-cancel').addEventListener('click', function() {
+      document.getElementById('confirm-modal').style.display = 'none';
+      confirmCallback = null;
+    });
+    document.getElementById('confirm-modal-close').addEventListener('click', function() {
+      document.getElementById('confirm-modal').style.display = 'none';
+      confirmCallback = null;
+    });
+    document.getElementById('confirm-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.style.display = 'none';
+        confirmCallback = null;
+      }
+    });
+
+  })();
+  </script>
+</body>
+</html>
