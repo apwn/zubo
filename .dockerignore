@@ -1,7 +1,6 @@
 node_modules
 dist
 desktop
-site
 .env
 .env.*
 .zubo
