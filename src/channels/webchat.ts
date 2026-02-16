@@ -263,6 +263,22 @@ function switchModelConfig(provider: string, model: string): { ok: boolean; erro
   }
 }
 
+/** Build a safe UPDATE SET clause from a whitelist of allowed fields. */
+function buildUpdateSets(
+  body: Record<string, any>,
+  allowedFields: Record<string, (v: any) => any>,
+): { sets: string[]; vals: any[] } {
+  const sets: string[] = [];
+  const vals: any[] = [];
+  for (const [col, transform] of Object.entries(allowedFields)) {
+    if (body[col] !== undefined) {
+      sets.push(`${col} = ?`);
+      vals.push(transform(body[col]));
+    }
+  }
+  return { sets, vals };
+}
+
 async function handleDashboardApi(url: URL, req: Request): Promise<Response | null> {
   const path = url.pathname.replace("/api/dashboard", "");
 
@@ -364,12 +380,12 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
       const id = path.split("/").pop()!;
       const body = (await req.json()) as any;
       const db = getDb();
-      const sets: string[] = [];
-      const vals: any[] = [];
-      if (body.title !== undefined) { sets.push("title = ?"); vals.push(body.title); }
-      if (body.description !== undefined) { sets.push("description = ?"); vals.push(body.description || null); }
-      if (body.priority !== undefined) { sets.push("priority = ?"); vals.push(body.priority); }
-      if (body.due_date !== undefined) { sets.push("due_date = ?"); vals.push(body.due_date || null); }
+      const { sets, vals } = buildUpdateSets(body, {
+        title: (v) => v,
+        description: (v) => v || null,
+        priority: (v) => v,
+        due_date: (v) => v || null,
+      });
       if (body.status !== undefined) {
         sets.push("status = ?"); vals.push(body.status);
         if (body.status === "done") { sets.push("completed_at = datetime('now')"); }
@@ -437,11 +453,11 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
       const id = path.split("/").pop()!;
       const body = (await req.json()) as any;
       const db = getDb();
-      const sets: string[] = [];
-      const vals: any[] = [];
-      if (body.title !== undefined) { sets.push("title = ?"); vals.push(body.title); }
-      if (body.content !== undefined) { sets.push("content = ?"); vals.push(body.content); }
-      if (body.pinned !== undefined) { sets.push("pinned = ?"); vals.push(body.pinned ? 1 : 0); }
+      const { sets, vals } = buildUpdateSets(body, {
+        title: (v) => v,
+        content: (v) => v,
+        pinned: (v) => v ? 1 : 0,
+      });
       if (body.tags !== undefined) {
         sets.push("tags = ?");
         vals.push(JSON.stringify(body.tags.split(",").map((t: string) => t.trim()).filter(Boolean)));
@@ -518,11 +534,11 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
       const id = path.split("/").pop()!;
       const body = (await req.json()) as any;
       const db = getDb();
-      const sets: string[] = [];
-      const vals: any[] = [];
-      if (body.status) { sets.push("status = ?"); vals.push(body.status); }
-      if (body.name) { sets.push("name = ?"); vals.push(body.name); }
-      if (body.description !== undefined) { sets.push("description = ?"); vals.push(body.description || null); }
+      const { sets, vals } = buildUpdateSets(body, {
+        status: (v) => v,
+        name: (v) => v,
+        description: (v) => v || null,
+      });
       if (sets.length > 0) {
         sets.push("updated_at = datetime('now')");
         vals.push(id);
@@ -566,9 +582,9 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
       const id = path.split("/").pop()!;
       const body = (await req.json()) as any;
       const db = getDb();
-      const sets: string[] = [];
-      const vals: any[] = [];
-      if (body.status) { sets.push("status = ?"); vals.push(body.status); }
+      const { sets, vals } = buildUpdateSets(body, {
+        status: (v) => v,
+      });
       if (sets.length > 0) {
         vals.push(id);
         db.prepare(`UPDATE follow_ups SET ${sets.join(", ")} WHERE id = ?`).run(...vals);
