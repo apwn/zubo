@@ -26,6 +26,10 @@ import { createRouter, type MessageRouter } from "./channels/router";
 import { startHeartbeat } from "./scheduler/heartbeat";
 import { initCronScheduler } from "./scheduler/cron";
 import { initMemory } from "./memory/engine";
+import { registerTodosTool } from "./tools/builtin/todos";
+import { registerNotesTool } from "./tools/builtin/notes";
+import { registerPreferencesTool } from "./tools/builtin/preferences";
+import { registerTopicsTool } from "./tools/builtin/topics";
 import { logger, enableFileLogging } from "./util/logger";
 
 function openBrowser(url: string) {
@@ -226,6 +230,14 @@ export async function startZubo(isDaemon = false) {
   // Register proactive intelligence tools
   const { registerManageTriggersTool } = await import("./tools/builtin/manage-triggers");
   registerManageTriggersTool();
+
+  // Register personal agent tools
+  registerTodosTool();
+  registerNotesTool();
+  registerPreferencesTool();
+  registerTopicsTool();
+  const { registerFollowUpsTool } = await import("./tools/builtin/follow-ups");
+  registerFollowUpsTool(db, router, config, llm);
 
   // Register code interpreter tool
   if (config.codeInterpreter?.enabled !== false) {

@@ -1,12 +1,19 @@
-import { describe, test, expect, beforeEach } from "bun:test";
+import { describe, test, expect, beforeEach, afterAll } from "bun:test";
 import { mock } from "bun:test";
+import { writeFileSync, mkdtempSync, rmSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
 
 /**
  * Tests for src/tools/mcp-registry.ts
  *
- * We mock `fetch` to avoid real network calls and mock the file system / MCP
- * client modules that installFromRegistry and uninstallMcpServer depend on.
+ * We mock `fetch` to avoid real network calls and mock the config paths +
+ * MCP client modules. We do NOT mock `fs` — instead we use a real temp config file.
  */
+
+// Create a temp directory for the config file
+const testTmpDir = mkdtempSync(join(tmpdir(), "mcp-registry-test-"));
+const testConfigPath = join(testTmpDir, "config.json");
 
 // Track fetch calls for assertions
 let fetchCalls: { url: string; options?: any }[] = [];
@@ -16,10 +23,6 @@ let fetchResponse: { ok: boolean; status: number; statusText: string; json: () =
   statusText: "OK",
   json: () => [],
 };
-
-// Track file system operations
-let writtenConfig: string | null = null;
-let mockConfigData: any = { mcp: { servers: [] } };
 
 // Track MCP client operations
 let connectedServers: string[] = [];
@@ -33,7 +36,7 @@ globalThis.fetch = async (input: any, init?: any) => {
   return fetchResponse as any;
 };
 
-// Mock dependencies
+// Mock dependencies — but NOT `fs`!
 mock.module("../src/util/logger", () => ({
   logger: {
     debug: () => {},
@@ -45,19 +48,8 @@ mock.module("../src/util/logger", () => ({
 
 mock.module("../src/config/paths", () => ({
   paths: {
-    config: "/tmp/zubo-test-config.json",
+    config: testConfigPath,
   },
-}));
-
-mock.module("fs", () => ({
-  readFileSync: (path: string) => JSON.stringify(mockConfigData),
-  writeFileSync: (path: string, content: string) => {
-    writtenConfig = content;
-  },
-  existsSync: () => true,
-  readdirSync: () => [],
-  mkdirSync: () => {},
-  unlinkSync: () => {},
 }));
 
 mock.module("../src/tools/mcp-client", () => ({
@@ -79,13 +71,21 @@ const {
   uninstallMcpServer,
 } = await import("../src/tools/mcp-registry");
 
+afterAll(() => {
+  globalThis.fetch = originalFetch;
+  rmSync(testTmpDir, { recursive: true, force: true });
+});
+
+// Helper to write config file for install/uninstall tests
+function writeTestConfig(data: any) {
+  writeFileSync(testConfigPath, JSON.stringify(data, null, 2));
+}
+
 // ─── searchRegistry ─────────────────────────────────────────────────────────
 
 describe("mcp-registry: searchRegistry", () => {
   beforeEach(() => {
     fetchCalls = [];
-    // Clear the module's internal cache by importing fresh — but since we
-    // can't easily do that, we use unique queries to avoid stale cache hits.
   });
 
   test("calls registry API with encoded query", async () => {
@@ -234,8 +234,7 @@ describe("mcp-registry: installFromRegistry", () => {
   beforeEach(() => {
     fetchCalls = [];
     connectedServers = [];
-    writtenConfig = null;
-    mockConfigData = { mcp: { servers: [] } };
+    writeTestConfig({ mcp: { servers: [] } });
   });
 
   test("installs a server from registry into config", async () => {
@@ -257,9 +256,9 @@ describe("mcp-registry: installFromRegistry", () => {
     expect(result.name).toBe(uniqueName);
     expect(result.tools).toBe(3); // from our mock getMcpStatus
     expect(connectedServers).toContain(uniqueName);
-    expect(writtenConfig).not.toBeNull();
 
-    const savedConfig = JSON.parse(writtenConfig!);
+    // Verify config was written to disk
+    const savedConfig = JSON.parse(require("fs").readFileSync(testConfigPath, "utf-8"));
     const server = savedConfig.mcp.servers.find((s: any) => s.name === uniqueName);
     expect(server).toBeTruthy();
     expect(server.command).toBe("npx");
@@ -280,11 +279,11 @@ describe("mcp-registry: installFromRegistry", () => {
 
   test("replaces existing server entry with same name", async () => {
     const uniqueName = `replace-server-${Date.now()}`;
-    mockConfigData = {
+    writeTestConfig({
       mcp: {
         servers: [{ name: uniqueName, command: "old-cmd", args: [], enabled: true }],
       },
-    };
+    });
 
     fetchResponse = {
       ok: true,
@@ -299,7 +298,7 @@ describe("mcp-registry: installFromRegistry", () => {
 
     await installFromRegistry(uniqueName);
 
-    const savedConfig = JSON.parse(writtenConfig!);
+    const savedConfig = JSON.parse(require("fs").readFileSync(testConfigPath, "utf-8"));
     const servers = savedConfig.mcp.servers.filter((s: any) => s.name === uniqueName);
     expect(servers).toHaveLength(1);
     expect(servers[0].command).toBe("new-cmd");
@@ -311,32 +310,30 @@ describe("mcp-registry: installFromRegistry", () => {
 describe("mcp-registry: uninstallMcpServer", () => {
   beforeEach(() => {
     disconnectedServers = [];
-    writtenConfig = null;
   });
 
   test("disconnects and removes server from config", async () => {
-    mockConfigData = {
+    writeTestConfig({
       mcp: {
         servers: [
           { name: "keep-this", command: "cmd1" },
           { name: "remove-this", command: "cmd2" },
         ],
       },
-    };
+    });
 
     await uninstallMcpServer("remove-this");
 
     expect(disconnectedServers).toContain("remove-this");
-    expect(writtenConfig).not.toBeNull();
 
-    const savedConfig = JSON.parse(writtenConfig!);
+    const savedConfig = JSON.parse(require("fs").readFileSync(testConfigPath, "utf-8"));
     const remaining = savedConfig.mcp.servers.map((s: any) => s.name);
     expect(remaining).toContain("keep-this");
     expect(remaining).not.toContain("remove-this");
   });
 
   test("handles server not in config gracefully", async () => {
-    mockConfigData = { mcp: { servers: [] } };
+    writeTestConfig({ mcp: { servers: [] } });
 
     await expect(uninstallMcpServer("nonexistent")).resolves.toBeUndefined();
     expect(disconnectedServers).toContain("nonexistent");

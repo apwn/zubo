@@ -7,12 +7,12 @@ export interface AgentContext {
   messages: LlmMessage[];
 }
 
-export function assembleContext(
+export async function assembleContext(
   sessionId: string,
   maxTurns: number = 50,
   memories: string = ""
-): AgentContext {
+): Promise<AgentContext> {
   const messages = loadSession(sessionId, maxTurns);
-  const system = buildSystemPrompt(memories);
+  const system = await buildSystemPrompt(memories);
   return { system, messages };
 }

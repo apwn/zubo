@@ -33,6 +33,13 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   kg_query: "auto",
   kg_update: "auto",
 
+  // Personal features — safe (user-facing data management)
+  todos: "auto",
+  notes: "auto",
+  preferences: "auto",
+  topics: "auto",
+  follow_ups: "auto",
+
   // Built-in skills — safe (read-only or low risk)
   web_search: "auto",
   url_fetch: "auto",

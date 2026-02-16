@@ -37,13 +37,7 @@ const MIGRATION_PATH = join(__dirname, "..", "migrations", "023_skill_registry.s
 function setupTestDb(): Database {
   const db = new Database(":memory:");
   const migrationSql = readFileSync(MIGRATION_PATH, "utf-8");
-  const statements = migrationSql
-    .split(";")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-  for (const stmt of statements) {
-    db.exec(stmt);
-  }
+  db.run(migrationSql);
   return db;
 }
 

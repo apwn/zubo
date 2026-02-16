@@ -65,6 +65,7 @@
           <a href="/docs/agents">Agents &amp; Workflows</a>
           <a href="/docs/memory">Memory System</a>
           <a href="/docs/skills" class="active">Skills</a>
+          <a href="/docs/skills#personal-features">Personal Features</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
@@ -295,9 +296,115 @@ zubo publish my_skill     # Publish your skill to the registry</code></pre>
           <tr><td><code>image_generate</code></td><td>Generate images using AI (DALL-E, etc.)</td><td>auto</td></tr>
           <tr><td><code>webhook_manage</code></td><td>Create, list, or remove incoming webhooks</td><td>auto</td></tr>
           <tr><td><code>oauth_manage</code></td><td>Manage OAuth provider connections</td><td>auto</td></tr>
+          <tr><td><code>todos</code></td><td>Add, list, complete, update, and remove tasks with priorities, due dates, and tags</td><td>auto</td></tr>
+          <tr><td><code>notes</code></td><td>Save, search (FTS5), list, update, delete, and pin notes with tags</td><td>auto</td></tr>
+          <tr><td><code>preferences</code></td><td>Set, get, list, and remove user preferences (injected into system prompt)</td><td>auto</td></tr>
+          <tr><td><code>topics</code></td><td>Create, switch, list, and archive conversation topics</td><td>auto</td></tr>
+          <tr><td><code>follow_ups</code></td><td>Schedule, list, and cancel proactive follow-up messages</td><td>auto</td></tr>
         </tbody>
       </table>
       <p>Tools marked <strong>confirm</strong> require user confirmation before execution. Tools marked <strong>auto</strong> run immediately without prompting.</p>
+
+      <h2 id="personal-features">Personal Features</h2>
+      <p>Built-in tools for personal productivity &mdash; todos, notes, preferences, conversation topics, and scheduled follow-ups. These run in the main process (not sandboxed) and store data in your local SQLite database.</p>
+
+      <h3><code>todos</code></h3>
+      <p>A full task manager built into your agent. Add tasks, set priorities and due dates, tag them for organization, and check them off when done.</p>
+      <table>
+        <thead>
+          <tr><th>Action</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>add</code></td><td>Create a new task with an optional priority (<code>low</code>, <code>medium</code>, <code>high</code>), due date, and tags.</td></tr>
+          <tr><td><code>list</code></td><td>List tasks, optionally filtered by status, priority, tag, or due date.</td></tr>
+          <tr><td><code>complete</code></td><td>Mark a task as done by ID.</td></tr>
+          <tr><td><code>update</code></td><td>Update a task's text, priority, due date, or tags.</td></tr>
+          <tr><td><code>remove</code></td><td>Delete a task by ID.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Key parameters:</strong> <code>text</code> (string), <code>priority</code> (<code>"low"</code> | <code>"medium"</code> | <code>"high"</code>), <code>due</code> (date string), <code>tags</code> (comma-separated), <code>id</code> (task ID for update/complete/remove).</p>
+      <p><strong>Example:</strong></p>
+<pre><code>"Add a todo: finish the API docs, high priority, due Friday, tag: work"
+"Show my todos tagged work"
+"Complete todo #3"</code></pre>
+
+      <h3><code>notes</code></h3>
+      <p>Save, search, and organize notes with full-text search (FTS5). Pin important notes so they surface first.</p>
+      <table>
+        <thead>
+          <tr><th>Action</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>save</code></td><td>Create a new note with optional title, tags, and pinned status.</td></tr>
+          <tr><td><code>search</code></td><td>Full-text search across all notes using FTS5.</td></tr>
+          <tr><td><code>list</code></td><td>List all notes, optionally filtered by tag or pinned status.</td></tr>
+          <tr><td><code>update</code></td><td>Update a note's content, title, tags, or pinned status.</td></tr>
+          <tr><td><code>delete</code></td><td>Delete a note by ID.</td></tr>
+          <tr><td><code>pin</code></td><td>Toggle the pinned status of a note.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Key parameters:</strong> <code>title</code> (string), <code>content</code> (string), <code>tags</code> (comma-separated), <code>pinned</code> (boolean), <code>query</code> (search string), <code>id</code> (note ID).</p>
+      <p><strong>Example:</strong></p>
+<pre><code>"Save a note: meeting with design team moved to Thursday 2pm, tag: meetings"
+"Search my notes for API design"
+"Pin note #5"</code></pre>
+
+      <h3><code>preferences</code></h3>
+      <p>Store user preferences as category/key/value pairs. Preferences are automatically injected into the system prompt so the agent always knows your settings.</p>
+      <table>
+        <thead>
+          <tr><th>Action</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>set</code></td><td>Set a preference value for a given category and key.</td></tr>
+          <tr><td><code>get</code></td><td>Retrieve a specific preference by category and key.</td></tr>
+          <tr><td><code>list</code></td><td>List all preferences, optionally filtered by category.</td></tr>
+          <tr><td><code>remove</code></td><td>Delete a preference by category and key.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Key parameters:</strong> <code>category</code> (string, e.g. <code>"display"</code>, <code>"communication"</code>, <code>"coding"</code>), <code>key</code> (string), <code>value</code> (string).</p>
+      <p><strong>Example:</strong></p>
+<pre><code>"Set my preference: coding/language = TypeScript"
+"What are my communication preferences?"
+"Remove preference coding/editor"</code></pre>
+
+      <h3><code>topics</code></h3>
+      <p>Organize conversations into named topics. Each topic scopes a separate session, so context stays focused and you can switch between projects easily.</p>
+      <table>
+        <thead>
+          <tr><th>Action</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>create</code></td><td>Create a new topic with a name and optional description.</td></tr>
+          <tr><td><code>switch</code></td><td>Switch the active conversation to a different topic.</td></tr>
+          <tr><td><code>list</code></td><td>List all topics, including archived ones.</td></tr>
+          <tr><td><code>archive</code></td><td>Archive a topic to keep things tidy without deleting history.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Key parameters:</strong> <code>name</code> (string), <code>description</code> (string), <code>id</code> (topic ID for switch/archive).</p>
+      <p><strong>Example:</strong></p>
+<pre><code>"Create a topic called 'Website Redesign'"
+"Switch to the API project topic"
+"List my topics"
+"Archive the old marketing topic"</code></pre>
+
+      <h3><code>follow_ups</code></h3>
+      <p>Schedule proactive follow-up messages that Zubo sends to you at a specified time. Uses one-shot cron jobs under the hood &mdash; the job fires once and auto-deletes.</p>
+      <table>
+        <thead>
+          <tr><th>Action</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>schedule</code></td><td>Schedule a follow-up message for a specific time or delay.</td></tr>
+          <tr><td><code>list</code></td><td>List all pending follow-ups.</td></tr>
+          <tr><td><code>cancel</code></td><td>Cancel a scheduled follow-up by ID.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Key parameters:</strong> <code>message</code> (string &mdash; what Zubo should say), <code>time</code> (date/time string or natural language like <code>"in 2 hours"</code>, <code>"tomorrow at 9am"</code>), <code>id</code> (follow-up ID for cancel).</p>
+      <p><strong>Example:</strong></p>
+<pre><code>"Follow up with me tomorrow at 10am about the deployment"
+"List my pending follow-ups"
+"Cancel follow-up #2"</code></pre>
 
       <h2>Legacy Format (SKILL.md)</h2>
       <p>Earlier versions of Zubo used a Markdown-based skill definition file called <code>SKILL.md</code>. This format is still fully supported for backward compatibility:</p>

@@ -42,6 +42,25 @@ const DEFAULT_PERSONALITY = `You are Zubo, a personal AI agent. You are friendly
 - Use cron_create for recurring tasks. Natural language works: "every weekday at 9am", "every monday at noon".
 - Use reminder_set for one-time reminders: "in 30 minutes", "in 2 hours".
 - When the user says "remind me", "ping me", "follow up" — create a reminder.
+- Use follow_ups to schedule check-ins: "follow up about the dentist tomorrow", "check in about the project in 3 days".
+
+## Todos & notes
+
+- Use the todos tool when the user asks to track tasks, create to-do lists, or manage action items. "Add buy groceries to my list" → todos with action "add".
+- Use the notes tool to save, search, and organize information. "Save this recipe" → notes with action "save". "Find my notes about React" → notes with action "search".
+- When the user mentions something they need to do, proactively offer to add it as a todo.
+
+## Preferences
+
+- Use the preferences tool to store and recall user preferences. When the user says "I prefer morning meetings" or "I always use TypeScript" — save it immediately with the preferences tool (action "set").
+- Before making choices on behalf of the user, check their preferences first (action "get" or "list").
+- Preferences persist across sessions and channels. They're different from memory — preferences are structured key-value pairs about how the user likes things done.
+
+## Conversation topics
+
+- Use the topics tool when the user wants to organize conversations. "Let's start a new thread about the trip" → topics with action "create" then "switch".
+- When switching topics, the conversation context changes. Each topic maintains its own conversation history.
+- List topics to show the user what threads they have going.
 
 ## Delegation
 
@@ -115,13 +134,35 @@ function loadPersonality(): string {
   return DEFAULT_PERSONALITY;
 }
 
-export function buildSystemPrompt(memories: string = ""): string {
+export async function buildSystemPrompt(memories: string = ""): Promise<string> {
   const now = new Date().toISOString();
   const personality = loadPersonality();
 
   let prompt = `${personality}
 
 Current time: ${now}`;
+
+  // Inject user preferences
+  try {
+    const { loadPreferencesContext } = await import("../tools/builtin/preferences");
+    const prefsContext = await loadPreferencesContext();
+    if (prefsContext) {
+      prompt += `\n\n${prefsContext}`;
+    }
+  } catch {
+    // preferences module may not be available yet
+  }
+
+  // Inject active topic
+  try {
+    const { getActiveTopic } = await import("../tools/builtin/topics");
+    const topic = getActiveTopic();
+    if (topic) {
+      prompt += `\n\nActive conversation topic: "${topic}"`;
+    }
+  } catch {
+    // topics module may not be available yet
+  }
 
   if (memories) {
     prompt += `\n\n## Relevant memories

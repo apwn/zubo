@@ -79,7 +79,7 @@ async function prepareLoop(
   // Assemble context (uses static import — no dynamic import overhead)
   const ctx = options.systemPromptOverride
     ? { system: options.systemPromptOverride, messages: loadSession(sessionId, 50) }
-    : assembleContext(sessionId, 50, fullMemories);
+    : await assembleContext(sessionId, 50, fullMemories);
 
   const messages = compactMessages(ctx.messages, llm.contextWindow);
 

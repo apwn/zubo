@@ -61,6 +61,7 @@
           <a href="/docs/agents">Agents &amp; Workflows</a>
           <a href="/docs/memory">Memory System</a>
           <a href="/docs/skills">Skills</a>
+          <a href="/docs/skills#personal-features">Personal Features</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
@@ -152,6 +153,15 @@
         <li><strong>Hot-reload without restart</strong> &mdash; drop a skill file into <code>~/.zubo/workspace/skills/</code> and it becomes available immediately.</li>
         <li><strong>Community skill registry</strong> for discovering and installing skills built by others.</li>
         <li><strong>Skill sandboxing</strong> &mdash; user-installed skills run in isolated subprocesses with configurable timeouts, preventing runaway code from affecting the main process.</li>
+      </ul>
+
+      <h3>Personal Features</h3>
+      <ul>
+        <li><strong>Todos</strong> &mdash; add, list, complete, update, and remove tasks with priorities (<code>low</code> / <code>medium</code> / <code>high</code>), due dates, and tags. A full task manager inside your agent.</li>
+        <li><strong>Notes</strong> &mdash; save, search (FTS5), list, update, delete, and pin notes with tags. Fast full-text search across all your notes.</li>
+        <li><strong>Preferences</strong> &mdash; store user preferences as category/key/value pairs. Preferences are automatically injected into the system prompt so the agent always respects your settings.</li>
+        <li><strong>Topics</strong> &mdash; create, switch, list, and archive conversation topics. Each topic scopes a separate session, keeping context focused when you juggle multiple projects.</li>
+        <li><strong>Follow-ups</strong> &mdash; schedule proactive follow-up messages at a specific time or delay. Uses one-shot cron jobs that fire once and auto-delete.</li>
       </ul>
 
       <h3>Agents</h3>
@@ -640,6 +650,7 @@ zubo start --daemon</code></pre>
         <li><a href="/docs/agents"><strong>Agents &amp; Workflows</strong></a> &mdash; learn how to create custom sub-agents with focused system prompts and restricted tools, and build multi-agent pipelines with dependency resolution and parallel execution.</li>
         <li><a href="/docs/memory"><strong>Memory System</strong></a> &mdash; understand how semantic memory works, how to ingest documents, search your knowledge base, and tune the hybrid search weights.</li>
         <li><a href="/docs/skills"><strong>Skills</strong></a> &mdash; write, install, and share single-file TypeScript skills. Learn the skill manifest format, the sandbox environment, and the community registry.</li>
+        <li><a href="/docs/skills#personal-features"><strong>Personal Features</strong></a> &mdash; built-in tools for todos, notes, preferences, conversation topics, and scheduled follow-ups. Your personal productivity layer, stored locally.</li>
         <li><a href="/docs/channels"><strong>Channel Setup</strong></a> &mdash; step-by-step guides for configuring each channel: creating bots, obtaining tokens, setting up webhooks, and configuring allow-lists.</li>
         <li><a href="/docs/conversations"><strong>Conversation History</strong></a> &mdash; unified cross-channel history with FTS5 search, dashboard browsing, and API access for searching and analyzing past conversations across all channels.</li>
         <li><a href="/docs/webhooks"><strong>Webhooks</strong></a> &mdash; create webhook endpoints for GitHub, Stripe, CI/CD, and any external service. HMAC signature verification, prompt templates with <code>{{payload}}</code> substitution, and dashboard management.</li>
