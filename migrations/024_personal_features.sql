@@ -51,9 +51,11 @@ CREATE TRIGGER IF NOT EXISTS notes_au AFTER UPDATE ON notes BEGIN
   VALUES (new.id, new.title, new.content, new.tags);
 END;
 
-CREATE TABLE IF NOT EXISTS user_preferences (
+-- Upgrade user_preferences from migration 008 (simple key/value)
+-- to the expanded schema with category, confidence, source
+CREATE TABLE IF NOT EXISTS _user_preferences_new (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  category TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'general',
   key TEXT NOT NULL,
   value TEXT NOT NULL,
   confidence REAL NOT NULL DEFAULT 0.8,
@@ -62,6 +64,13 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE(category, key)
 );
+
+INSERT OR IGNORE INTO _user_preferences_new (key, value, updated_at)
+  SELECT key, value, updated_at FROM user_preferences;
+
+DROP TABLE IF EXISTS user_preferences;
+
+ALTER TABLE _user_preferences_new RENAME TO user_preferences;
 
 CREATE INDEX IF NOT EXISTS idx_prefs_category ON user_preferences(category);
 
