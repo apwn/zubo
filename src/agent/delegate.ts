@@ -1,6 +1,7 @@
 import type { LlmProvider } from "../llm/provider";
 import { getAgentDefinition } from "./agents";
 import { agentLoop } from "./loop";
+import { getAllToolDefs } from "../tools/registry";
 import { searchMemory } from "../memory/engine";
 import { getDb } from "../db/connection";
 import { logger } from "../util/logger";
@@ -107,7 +108,11 @@ export async function delegateToAgent(
     "delegate", "delegate_task", "manage_agents",
     "config_update", "secret_set", "secret_delete", "manage_skills",
   ]);
-  const filteredTools = agent.tools.filter(
+  // Support wildcard "*" — gives the agent all non-forbidden tools dynamically
+  const baseTools = agent.tools.includes("*")
+    ? getAllToolDefs().map(t => t.name)
+    : agent.tools;
+  const filteredTools = baseTools.filter(
     (t) => !FORBIDDEN_DELEGATION_TOOLS.has(t)
   );
 
@@ -115,7 +120,7 @@ export async function delegateToAgent(
   try {
     const result = await agentLoop(llm, sessionId, task, {
       systemPromptOverride: systemPrompt,
-      allowedTools: filteredTools.length > 0 ? filteredTools : undefined,
+      allowedTools: filteredTools,
       maxRounds: 8,
       memories,
     });

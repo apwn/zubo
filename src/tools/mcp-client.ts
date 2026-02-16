@@ -354,6 +354,12 @@ export class McpClient {
 // --- Global MCP management ---
 
 const mcpClients = new Map<string, McpClient>();
+const failedMcpServers: { name: string; error: string }[] = [];
+
+/** Returns list of MCP servers that failed to initialize. */
+export function getFailedMcpServers(): { name: string; error: string }[] {
+  return failedMcpServers;
+}
 
 /**
  * Initialize all configured MCP servers and register their tools.
@@ -361,6 +367,7 @@ const mcpClients = new Map<string, McpClient>();
 export async function initMcpServers(
   configs: McpServerConfig[]
 ): Promise<void> {
+  failedMcpServers.length = 0;
   for (const config of configs) {
     if (config.enabled === false) continue;
 
@@ -372,6 +379,7 @@ export async function initMcpServers(
       mcpClients.set(config.name, client);
     } catch (err: any) {
       logger.error(`Failed to start MCP server "${config.name}"`, { error: err.message });
+      failedMcpServers.push({ name: config.name, error: err.message });
     }
   }
 }

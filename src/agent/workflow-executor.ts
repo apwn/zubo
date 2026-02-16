@@ -3,6 +3,7 @@ import type { WorkflowDefinition, WorkflowStep } from "./workflow";
 import { getWorkflowDefinition } from "./workflow";
 import { delegateToAgent } from "./delegate";
 import { agentLoop } from "./loop";
+import { getAllToolDefs } from "../tools/registry";
 import { getDb } from "../db/connection";
 import { logger } from "../util/logger";
 
@@ -158,7 +159,10 @@ async function executeStep(
   try {
     if (step.agent === "main") {
       const sessionId = `workflow:${executionId}:${step.name}`;
-      const result = await agentLoop(llm, sessionId, task, { maxRounds: 8 });
+      const result = await agentLoop(llm, sessionId, task, {
+        maxRounds: 8,
+        allowedTools: getAllToolDefs().map(t => t.name),
+      });
       output = result.reply;
     } else {
       output = await delegateToAgent(llm, step.agent, task);

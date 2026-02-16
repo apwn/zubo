@@ -39,12 +39,12 @@ function resolveOptions(memoriesOrOptions: string | AgentLoopOptions): AgentLoop
     : memoriesOrOptions;
 }
 
-/** Detect simple greetings/chat that don't need tool definitions in context. */
+/** Detect standalone greetings that don't need tool definitions in context. */
 function looksConversational(text: string): boolean {
-  const t = text.trim().toLowerCase();
-  if (t.split(/\s+/).length > 8) return false; // longer messages likely need tools
-  const greetings = /^(h(ello|i|ey|owdy|ola)|yo|sup|good\s*(morning|afternoon|evening|night)|what'?s\s*up|gm|thanks|thank\s*you|ok(ay)?|bye|see\s*ya|cool|nice|wow|lol|haha)\b/;
-  return greetings.test(t);
+  const t = text.trim().toLowerCase().replace(/[!?.,:;]+$/g, "");
+  // Only match messages that are PURELY a greeting — no follow-up request
+  const standaloneGreetings = /^(h(ello|i|ey|owdy|ola)|yo|sup|good\s*(morning|afternoon|evening|night)|what'?s\s*up|gm|thanks|thank\s*you|ok(ay)?|bye|see\s*ya|cool|nice|wow|lol|haha)$/;
+  return standaloneGreetings.test(t);
 }
 
 async function prepareLoop(
