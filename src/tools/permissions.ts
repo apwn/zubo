@@ -15,8 +15,8 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   secret_list: "auto",
   secret_delete: "confirm",
 
-  // Config & integrations — require confirmation (can change system behavior)
-  config_update: "confirm",
+  // Config — auto (tool has built-in guards: blocks secrets, security settings, validates via schema)
+  config_update: "auto",
   connect_service: "confirm",
 
   // Agent delegation — delegate is auto, but creating/managing agents requires confirmation

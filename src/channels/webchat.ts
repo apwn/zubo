@@ -1948,9 +1948,9 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
   }
 
   // GET /api/dashboard/conversations/:id/messages — get messages for a conversation
-  const convMsgMatch = path.match(/^\/conversations\/([a-f0-9-]+)\/messages$/);
+  const convMsgMatch = path.match(/^\/conversations\/([^/]+)\/messages$/);
   if (convMsgMatch && req.method === "GET") {
-    const threadId = convMsgMatch[1];
+    const threadId = decodeURIComponent(convMsgMatch[1]);
     try {
       const db = getDb();
       const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "50", 10), 200);
@@ -2494,9 +2494,23 @@ export function createWebChatAdapter(
         db.run(`CREATE TABLE IF NOT EXISTS threads (
           id TEXT PRIMARY KEY,
           title TEXT NOT NULL DEFAULT 'New conversation',
+          channel TEXT DEFAULT 'webchat',
+          message_count INTEGER NOT NULL DEFAULT 0,
+          summary TEXT,
           created_at TEXT NOT NULL DEFAULT (datetime('now')),
           updated_at TEXT NOT NULL DEFAULT (datetime('now'))
         )`);
+        // Migrate existing tables missing new columns
+        try { db.run("ALTER TABLE threads ADD COLUMN channel TEXT DEFAULT 'webchat'"); } catch {}
+        try { db.run("ALTER TABLE threads ADD COLUMN message_count INTEGER NOT NULL DEFAULT 0"); } catch {}
+        try { db.run("ALTER TABLE threads ADD COLUMN summary TEXT"); } catch {}
+        // Backfill threads from conversation_messages for pre-existing data
+        try {
+          db.run(`INSERT OR IGNORE INTO threads (id, title, channel, message_count, created_at, updated_at)
+            SELECT thread_id, thread_id, COALESCE(channel, 'webchat'),
+              COUNT(*), MIN(timestamp), MAX(timestamp)
+            FROM conversation_messages GROUP BY thread_id`);
+        } catch {}
       } catch (err: any) {
         logger.warn("Failed to create threads table", { error: (err as Error).message });
       }

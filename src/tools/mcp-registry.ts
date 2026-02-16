@@ -53,7 +53,9 @@ export async function searchRegistry(
       return [];
     }
     const data = await res.json();
-    const servers: any[] = Array.isArray(data) ? data : data.servers ?? [];
+    const raw: any[] = Array.isArray(data) ? data : data.servers ?? [];
+    // Registry wraps each entry in { server: {...}, _meta: {...} } — unwrap
+    const servers: any[] = raw.map((e: any) => e.server ?? e);
     setCache(cacheKey, servers);
     return servers;
   } catch (err: any) {
@@ -83,8 +85,10 @@ export async function getServerDetail(name: string): Promise<any | null> {
       return null;
     }
     const data = await res.json();
-    setCache(cacheKey, data);
-    return data;
+    // Registry may wrap in { server: {...}, _meta: {...} } — unwrap
+    const server = data.server ?? data;
+    setCache(cacheKey, server);
+    return server;
   } catch (err: any) {
     logger.warn(`MCP registry detail error for "${name}"`, { error: err.message });
     return null;
@@ -115,9 +119,11 @@ export async function listRegistry(
       return { servers: [] };
     }
     const data = await res.json();
+    const raw: any[] = Array.isArray(data) ? data : data.servers ?? [];
+    // Registry wraps each entry in { server: {...}, _meta: {...} } — unwrap
     const result = {
-      servers: Array.isArray(data) ? data : data.servers ?? [],
-      nextCursor: data.nextCursor as string | undefined,
+      servers: raw.map((e: any) => e.server ?? e),
+      nextCursor: (data.metadata?.nextCursor ?? data.nextCursor) as string | undefined,
     };
     setCache(cacheKey, result);
     return result;

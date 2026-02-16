@@ -98,6 +98,23 @@
       </p>
 
       <!-- ================================================================ -->
+      <h2 id="network-requirements">Network Requirements</h2>
+
+      <div style="background: rgba(245,166,35,0.08); border-left: 3px solid #f5a623; padding: 14px 18px; border-radius: 6px; margin: 16px 0; font-size: 14px; line-height: 1.6;">
+        <strong style="color: #f5a623;">Localhost won't work for external services.</strong> Webhook URLs like <code>http://localhost:61939/api/webhook/...</code> are only reachable from your own machine. External services (GitHub, Stripe, etc.) cannot send events to localhost.
+      </div>
+
+      <p>To receive webhooks from external services, you need a publicly reachable URL. Options:</p>
+
+      <ul>
+        <li><strong>ngrok</strong> &mdash; Run <code>ngrok http 61939</code> to get a public HTTPS URL that tunnels to your local Zubo instance. Free tier available.</li>
+        <li><strong>Cloudflare Tunnel</strong> &mdash; Run <code>cloudflared tunnel --url http://localhost:61939</code> for a free, fast tunnel.</li>
+        <li><strong>Deploy Zubo</strong> &mdash; Run Zubo on a VPS or cloud server with a public IP and domain name.</li>
+      </ul>
+
+      <p>Once you have a public URL, configure the external service to send events to <code>https://your-public-url/api/webhook/&lt;webhook-id&gt;</code>.</p>
+
+      <!-- ================================================================ -->
       <h2 id="creating-webhooks">Creating Webhooks</h2>
 
       <p>You can create webhooks through the dashboard, the CLI, or the API.</p>

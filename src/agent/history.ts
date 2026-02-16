@@ -14,13 +14,18 @@ export function recordMessage(
 ): void {
   try {
     const db = getDb();
+    // Ensure thread exists before inserting message
+    db.run(
+      "INSERT OR IGNORE INTO threads (id, title, channel, message_count, created_at, updated_at) VALUES (?, ?, ?, 0, datetime('now'), datetime('now'))",
+      [threadId, threadId, channel ?? "webchat"]
+    );
     db.run(
       "INSERT INTO conversation_messages (thread_id, role, content, channel, timestamp) VALUES (?, ?, ?, ?, datetime('now'))",
       [threadId, role, content, channel ?? null]
     );
     db.run(
-      "UPDATE threads SET message_count = message_count + 1, updated_at = datetime('now') WHERE id = ?",
-      [threadId]
+      "UPDATE threads SET message_count = message_count + 1, updated_at = datetime('now'), channel = COALESCE(channel, ?) WHERE id = ?",
+      [channel ?? "webchat", threadId]
     );
     db.run(
       "INSERT INTO conversation_search (content, thread_id, role) VALUES (?, ?, ?)",

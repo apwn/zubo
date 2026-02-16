@@ -77,14 +77,68 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "3",
     label: "Ollama (local)",
     setup: async () => {
-      const baseUrl = await prompt("  Ollama URL [http://localhost:11434/v1]: ");
-      const model = await prompt("  Model [llama3.3]: ");
+      // Check if ollama is installed
+      const which = Bun.spawnSync(["which", "ollama"], { stdout: "pipe", stderr: "pipe" });
+      if (which.exitCode !== 0) {
+        warn("'ollama' not found on your system.\n");
+        console.log(`    Install Ollama from ${CYAN}https://ollama.com${RESET}`);
+        console.log(`    ${DIM}macOS:   brew install ollama${RESET}`);
+        console.log(`    ${DIM}Linux:   curl -fsSL https://ollama.com/install.sh | sh${RESET}`);
+        console.log(`    ${DIM}Windows: Download from https://ollama.com/download${RESET}\n`);
+        const cont = await prompt("  Press Enter after installing, or 'skip' to configure anyway: ");
+        if (cont.toLowerCase() !== "skip") {
+          const recheck = Bun.spawnSync(["which", "ollama"], { stdout: "pipe", stderr: "pipe" });
+          if (recheck.exitCode !== 0) {
+            warn("Still not found. Saving config anyway — install Ollama before starting.\n");
+          }
+        }
+      } else {
+        ok("'ollama' CLI found");
+      }
+
+      // Check if Ollama server is running
+      const baseUrl = "http://localhost:11434/v1";
+      info("Checking if Ollama server is running...");
+      let models: string[] = [];
+      try {
+        const res = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          const data = await res.json() as { models?: { name: string }[] };
+          models = (data.models ?? []).map(m => m.name);
+          ok(`Ollama is running (${models.length} model${models.length !== 1 ? "s" : ""} available)`);
+        } else {
+          warn("Ollama server responded with an error. Make sure it's running: ollama serve");
+        }
+      } catch {
+        warn("Ollama server not reachable at localhost:11434.");
+        info("Start it with: ollama serve");
+        info("Or on macOS, just open the Ollama app.\n");
+      }
+
+      // Show available models or suggest pulling one
+      let model = "";
+      if (models.length > 0) {
+        console.log(`\n    ${BOLD}Available models:${RESET}`);
+        models.slice(0, 10).forEach((m, i) => console.log(`    ${DIM}${(i + 1).toString().padStart(2)}.${RESET} ${m}`));
+        if (models.length > 10) console.log(`    ${DIM}   ... and ${models.length - 10} more${RESET}`);
+        console.log("");
+        model = await prompt(`  Model [${models[0]}]: `);
+        model = model || models[0];
+      } else {
+        info("No models downloaded yet. Pull one with:");
+        console.log(`    ${DIM}ollama pull llama3.3${RESET}`);
+        console.log(`    ${DIM}ollama pull mistral${RESET}`);
+        console.log(`    ${DIM}ollama pull qwen2.5${RESET}\n`);
+        model = await prompt("  Model [llama3.3]: ");
+        model = model || "llama3.3";
+      }
+
       return {
         name: "ollama",
         config: {
-          baseUrl: baseUrl || "http://localhost:11434/v1",
+          baseUrl,
           apiKey: "ollama",
-          model: model || "llama3.3",
+          model,
           streaming: false,
         },
       };
@@ -217,20 +271,142 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
     key: "12",
     label: "LM Studio (local)",
     setup: async () => {
-      const baseUrl = await prompt("  LM Studio URL [http://localhost:1234/v1]: ");
-      const model = await prompt("  Model name: ");
+      const baseUrl = "http://localhost:1234/v1";
+      info("Checking if LM Studio server is running...");
+
+      let models: string[] = [];
+      try {
+        const res = await fetch(`${baseUrl}/models`, { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          const data = await res.json() as { data?: { id: string }[] };
+          models = (data.data ?? []).map(m => m.id);
+          ok(`LM Studio is running (${models.length} model${models.length !== 1 ? "s" : ""} loaded)`);
+        }
+      } catch {
+        warn("LM Studio server not reachable at localhost:1234.\n");
+        console.log(`    ${BOLD}To set up LM Studio:${RESET}`);
+        console.log(`    ${DIM}1.${RESET} Download from ${CYAN}https://lmstudio.ai${RESET}`);
+        console.log(`    ${DIM}2.${RESET} Open LM Studio and download a model (e.g. Llama 3.3, Mistral)`);
+        console.log(`    ${DIM}3.${RESET} Go to the "Local Server" tab (left sidebar)`);
+        console.log(`    ${DIM}4.${RESET} Click "Start Server" — it runs on port 1234 by default\n`);
+        const cont = await prompt("  Press Enter once LM Studio server is running, or 'skip' to configure anyway: ");
+        if (cont.toLowerCase() !== "skip") {
+          try {
+            const retry = await fetch(`${baseUrl}/models`, { signal: AbortSignal.timeout(3000) });
+            if (retry.ok) {
+              const data = await retry.json() as { data?: { id: string }[] };
+              models = (data.data ?? []).map(m => m.id);
+              ok(`LM Studio is running (${models.length} model${models.length !== 1 ? "s" : ""} loaded)`);
+            } else {
+              warn("Still not reachable. Config saved — start LM Studio before running Zubo.");
+            }
+          } catch {
+            warn("Still not reachable. Config saved — start LM Studio before running Zubo.");
+          }
+        }
+      }
+
+      let model = "";
+      if (models.length > 0) {
+        console.log(`\n    ${BOLD}Loaded models:${RESET}`);
+        models.forEach((m, i) => console.log(`    ${DIM}${(i + 1).toString().padStart(2)}.${RESET} ${m}`));
+        console.log("");
+        model = await prompt(`  Model [${models[0]}]: `);
+        model = model || models[0];
+      } else {
+        info("No models detected. Load a model in LM Studio first.");
+        model = await prompt("  Model name: ");
+        model = model || "default";
+      }
+
       return {
         name: "lmstudio",
         config: {
-          baseUrl: baseUrl || "http://localhost:1234/v1",
+          baseUrl,
           apiKey: "lm-studio",
-          model: model || "default",
+          model,
         },
       };
     },
   },
   {
     key: "13",
+    label: "Claude Code (CLI)",
+    setup: async () => {
+      // Check if claude CLI is installed
+      const which = Bun.spawnSync(["which", "claude"], { stdout: "pipe", stderr: "pipe" });
+      if (which.exitCode !== 0) {
+        warn("'claude' CLI not found. Install it first:");
+        console.log(`    ${DIM}npm install -g @anthropic-ai/claude-code${RESET}\n`);
+        const cont = await prompt("  Press Enter after installing, or 'skip' to continue anyway: ");
+        if (cont.toLowerCase() === "skip") {
+          return { name: "claude-code", config: { model: "claude-sonnet-4-5-20250929" } };
+        }
+        const recheck = Bun.spawnSync(["which", "claude"], { stdout: "pipe", stderr: "pipe" });
+        if (recheck.exitCode !== 0) {
+          warn("Still not found. Config saved — install 'claude' CLI before starting.");
+          return { name: "claude-code", config: { model: "claude-sonnet-4-5-20250929" } };
+        }
+      }
+      ok("'claude' CLI found");
+      // Quick auth check — run claude with a trivial prompt and short timeout
+      const check = Bun.spawnSync(["claude", "-p", "hi", "--max-turns", "1"], {
+        stdout: "pipe", stderr: "pipe", timeout: 10_000,
+      });
+      if (check.exitCode === 0) {
+        ok("Claude Code authenticated");
+      } else {
+        warn("Claude Code may not be authenticated yet.");
+        info("Open a separate terminal and run: claude");
+        info("Complete the login flow, then come back here.\n");
+        await prompt("  Press Enter once you've authenticated... ");
+        // Re-check
+        const recheck = Bun.spawnSync(["claude", "-p", "hi", "--max-turns", "1"], {
+          stdout: "pipe", stderr: "pipe", timeout: 10_000,
+        });
+        if (recheck.exitCode === 0) {
+          ok("Claude Code authenticated");
+        } else {
+          warn("Still not authenticated. Run 'claude' in a terminal to log in before starting Zubo.");
+        }
+      }
+      return { name: "claude-code", config: { model: "claude-sonnet-4-5-20250929" } };
+    },
+  },
+  {
+    key: "14",
+    label: "OpenAI Codex (CLI)",
+    setup: async () => {
+      // Check if codex CLI is installed
+      const which = Bun.spawnSync(["which", "codex"], { stdout: "pipe", stderr: "pipe" });
+      if (which.exitCode !== 0) {
+        warn("'codex' CLI not found. Install it first:");
+        console.log(`    ${DIM}npm install -g @openai/codex${RESET}\n`);
+        const cont = await prompt("  Press Enter after installing, or 'skip' to continue anyway: ");
+        if (cont.toLowerCase() === "skip") {
+          return { name: "codex", config: { model: "o4-mini" } };
+        }
+        const recheck = Bun.spawnSync(["which", "codex"], { stdout: "pipe", stderr: "pipe" });
+        if (recheck.exitCode !== 0) {
+          warn("Still not found. Config saved — install 'codex' CLI before starting.");
+          return { name: "codex", config: { model: "o4-mini" } };
+        }
+      }
+      ok("'codex' CLI found");
+      info("Authenticating — this will open your browser if needed...");
+      const login = Bun.spawnSync(["codex", "auth", "login"], {
+        stdin: "inherit", stdout: "inherit", stderr: "inherit",
+      });
+      if (login.exitCode !== 0) {
+        warn("Login may not have completed. Run 'codex auth login' manually later.");
+      } else {
+        ok("Codex ready");
+      }
+      return { name: "codex", config: { model: "o4-mini" } };
+    },
+  },
+  {
+    key: "15",
     label: "Other (OpenAI-compatible)",
     setup: async () => {
       const name = await prompt("  Provider name: ");
@@ -295,7 +471,8 @@ async function setupProvider(): Promise<{
   const anthropicApiKey =
     result.name === "anthropic" ? result.config.apiKey : undefined;
 
-  ok(`${result.name} configured (${result.config.model})`);
+  const isCliProvider = result.name === "claude-code" || result.name === "codex";
+  ok(`${result.name} configured` + (isCliProvider ? "" : ` (${result.config.model})`));
 
   // Offer fallback
   const addFallback = await prompt("\n  Add a fallback provider? (y/N): ");
@@ -307,7 +484,8 @@ async function setupProvider(): Promise<{
     if (fb) {
       providers[fb.name] = fb.config;
       failover.push(fb.name);
-      ok(`${fb.name} added as fallback (${fb.config.model})`);
+      const isFbCli = fb.name === "claude-code" || fb.name === "codex";
+      ok(`${fb.name} added as fallback` + (isFbCli ? "" : ` (${fb.config.model})`));
     }
   }
 

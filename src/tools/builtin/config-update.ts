@@ -113,7 +113,24 @@ export function registerConfigUpdateTool() {
           const validated = configSchema.parse(configObj);
           await saveConfig(validated);
           logger.info(`Config updated: ${key} = ${JSON.stringify(value)}`);
-          return `Config updated: ${key} = ${JSON.stringify(value)}. Changes take effect on next restart (run \`zubo start\` again).`;
+
+          // Hot-swap LLM provider if activeProvider changed
+          if (key === "activeProvider") {
+            try {
+              const { createProvider } = await import("../../llm/factory");
+              const newLlm = createProvider(validated);
+              const router = (globalThis as any).__zuboRouter;
+              if (router?.setLlm) {
+                router.setLlm(newLlm);
+                return `Switched to ${value}. Active now — no restart needed.`;
+              }
+            } catch (swapErr: any) {
+              logger.warn("Provider hot-swap failed", { error: swapErr.message });
+              return `Config updated: activeProvider = ${JSON.stringify(value)}, but hot-swap failed: ${swapErr.message}. Restart to apply.`;
+            }
+          }
+
+          return `Config updated: ${key} = ${JSON.stringify(value)}.`;
         } catch (err: any) {
           return `Error: Invalid config value. ${err.message}`;
         }

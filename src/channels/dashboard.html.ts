@@ -2002,6 +2002,8 @@ function switchTab(panelId, tabName) {
     if (tabName === 'marketplace') {
       var s = document.getElementById('mcp-marketplace-search');
       if (s) s.focus();
+      var grid = document.getElementById('mcp-marketplace-results');
+      if (grid && !grid.hasChildNodes()) searchMcpMarketplace();
     }
   }
   if (panelId === 'settings' && tabName === 'digests') loadDigestConfig();
@@ -4580,8 +4582,8 @@ function loadConversationStats() {
     var stats = [
       { label: 'Conversations', value: data.totalConversations || 0 },
       { label: 'Messages', value: data.totalMessages || 0 },
-      { label: 'Channels', value: Object.keys(data.messagesByChannel || {}).length },
-      { label: 'Recent (24h)', value: data.recentActivity || 0 },
+      { label: 'Channels', value: (data.messagesByChannel || []).length },
+      { label: 'Recent (24h)', value: (data.recentActivity || []).reduce(function(s, r) { return s + (r.count || 0); }, 0) },
     ];
     stats.forEach(function(s) {
       var card = document.createElement('div');
@@ -4823,6 +4825,13 @@ function loadWebhooks() {
       urlEl.setAttribute('data-tooltip', 'Click to copy');
       urlEl.onclick = function() { copyToClipboard(whUrl); };
       card.appendChild(urlEl);
+      // Localhost warning
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        var warn = document.createElement('div');
+        warn.style.cssText = 'font-size:11px;color:var(--yellow,#f5a623);margin-top:4px;padding:6px 8px;background:rgba(245,166,35,0.08);border-radius:4px;line-height:1.4;';
+        warn.textContent = 'This URL uses localhost and won\\'t be reachable by external services. Use a tunnel (ngrok, cloudflared) or deploy to a public server to receive webhooks.';
+        card.appendChild(warn);
+      }
       // Stats
       var stats = document.createElement('div');
       stats.className = 'webhook-card-stats';
@@ -5024,9 +5033,10 @@ function searchMcpMarketplace() {
       card.appendChild(desc);
       var acts = document.createElement('div');
       acts.className = 'mcp-server-card-actions';
-      if (s.repository) {
+      var repoUrl = typeof s.repository === 'string' ? s.repository : (s.repository && s.repository.url ? s.repository.url : '');
+      if (repoUrl) {
         var link = document.createElement('a');
-        link.href = s.repository;
+        link.href = repoUrl;
         link.target = '_blank';
         link.style.cssText = 'font-size:12px;color:var(--text-muted);';
         link.textContent = 'View Repo';

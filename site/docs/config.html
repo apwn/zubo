@@ -251,6 +251,98 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
         </tbody>
       </table>
 
+      <!-- ================================================================ -->
+      <h3 id="local-models">Local Models (Ollama &amp; LM Studio)</h3>
+
+      <p>
+        Local models run entirely on your machine — no API keys, no usage fees, and your data never leaves your computer. They're ideal as a primary provider for privacy-focused setups, or as a failover when your internet is down.
+      </p>
+
+      <h4>Ollama</h4>
+
+      <p><a href="https://ollama.com" target="_blank">Ollama</a> is a lightweight runtime for running open-source models locally. It provides an OpenAI-compatible API out of the box.</p>
+
+      <p><strong>Installation:</strong></p>
+<pre><code># macOS (Homebrew)
+brew install ollama
+
+# Linux
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Windows — download from https://ollama.com/download</code></pre>
+
+      <p><strong>Getting started:</strong></p>
+<pre><code># Start the Ollama server (runs on port 11434)
+ollama serve
+
+# Pull a model
+ollama pull llama3.3       # Meta Llama 3.3 (good general-purpose)
+ollama pull mistral        # Mistral 7B (fast, lightweight)
+ollama pull qwen2.5        # Qwen 2.5 (strong multilingual)
+ollama pull deepseek-r1    # DeepSeek R1 (strong reasoning)
+ollama pull gemma2         # Google Gemma 2
+
+# List downloaded models
+ollama list</code></pre>
+
+      <p><strong>Zubo configuration:</strong></p>
+<pre><code>"ollama": {
+  "baseUrl": "http://localhost:11434/v1",
+  "model": "llama3.3",
+  "apiKey": "ollama"
+}</code></pre>
+      <p>The <code>apiKey</code> field is required by the OpenAI-compatible client but Ollama ignores it — any value works.</p>
+
+      <h4>LM Studio</h4>
+
+      <p><a href="https://lmstudio.ai" target="_blank">LM Studio</a> provides a graphical interface for downloading, managing, and running local models. It includes a built-in server that exposes an OpenAI-compatible API.</p>
+
+      <p><strong>Installation:</strong></p>
+      <ol>
+        <li>Download LM Studio from <a href="https://lmstudio.ai" target="_blank">lmstudio.ai</a> (macOS, Windows, Linux)</li>
+        <li>Open LM Studio and browse the model library to download a model</li>
+        <li>Go to the <strong>Local Server</strong> tab in the left sidebar</li>
+        <li>Select your model and click <strong>Start Server</strong> — it runs on port 1234 by default</li>
+      </ol>
+
+      <p><strong>Zubo configuration:</strong></p>
+<pre><code>"lmstudio": {
+  "baseUrl": "http://localhost:1234/v1",
+  "model": "your-model-name",
+  "apiKey": "lm-studio"
+}</code></pre>
+
+      <p><strong>Tip:</strong> Local models work great as a failover. Set a cloud provider as primary and Ollama/LM Studio as the fallback — if your API key runs out or the network drops, Zubo seamlessly falls back to your local model:</p>
+<pre><code>"activeProvider": "anthropic",
+"failover": ["ollama"]</code></pre>
+
+      <h4>CLI Providers (Claude Code &amp; OpenAI Codex)</h4>
+
+      <p>These providers use locally installed CLI tools that handle their own authentication — no API key configuration needed in Zubo.</p>
+
+      <table>
+        <thead>
+          <tr><th>Provider</th><th>CLI Tool</th><th>Install</th><th>Auth</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>claude-code</code></td>
+            <td><code>claude</code></td>
+            <td><code>npm install -g @anthropic-ai/claude-code</code></td>
+            <td>Run <code>claude</code> once to authenticate via browser</td>
+          </tr>
+          <tr>
+            <td><code>codex</code></td>
+            <td><code>codex</code></td>
+            <td><code>npm install -g @openai/codex</code></td>
+            <td>Run <code>codex auth login</code> to authenticate</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"claude-code": { "model": "claude-sonnet-4-5-20250929" }
+"codex": { "model": "o4-mini" }</code></pre>
+
       <h3>Multi-Provider Example with Failover</h3>
 
 <pre><code>{
