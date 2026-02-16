@@ -11,7 +11,7 @@ export class CodexProvider implements LlmProvider {
   model: string;
   contextWindow = 200_000;
 
-  constructor(model: string = "o4-mini") {
+  constructor(model: string = "default") {
     this.model = model;
   }
 
@@ -52,7 +52,6 @@ export class CodexProvider implements LlmProvider {
     const prompt = parts.join("\n\n");
 
     const args = ["codex", "exec"];
-    if (this.model) args.push("--model", this.model);
     args.push(prompt);
 
     try {

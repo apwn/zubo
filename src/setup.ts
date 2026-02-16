@@ -350,12 +350,12 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
         console.log(`    ${DIM}npm install -g @anthropic-ai/claude-code${RESET}\n`);
         const cont = await prompt("  Press Enter after installing, or 'skip' to continue anyway: ");
         if (cont.toLowerCase() === "skip") {
-          return { name: "claude-code", config: { model: "claude-sonnet-4-5-20250929" } };
+          return { name: "claude-code", config: { model: "default" } };
         }
         const recheck = Bun.spawnSync(["which", "claude"], { stdout: "pipe", stderr: "pipe" });
         if (recheck.exitCode !== 0) {
           warn("Still not found. Config saved — install 'claude' CLI before starting.");
-          return { name: "claude-code", config: { model: "claude-sonnet-4-5-20250929" } };
+          return { name: "claude-code", config: { model: "default" } };
         }
       }
       ok("'claude' CLI found");
@@ -380,7 +380,7 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
           warn("Still not authenticated. Run 'claude' in a terminal to log in before starting Zubo.");
         }
       }
-      return { name: "claude-code", config: { model: "claude-sonnet-4-5-20250929" } };
+      return { name: "claude-code", config: { model: "default" } };
     },
   },
   {
@@ -394,12 +394,12 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
         console.log(`    ${DIM}npm install -g @openai/codex${RESET}\n`);
         const cont = await prompt("  Press Enter after installing, or 'skip' to continue anyway: ");
         if (cont.toLowerCase() === "skip") {
-          return { name: "codex", config: { model: "o4-mini" } };
+          return { name: "codex", config: { model: "default" } };
         }
         const recheck = Bun.spawnSync(["which", "codex"], { stdout: "pipe", stderr: "pipe" });
         if (recheck.exitCode !== 0) {
           warn("Still not found. Config saved — install 'codex' CLI before starting.");
-          return { name: "codex", config: { model: "o4-mini" } };
+          return { name: "codex", config: { model: "default" } };
         }
       }
       ok("'codex' CLI found");
@@ -412,7 +412,7 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
       } else {
         ok("Codex ready");
       }
-      return { name: "codex", config: { model: "o4-mini" } };
+      return { name: "codex", config: { model: "default" } };
     },
   },
   {

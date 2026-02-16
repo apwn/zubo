@@ -11,7 +11,7 @@ export class ClaudeCodeProvider implements LlmProvider {
   model: string;
   contextWindow = 200_000;
 
-  constructor(model: string = "claude-sonnet-4-5-20250929") {
+  constructor(model: string = "default") {
     this.model = model;
   }
 
@@ -55,7 +55,6 @@ export class ClaudeCodeProvider implements LlmProvider {
     const prompt = parts.join("\n\n");
 
     const args = ["claude", "-p", prompt, "--output-format", "json"];
-    if (this.model) args.push("--model", this.model);
 
     try {
       const proc = Bun.spawn(args, {

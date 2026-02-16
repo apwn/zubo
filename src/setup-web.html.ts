@@ -978,7 +978,7 @@ function collectProviderData() {
   if (!p) return;
 
   if (p.cli) {
-    var model = p.id === 'claude-code' ? 'claude-sonnet-4-5-20250929' : 'o4-mini';
+    var model = 'default';
     state.providers[p.id] = { model: model };
   } else if (p.local) {
     var m = document.getElementById('model')?.value || p.defaultModel;
@@ -1006,7 +1006,7 @@ function collectProviderData() {
     var fb = PROVIDERS.find(function(x) { return x.id === state.fallbackProvider; });
     if (fb) {
       if (fb.cli) {
-        var fbm = fb.id === 'claude-code' ? 'claude-sonnet-4-5-20250929' : 'o4-mini';
+        var fbm = 'default';
         state.providers[fb.id] = { model: fbm };
       } else if (fb.local) {
         var fbModel = document.getElementById('fb_model')?.value || fb.defaultModel;
