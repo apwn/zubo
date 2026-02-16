@@ -6,16 +6,16 @@
   <title>Channel Setup — Zubo Docs</title>
   <meta name="description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat. Step-by-step setup guides for every supported messaging channel.">
   <meta name="theme-color" content="#060608">
-  <link rel="canonical" href="https://zubo.bot/docs/channels.html">
+  <link rel="canonical" href="https://zubo.bot/docs/channels">
   <meta property="og:title" content="Channel Setup — Zubo Docs">
-  <meta property="og:description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat. Step-by-step setup guides.">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://zubo.bot/docs/channels.html">
+  <meta property="og:description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat. Step-by-step setup guides for every supported messaging channel.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://zubo.bot/docs/channels">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Channel Setup — Zubo Docs">
-  <meta name="twitter:description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat.">
+  <meta name="twitter:description" content="Connect Zubo to Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat. Step-by-step setup guides for every supported messaging channel.">
   <meta name="twitter:image" content="https://zubo.bot/og-image.png">
   <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +35,7 @@
       <nav class="nav-links" id="nav-links">
         <a href="/#features">Features</a>
         <a href="/docs/" style="color:#fff;">Docs</a>
-        <a href="../skills.html">Skills</a>
+        <a href="/skills">Skills</a>
         <a href="/#get-started">Get Started</a>
       </nav>
       <div class="nav-right">
@@ -56,31 +56,31 @@
         <div class="docs-sidebar-heading">Getting Started</div>
         <div class="docs-sidebar-links">
           <a href="/docs/">Overview</a>
-          <a href="config.html">Configuration</a>
+          <a href="/docs/config">Configuration</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Core Concepts</div>
         <div class="docs-sidebar-links">
-          <a href="agents.html">Agents &amp; Workflows</a>
-          <a href="memory.html">Memory System</a>
-          <a href="skills.html">Skills</a>
+          <a href="/docs/agents">Agents &amp; Workflows</a>
+          <a href="/docs/memory">Memory System</a>
+          <a href="/docs/skills">Skills</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
-          <a href="channels.html" class="active">Channel Setup</a>
-          <a href="integrations.html">Integrations</a>
-          <a href="integrations.html#oauth">OAuth</a>
-          <a href="security.html">Security &amp; Auth</a>
+          <a href="/docs/channels" class="active">Channel Setup</a>
+          <a href="/docs/integrations">Integrations</a>
+          <a href="/docs/integrations#oauth">OAuth</a>
+          <a href="/docs/security">Security &amp; Auth</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Reference</div>
         <div class="docs-sidebar-links">
-          <a href="api.html">API Reference</a>
-          <a href="cli.html">CLI Commands</a>
+          <a href="/docs/api">API Reference</a>
+          <a href="/docs/cli">CLI Commands</a>
         </div>
       </div>
     </aside>
@@ -366,7 +366,7 @@ brew install signal-cli
       <ul>
         <li><strong>Access control</strong> &mdash; use <code>allowedUsers</code> or <code>allowedNumbers</code> on each channel to restrict who can send messages. When the list is empty, anyone on that platform can message your agent.</li>
         <li><strong>Rate limiting</strong> &mdash; the web chat channel enforces rate limits per IP address. Other channels enforce rate limits per user ID. Configure limits via <code>rateLimit.chatPerMinute</code> in your config.</li>
-        <li><strong>API authentication</strong> &mdash; enable bearer token auth for the web chat HTTP endpoints by setting <code>auth.enabled: true</code> in your config. See the <a href="security.html">Security &amp; Auth</a> guide for details.</li>
+        <li><strong>API authentication</strong> &mdash; enable bearer token auth for the web chat HTTP endpoints by setting <code>auth.enabled: true</code> in your config. See the <a href="/docs/security">Security &amp; Auth</a> guide for details.</li>
         <li><strong>Tool confirmation</strong> &mdash; destructive tools like <code>shell</code>, <code>file_write</code>, and <code>secret_delete</code> require explicit user confirmation before executing, regardless of channel.</li>
       </ul>
 
@@ -382,11 +382,11 @@ brew install signal-cli
       </ul>
 
       <div class="docs-page-nav">
-        <a href="skills.html">
+        <a href="/docs/skills">
           <span class="nav-dir">Previous</span>
           <span class="nav-label">&larr; Skills</span>
         </a>
-        <a href="integrations.html">
+        <a href="/docs/integrations">
           <span class="nav-dir">Next</span>
           <span class="nav-label">Integrations &rarr;</span>
         </a>
@@ -404,7 +404,7 @@ brew install signal-cli
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zubo.bot/" },
       { "@type": "ListItem", "position": 2, "name": "Docs", "item": "https://zubo.bot/docs/" },
-      { "@type": "ListItem", "position": 3, "name": "Channel Setup", "item": "https://zubo.bot/docs/channels.html" }
+      { "@type": "ListItem", "position": 3, "name": "Channel Setup", "item": "https://zubo.bot/docs/channels" }
     ]
   }
   </script>

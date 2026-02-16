@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agents &amp; Workflows — Zubo Docs</title>
-  <meta name="description" content="Learn how to create custom agents, delegate tasks to sub-agents, build multi-step workflows, and organize agent teams in Zubo.">
+  <meta name="description" content="Create custom AI agents, delegate tasks to sub-agents, build multi-step workflows, and organize agent teams in Zubo. Full guide with examples.">
   <meta name="theme-color" content="#060608">
-  <link rel="canonical" href="https://zubo.bot/docs/agents.html">
+  <link rel="canonical" href="https://zubo.bot/docs/agents">
   <meta property="og:title" content="Agents &amp; Workflows — Zubo Docs">
-  <meta property="og:description" content="Create custom agents, delegate tasks to sub-agents, build multi-step workflows, and organize agent teams in Zubo.">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://zubo.bot/docs/agents.html">
+  <meta property="og:description" content="Create custom AI agents, delegate tasks to sub-agents, build multi-step workflows, and organize agent teams in Zubo. Full guide with examples.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://zubo.bot/docs/agents">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Agents &amp; Workflows — Zubo Docs">
-  <meta name="twitter:description" content="Create custom agents, delegate tasks to sub-agents, and build multi-step workflows in Zubo.">
+  <meta name="twitter:description" content="Create custom AI agents, delegate tasks to sub-agents, build multi-step workflows, and organize agent teams in Zubo. Full guide with examples.">
   <meta name="twitter:image" content="https://zubo.bot/og-image.png">
   <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
       <nav class="nav-links" id="nav-links">
         <a href="/#features">Features</a>
         <a href="/docs/" style="color:#fff;">Docs</a>
-        <a href="../skills.html">Skills</a>
+        <a href="/skills">Skills</a>
         <a href="/#get-started">Get Started</a>
       </nav>
       <div class="nav-right">
@@ -50,31 +50,31 @@
         <div class="docs-sidebar-heading">Getting Started</div>
         <div class="docs-sidebar-links">
           <a href="/docs/">Overview</a>
-          <a href="config.html">Configuration</a>
+          <a href="/docs/config">Configuration</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Core Concepts</div>
         <div class="docs-sidebar-links">
-          <a href="agents.html" class="active">Agents &amp; Workflows</a>
-          <a href="memory.html">Memory System</a>
-          <a href="skills.html">Skills</a>
+          <a href="/docs/agents" class="active">Agents &amp; Workflows</a>
+          <a href="/docs/memory">Memory System</a>
+          <a href="/docs/skills">Skills</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
-          <a href="channels.html">Channel Setup</a>
-          <a href="integrations.html">Integrations</a>
-          <a href="integrations.html#oauth">OAuth</a>
-          <a href="security.html">Security &amp; Auth</a>
+          <a href="/docs/channels">Channel Setup</a>
+          <a href="/docs/integrations">Integrations</a>
+          <a href="/docs/integrations#oauth">OAuth</a>
+          <a href="/docs/security">Security &amp; Auth</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Reference</div>
         <div class="docs-sidebar-links">
-          <a href="api.html">API Reference</a>
-          <a href="cli.html">CLI Commands</a>
+          <a href="/docs/api">API Reference</a>
+          <a href="/docs/cli">CLI Commands</a>
         </div>
       </div>
     </aside>
@@ -154,7 +154,7 @@ generation and multi-step reasoning use Claude.
       <p>Every conversation session is automatically persisted. Recent messages are always included in the LLM context, so Zubo remembers what you discussed earlier in the same session without any explicit action on your part.</p>
 
       <h3>2. Semantic Memory</h3>
-      <p>Facts, notes, and documents saved via the <code>memory_write</code> tool are chunked, embedded as 384-dimensional vectors, and indexed for full-text search. When you send a message, Zubo automatically runs a hybrid search (60% vector similarity + 40% keyword matching) to find relevant memories and inject them into the context. See the <a href="memory.html">Memory System</a> page for full details.</p>
+      <p>Facts, notes, and documents saved via the <code>memory_write</code> tool are chunked, embedded as 384-dimensional vectors, and indexed for full-text search. When you send a message, Zubo automatically runs a hybrid search (60% vector similarity + 40% keyword matching) to find relevant memories and inject them into the context. See the <a href="/docs/memory">Memory System</a> page for full details.</p>
 
       <h3>3. Knowledge Graph</h3>
       <p>Structured entity-relationship memory captures discrete facts in a queryable format. Entities (people, projects, organizations, concepts) are linked by labeled relationships (works_on, manages, uses). When you mention a known entity, its graph context is automatically injected into the LLM prompt.</p>
@@ -352,8 +352,8 @@ content_pipeline</code></pre>
       </ul>
 
       <div class="docs-page-nav">
-        <a href="config.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Configuration</span></a>
-        <a href="memory.html"><span class="nav-dir">Next</span><span class="nav-label">Memory System &rarr;</span></a>
+        <a href="/docs/config"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Configuration</span></a>
+        <a href="/docs/memory"><span class="nav-dir">Next</span><span class="nav-label">Memory System &rarr;</span></a>
       </div>
     </main>
   </div>
@@ -367,7 +367,7 @@ content_pipeline</code></pre>
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zubo.bot/" },
       { "@type": "ListItem", "position": 2, "name": "Docs", "item": "https://zubo.bot/docs/" },
-      { "@type": "ListItem", "position": 3, "name": "Agents & Workflows", "item": "https://zubo.bot/docs/agents.html" }
+      { "@type": "ListItem", "position": 3, "name": "Agents & Workflows", "item": "https://zubo.bot/docs/agents" }
     ]
   }
   </script>

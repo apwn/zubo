@@ -6,11 +6,11 @@
   <title>Community Skills — Zubo</title>
   <meta name="description" content="Browse and install community skills for Zubo. Extend your AI agent with custom tools, integrations, and automations.">
   <meta name="theme-color" content="#060608">
-  <link rel="canonical" href="https://zubo.bot/skills.html">
+  <link rel="canonical" href="https://zubo.bot/skills">
   <meta property="og:title" content="Community Skills — Zubo">
   <meta property="og:description" content="Browse and install community skills for Zubo. Extend your AI agent with custom tools, integrations, and automations.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://zubo.bot/skills.html">
+  <meta property="og:url" content="https://zubo.bot/skills">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
@@ -38,7 +38,7 @@
       <nav class="nav-links" id="nav-links">
         <a href="/#features">Features</a>
         <a href="/docs/">Docs</a>
-        <a href="skills.html" style="color:#fff;">Skills</a>
+        <a href="/skills" style="color:#fff;">Skills</a>
         <a href="/#get-started">Get Started</a>
       </nav>
       <div class="nav-right">
@@ -399,7 +399,7 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
           <div class="footer-col">
             <h5>Resources</h5>
             <a href="/docs/">Documentation</a>
-            <a href="skills.html">Community Skills</a>
+            <a href="/skills">Community Skills</a>
             <a href="https://github.com/apwn/zubo">GitHub</a>
             <a href="https://github.com/apwn/zubo/issues">Issues</a>
           </div>
@@ -538,7 +538,7 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
           authorEl.appendChild(avatarImg);
         }
         var authorLink = document.createElement('a');
-        authorLink.href = '#';
+        authorLink.href = '/u/' + encodeURIComponent(skill.author_username);
         authorLink.className = 'skill-card-author-link';
         authorLink.textContent = skill.author_username;
         authorLink.addEventListener('click', function(e) {
@@ -896,11 +896,17 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
         });
     });
 
-    function showProfile(username) {
+    function showProfile(username, pushState) {
       fetch(API + '/profiles/' + encodeURIComponent(username))
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (!data.profile) return;
+
+          // Update URL to /u/username
+          if (pushState !== false) {
+            history.pushState({ profile: username }, '', '/u/' + encodeURIComponent(username));
+          }
+          document.title = (data.profile.display_name || username) + ' — Zubo Skills';
 
           document.querySelector('.skills-hero').style.display = 'none';
           document.querySelector('.skills-filter').style.display = 'none';
@@ -938,7 +944,7 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
         });
     }
 
-    document.getElementById('back-to-browse').addEventListener('click', function() {
+    function hideProfile() {
       document.querySelector('.skills-hero').style.display = '';
       document.querySelector('.skills-filter').style.display = '';
       document.querySelector('.skills-sort-section').style.display = '';
@@ -947,6 +953,21 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
       document.querySelector('.skill-guide').style.display = '';
       document.querySelector('.ai-prompt-section').style.display = '';
       document.getElementById('profile-view').style.display = 'none';
+      document.title = 'Community Skills — Zubo';
+    }
+
+    document.getElementById('back-to-browse').addEventListener('click', function() {
+      hideProfile();
+      history.pushState(null, '', '/skills');
+    });
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', function(e) {
+      if (e.state && e.state.profile) {
+        showProfile(e.state.profile, false);
+      } else {
+        hideProfile();
+      }
     });
 
     document.getElementById('user-profile-link').addEventListener('click', function(e) {
@@ -954,6 +975,14 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
       if (currentUser) showProfile(currentUser.username);
       document.getElementById('user-dropdown').classList.remove('open');
     });
+
+    // On page load: check if we're on /u/:username
+    (function() {
+      var match = window.location.pathname.match(/^\/u\/([^/]+)$/);
+      if (match) {
+        showProfile(decodeURIComponent(match[1]), false);
+      }
+    })();
 
     function openReportModal(skillId) {
       document.getElementById('report-skill-id').value = skillId;

@@ -405,7 +405,7 @@ async function handleRequest(req: Request): Promise<Response> {
       return new Response(null, {
         status: 302,
         headers: {
-          Location: "/skills.html",
+          Location: "/skills",
           "Set-Cookie": `zubo_session=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 86400}`,
         },
       });
@@ -621,6 +621,21 @@ async function handleRequest(req: Request): Promise<Response> {
 
   // Serve static site files
   if (!path.startsWith("/api/")) {
+    // Redirect .html URLs to clean URLs (SEO canonical)
+    if (path.endsWith(".html")) {
+      const clean = path === "/index.html" ? "/" : path.slice(0, -5);
+      return new Response(null, {
+        status: 301,
+        headers: { Location: clean + url.search },
+      });
+    }
+
+    // Profile URLs: /u/:username → serve skills page (JS handles routing)
+    if (path.startsWith("/u/") && path.split("/").length === 3) {
+      const profilePage = serveStatic("/skills.html");
+      if (profilePage) return profilePage;
+    }
+
     let filePath = path === "/" ? "/index.html" : path;
     const response = serveStatic(filePath);
     if (response) return response;

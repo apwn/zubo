@@ -4,18 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>API Reference — Zubo Docs</title>
-  <meta name="description" content="Complete API reference for Zubo. All REST endpoints with request/response formats, authentication, rate limits, and examples.">
+  <meta name="description" content="Complete REST API reference for Zubo. Every endpoint with request and response formats, authentication, rate limits, and curl examples included.">
   <meta name="theme-color" content="#060608">
-  <link rel="canonical" href="https://zubo.bot/docs/api.html">
+  <link rel="canonical" href="https://zubo.bot/docs/api">
   <meta property="og:title" content="API Reference — Zubo Docs">
-  <meta property="og:description" content="Complete API reference for Zubo. All REST endpoints with request/response formats, authentication, and examples.">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://zubo.bot/docs/api.html">
+  <meta property="og:description" content="Complete REST API reference for Zubo. Every endpoint with request and response formats, authentication, rate limits, and curl examples included.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://zubo.bot/docs/api">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="API Reference — Zubo Docs">
-  <meta name="twitter:description" content="Complete API reference for Zubo. REST endpoints, authentication, and examples.">
+  <meta name="twitter:description" content="Complete REST API reference for Zubo. Every endpoint with request and response formats, authentication, rate limits, and curl examples included.">
   <meta name="twitter:image" content="https://zubo.bot/og-image.png">
   <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
       <nav class="nav-links" id="nav-links">
         <a href="/#features">Features</a>
         <a href="/docs/" style="color:#fff;">Docs</a>
-        <a href="../skills.html">Skills</a>
+        <a href="/skills">Skills</a>
         <a href="/#get-started">Get Started</a>
       </nav>
       <div class="nav-right">
@@ -50,40 +50,40 @@
         <div class="docs-sidebar-heading">Getting Started</div>
         <div class="docs-sidebar-links">
           <a href="/docs/">Overview</a>
-          <a href="config.html">Configuration</a>
+          <a href="/docs/config">Configuration</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Core Concepts</div>
         <div class="docs-sidebar-links">
-          <a href="agents.html">Agents &amp; Workflows</a>
-          <a href="memory.html">Memory System</a>
-          <a href="skills.html">Skills</a>
+          <a href="/docs/agents">Agents &amp; Workflows</a>
+          <a href="/docs/memory">Memory System</a>
+          <a href="/docs/skills">Skills</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Features</div>
         <div class="docs-sidebar-links">
-          <a href="conversations.html">Conversation History</a>
-          <a href="webhooks.html">Webhooks</a>
-          <a href="workflows.html">Visual Workflows</a>
-          <a href="marketplace.html">MCP Marketplace</a>
+          <a href="/docs/conversations">Conversation History</a>
+          <a href="/docs/webhooks">Webhooks</a>
+          <a href="/docs/workflows">Visual Workflows</a>
+          <a href="/docs/marketplace">MCP Marketplace</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
-          <a href="channels.html">Channel Setup</a>
-          <a href="integrations.html">Integrations</a>
-          <a href="integrations.html#oauth">OAuth</a>
-          <a href="security.html">Security &amp; Auth</a>
+          <a href="/docs/channels">Channel Setup</a>
+          <a href="/docs/integrations">Integrations</a>
+          <a href="/docs/integrations#oauth">OAuth</a>
+          <a href="/docs/security">Security &amp; Auth</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Reference</div>
         <div class="docs-sidebar-links">
-          <a href="api.html" class="active">API Reference</a>
-          <a href="cli.html">CLI Commands</a>
+          <a href="/docs/api" class="active">API Reference</a>
+          <a href="/docs/cli">CLI Commands</a>
         </div>
       </div>
     </aside>
@@ -910,7 +910,7 @@ Content-Type: application/json
 }</code></pre>
 
       <h2>Conversations</h2>
-      <p>Endpoints for querying and searching the unified cross-channel conversation history. See <a href="conversations.html">Conversation History</a> for full documentation.</p>
+      <p>Endpoints for querying and searching the unified cross-channel conversation history. See <a href="/docs/conversations">Conversation History</a> for full documentation.</p>
 
       <h3>List Conversations</h3>
 <pre><code>GET /api/conversations?limit=20&amp;offset=0&amp;channel=telegram</code></pre>
@@ -1055,7 +1055,7 @@ Content-Type: application/json
 }</code></pre>
 
       <h2>Webhooks</h2>
-      <p>Endpoints for managing webhook endpoints that receive events from external services. See <a href="webhooks.html">Webhooks</a> for full documentation including HMAC verification and prompt templates.</p>
+      <p>Endpoints for managing webhook endpoints that receive events from external services. See <a href="/docs/webhooks">Webhooks</a> for full documentation including HMAC verification and prompt templates.</p>
 
       <h3>List Webhooks</h3>
 <pre><code>GET /api/webhooks</code></pre>
@@ -1142,7 +1142,7 @@ Content-Type: application/json
 }</code></pre>
 
       <h2>MCP Marketplace</h2>
-      <p>Endpoints for browsing and installing MCP servers from the official registry. See <a href="marketplace.html">MCP Marketplace</a> for full documentation.</p>
+      <p>Endpoints for browsing and installing MCP servers from the official registry. See <a href="/docs/marketplace">MCP Marketplace</a> for full documentation.</p>
 
       <h3>Browse Marketplace</h3>
 <pre><code>GET /api/mcp/marketplace?q=filesystem&amp;category=utilities&amp;limit=50</code></pre>
@@ -1187,7 +1187,7 @@ Content-Type: application/json
       <p>Uninstall an MCP server, stop its process, deregister its tools, and remove the configuration. Returns <code>204 No Content</code>.</p>
 
       <h2>Visual Workflows</h2>
-      <p>Endpoints for managing visual workflows built with the dashboard builder. See <a href="workflows.html">Visual Workflows</a> for full documentation including step types, triggers, and template variables.</p>
+      <p>Endpoints for managing visual workflows built with the dashboard builder. See <a href="/docs/workflows">Visual Workflows</a> for full documentation including step types, triggers, and template variables.</p>
 
       <h3>List Visual Workflows</h3>
 <pre><code>GET /api/workflows/visual</code></pre>
@@ -1313,8 +1313,8 @@ Content-Type: application/json
 }</code></pre>
 
       <div class="docs-page-nav">
-        <a href="security.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Security &amp; Auth</span></a>
-        <a href="cli.html"><span class="nav-dir">Next</span><span class="nav-label">CLI Commands &rarr;</span></a>
+        <a href="/docs/security"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Security &amp; Auth</span></a>
+        <a href="/docs/cli"><span class="nav-dir">Next</span><span class="nav-label">CLI Commands &rarr;</span></a>
       </div>
     </main>
   </div>
@@ -1328,7 +1328,7 @@ Content-Type: application/json
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zubo.bot/" },
       { "@type": "ListItem", "position": 2, "name": "Docs", "item": "https://zubo.bot/docs/" },
-      { "@type": "ListItem", "position": 3, "name": "API Reference", "item": "https://zubo.bot/docs/api.html" }
+      { "@type": "ListItem", "position": 3, "name": "API Reference", "item": "https://zubo.bot/docs/api" }
     ]
   }
   </script>

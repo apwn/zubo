@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Getting Started — Zubo Docs</title>
-  <meta name="description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 25+ tools, sub-agent delegation, MCP support, and workflow automation.">
+  <title>Documentation Overview — Zubo Docs</title>
+  <meta name="description" content="Zubo documentation home. Learn to set up your self-hosted AI agent with persistent memory, multi-channel messaging, sub-agent delegation, and workflow automation.">
   <meta name="theme-color" content="#060608">
   <link rel="canonical" href="https://zubo.bot/docs/">
-  <meta property="og:title" content="Getting Started — Zubo Docs">
-  <meta property="og:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, multi-channel presence, 25+ tools, sub-agent delegation, MCP support, and workflow automation.">
-  <meta property="og:type" content="article">
+  <meta property="og:title" content="Documentation Overview — Zubo Docs">
+  <meta property="og:description" content="Zubo documentation home. Learn to set up your self-hosted AI agent with persistent memory, multi-channel messaging, sub-agent delegation, and workflow automation.">
+  <meta property="og:type" content="website">
   <meta property="og:url" content="https://zubo.bot/docs/">
   <meta property="og:image" content="https://zubo.bot/og-image.png">
   <meta property="og:site_name" content="Zubo">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Getting Started — Zubo Docs">
-  <meta name="twitter:description" content="Get started with Zubo, a self-hosted AI agent with persistent semantic memory, 25+ tools, MCP support, and workflow automation.">
+  <meta name="twitter:title" content="Documentation Overview — Zubo Docs">
+  <meta name="twitter:description" content="Zubo documentation home. Learn to set up your self-hosted AI agent with persistent memory, multi-channel messaging, sub-agent delegation, and workflow automation.">
   <meta name="twitter:image" content="https://zubo.bot/og-image.png">
   <meta name="twitter:creator" content="@thomaskanze">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,7 +32,7 @@
       <nav class="nav-links" id="nav-links">
         <a href="/#features">Features</a>
         <a href="/docs/" style="color:#fff;">Docs</a>
-        <a href="../skills.html">Skills</a>
+        <a href="/skills">Skills</a>
         <a href="/#get-started">Get Started</a>
       </nav>
       <div class="nav-right">
@@ -52,40 +52,40 @@
         <div class="docs-sidebar-links">
           <a href="/docs/" class="active">Overview</a>
           <a href="#quick-start">Quick Start</a>
-          <a href="config.html">Configuration</a>
+          <a href="/docs/config">Configuration</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Core Concepts</div>
         <div class="docs-sidebar-links">
-          <a href="agents.html">Agents &amp; Workflows</a>
-          <a href="memory.html">Memory System</a>
-          <a href="skills.html">Skills</a>
+          <a href="/docs/agents">Agents &amp; Workflows</a>
+          <a href="/docs/memory">Memory System</a>
+          <a href="/docs/skills">Skills</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Features</div>
         <div class="docs-sidebar-links">
-          <a href="conversations.html">Conversation History</a>
-          <a href="webhooks.html">Webhooks</a>
-          <a href="workflows.html">Visual Workflows</a>
-          <a href="marketplace.html">MCP Marketplace</a>
+          <a href="/docs/conversations">Conversation History</a>
+          <a href="/docs/webhooks">Webhooks</a>
+          <a href="/docs/workflows">Visual Workflows</a>
+          <a href="/docs/marketplace">MCP Marketplace</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
-          <a href="channels.html">Channel Setup</a>
-          <a href="integrations.html">Integrations</a>
-          <a href="integrations.html#oauth">OAuth</a>
-          <a href="security.html">Security &amp; Auth</a>
+          <a href="/docs/channels">Channel Setup</a>
+          <a href="/docs/integrations">Integrations</a>
+          <a href="/docs/integrations#oauth">OAuth</a>
+          <a href="/docs/security">Security &amp; Auth</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Reference</div>
         <div class="docs-sidebar-links">
-          <a href="api.html">API Reference</a>
-          <a href="cli.html">CLI Commands</a>
+          <a href="/docs/api">API Reference</a>
+          <a href="/docs/cli">CLI Commands</a>
         </div>
       </div>
     </aside>
@@ -634,24 +634,24 @@ zubo start --daemon</code></pre>
       <p>Now that you have Zubo installed and running, explore the rest of the documentation to unlock its full potential:</p>
 
       <ul>
-        <li><a href="config.html"><strong>Configuration</strong></a> &mdash; deep dive into every configuration option: LLM providers, channels, voice, rate limiting, authentication, sandbox settings, and a complete annotated example.</li>
-        <li><a href="agents.html"><strong>Agents &amp; Workflows</strong></a> &mdash; learn how to create custom sub-agents with focused system prompts and restricted tools, and build multi-agent pipelines with dependency resolution and parallel execution.</li>
-        <li><a href="memory.html"><strong>Memory System</strong></a> &mdash; understand how semantic memory works, how to ingest documents, search your knowledge base, and tune the hybrid search weights.</li>
-        <li><a href="skills.html"><strong>Skills</strong></a> &mdash; write, install, and share single-file TypeScript skills. Learn the skill manifest format, the sandbox environment, and the community registry.</li>
-        <li><a href="channels.html"><strong>Channel Setup</strong></a> &mdash; step-by-step guides for configuring each channel: creating bots, obtaining tokens, setting up webhooks, and configuring allow-lists.</li>
-        <li><a href="conversations.html"><strong>Conversation History</strong></a> &mdash; unified cross-channel history with FTS5 search, dashboard browsing, and API access for searching and analyzing past conversations across all channels.</li>
-        <li><a href="webhooks.html"><strong>Webhooks</strong></a> &mdash; create webhook endpoints for GitHub, Stripe, CI/CD, and any external service. HMAC signature verification, prompt templates with <code>{{payload}}</code> substitution, and dashboard management.</li>
-        <li><a href="workflows.html"><strong>Visual Workflows</strong></a> &mdash; build multi-step automations with the drag-and-drop workflow builder. Step types (tool, agent, condition, message, delay), triggers (manual, cron, webhook), and template variables.</li>
-        <li><a href="marketplace.html"><strong>MCP Marketplace</strong></a> &mdash; browse, install, and manage MCP servers from the official registry. One-click installation with automatic tool registration.</li>
-        <li><a href="integrations.html"><strong>Integrations</strong></a> &mdash; connect Zubo to GitHub, Google Workspace, Notion, Linear, Jira, and more. <a href="integrations.html#oauth">OAuth 2.0 authentication</a> with automatic token refresh, API key setup, and usage examples.</li>
-        <li><a href="security.html"><strong>Security &amp; Auth</strong></a> &mdash; harden your Zubo instance: API key management, tool permission levels, confirmation tokens, rate limiting, file access restrictions, and network security.</li>
-        <li><a href="api.html"><strong>API Reference</strong></a> &mdash; complete HTTP API documentation for programmatic access: endpoints, request/response formats, authentication, and WebSocket streaming.</li>
-        <li><a href="cli.html"><strong>CLI Commands</strong></a> &mdash; full reference for every <code>zubo</code> CLI command: start, stop, status, config, auth, export, import, logs, and more.</li>
+        <li><a href="/docs/config"><strong>Configuration</strong></a> &mdash; deep dive into every configuration option: LLM providers, channels, voice, rate limiting, authentication, sandbox settings, and a complete annotated example.</li>
+        <li><a href="/docs/agents"><strong>Agents &amp; Workflows</strong></a> &mdash; learn how to create custom sub-agents with focused system prompts and restricted tools, and build multi-agent pipelines with dependency resolution and parallel execution.</li>
+        <li><a href="/docs/memory"><strong>Memory System</strong></a> &mdash; understand how semantic memory works, how to ingest documents, search your knowledge base, and tune the hybrid search weights.</li>
+        <li><a href="/docs/skills"><strong>Skills</strong></a> &mdash; write, install, and share single-file TypeScript skills. Learn the skill manifest format, the sandbox environment, and the community registry.</li>
+        <li><a href="/docs/channels"><strong>Channel Setup</strong></a> &mdash; step-by-step guides for configuring each channel: creating bots, obtaining tokens, setting up webhooks, and configuring allow-lists.</li>
+        <li><a href="/docs/conversations"><strong>Conversation History</strong></a> &mdash; unified cross-channel history with FTS5 search, dashboard browsing, and API access for searching and analyzing past conversations across all channels.</li>
+        <li><a href="/docs/webhooks"><strong>Webhooks</strong></a> &mdash; create webhook endpoints for GitHub, Stripe, CI/CD, and any external service. HMAC signature verification, prompt templates with <code>{{payload}}</code> substitution, and dashboard management.</li>
+        <li><a href="/docs/workflows"><strong>Visual Workflows</strong></a> &mdash; build multi-step automations with the drag-and-drop workflow builder. Step types (tool, agent, condition, message, delay), triggers (manual, cron, webhook), and template variables.</li>
+        <li><a href="/docs/marketplace"><strong>MCP Marketplace</strong></a> &mdash; browse, install, and manage MCP servers from the official registry. One-click installation with automatic tool registration.</li>
+        <li><a href="/docs/integrations"><strong>Integrations</strong></a> &mdash; connect Zubo to GitHub, Google Workspace, Notion, Linear, Jira, and more. <a href="/docs/integrations#oauth">OAuth 2.0 authentication</a> with automatic token refresh, API key setup, and usage examples.</li>
+        <li><a href="/docs/security"><strong>Security &amp; Auth</strong></a> &mdash; harden your Zubo instance: API key management, tool permission levels, confirmation tokens, rate limiting, file access restrictions, and network security.</li>
+        <li><a href="/docs/api"><strong>API Reference</strong></a> &mdash; complete HTTP API documentation for programmatic access: endpoints, request/response formats, authentication, and WebSocket streaming.</li>
+        <li><a href="/docs/cli"><strong>CLI Commands</strong></a> &mdash; full reference for every <code>zubo</code> CLI command: start, stop, status, config, auth, export, import, logs, and more.</li>
       </ul>
 
       <div class="docs-page-nav">
         <div></div>
-        <a href="config.html"><span class="nav-dir">Next</span><span class="nav-label">Configuration &rarr;</span></a>
+        <a href="/docs/config"><span class="nav-dir">Next</span><span class="nav-label">Configuration &rarr;</span></a>
       </div>
 
     </main>
