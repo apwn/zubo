@@ -46,7 +46,7 @@ export async function searchRegistry(
   if (cached) return cached;
 
   try {
-    const url = `${BASE_URL}/servers?q=${encodeURIComponent(query)}&limit=${limit}`;
+    const url = `${BASE_URL}/servers?search=${encodeURIComponent(query)}&limit=${limit}`;
     const res = await fetch(url);
     if (!res.ok) {
       logger.warn(`MCP registry search failed: ${res.status} ${res.statusText}`);
