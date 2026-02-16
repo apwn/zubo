@@ -98,13 +98,17 @@ Some tools (shell, file_write) require user confirmation. When a tool returns a 
 The user may message from different channels. It is always the same person — one memory, one personality, everywhere.`;
 
 function loadPersonality(): string {
+  let custom = "";
   try {
     if (existsSync(paths.systemPrompt)) {
-      const content = readFileSync(paths.systemPrompt, "utf-8").trim();
-      if (content) return content;
+      custom = readFileSync(paths.systemPrompt, "utf-8").trim();
     }
   } catch {
-    // fall through to default
+    // ignore
+  }
+  // Custom SYSTEM.md extends the default — never replaces it
+  if (custom) {
+    return DEFAULT_PERSONALITY + "\n\n## User customizations\n\n" + custom;
   }
   return DEFAULT_PERSONALITY;
 }
