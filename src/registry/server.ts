@@ -20,6 +20,9 @@ const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET ?? "";
 const ADMIN_KEY = process.env.REGISTRY_ADMIN_KEY ?? "";
 const DB_PATH = process.env.REGISTRY_DB_PATH ?? join(homedir(), ".zubo", "registry.db");
 const SITE_DIR = resolve(join(import.meta.dir, "../../site"));
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY ?? "";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "";
+const FROM_EMAIL = process.env.FROM_EMAIL ?? "noreply@zubo.bot";
 
 // ─── Database ────────────────────────────────────────────────────────
 
@@ -264,6 +267,57 @@ setInterval(() => {
   }
 }, 60_000);
 
+// ─── Email (SendGrid) ────────────────────────────────────────────────
+
+async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+  if (!SENDGRID_API_KEY) return false;
+  try {
+    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SENDGRID_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: FROM_EMAIL, name: "Zubo Skills" },
+        subject,
+        content: [{ type: "text/html", value: html }],
+      }),
+    });
+    return res.status === 202;
+  } catch {
+    return false;
+  }
+}
+
+async function notifyAdminReport(skillName: string, reason: string, email: string, details?: string): Promise<void> {
+  if (!ADMIN_EMAIL) return;
+  await sendEmail(
+    ADMIN_EMAIL,
+    `[Zubo] Skill reported: ${skillName}`,
+    `<h3>Skill Report</h3>
+     <p><strong>Skill:</strong> ${skillName}</p>
+     <p><strong>Reason:</strong> ${reason}</p>
+     <p><strong>Reporter:</strong> ${email}</p>
+     ${details ? `<p><strong>Details:</strong> ${details}</p>` : ""}
+     <p><a href="https://zubo.bot/skills">View Registry</a></p>`
+  );
+}
+
+async function notifyAdminNewSkill(skillName: string, author: string, status: string): Promise<void> {
+  if (!ADMIN_EMAIL) return;
+  await sendEmail(
+    ADMIN_EMAIL,
+    `[Zubo] New skill submitted: ${skillName}`,
+    `<h3>New Skill Submission</h3>
+     <p><strong>Skill:</strong> ${skillName}</p>
+     <p><strong>Author:</strong> ${author}</p>
+     <p><strong>Auto-review status:</strong> ${status}</p>
+     <p><a href="https://zubo.bot/skills">View Registry</a></p>`
+  );
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 function json(data: any, status = 200): Response {
@@ -498,6 +552,7 @@ async function handleRequest(req: Request): Promise<Response> {
     try {
       const body = (await req.json()) as registry.SubmitSkillInput;
       const result = registry.submitSkill(db, body, profile.id);
+      notifyAdminNewSkill(result.skill.name, profile.username, result.review.status);
       return json(result, 201);
     } catch (err: any) {
       return error(err.message);
@@ -527,6 +582,7 @@ async function handleRequest(req: Request): Promise<Response> {
     try {
       const body = (await req.json()) as { email: string; reason: string; details?: string };
       registry.reportSkill(db, skillId, body.email, body.reason, body.details);
+      notifyAdminReport(skill.name, body.reason, body.email, body.details);
       return json({ ok: true });
     } catch (err: any) {
       return error(err.message);
@@ -670,3 +726,4 @@ console.log(`[registry] Database: ${DB_PATH}`);
 console.log(`[registry] Site directory: ${SITE_DIR}`);
 console.log(`[registry] GitHub OAuth: ${GITHUB_CLIENT_ID ? "configured" : "not configured"}`);
 console.log(`[registry] Admin key: ${ADMIN_KEY ? "configured" : "not configured"}`);
+console.log(`[registry] SendGrid: ${SENDGRID_API_KEY ? "configured" : "not configured"}${ADMIN_EMAIL ? ` (→ ${ADMIN_EMAIL})` : ""}`);

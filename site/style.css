@@ -2548,6 +2548,35 @@ h1, h2, h3, h4,
 .modal-close:hover { color: #fff; }
 .modal-content .form-group { margin-bottom: 12px; }
 
+/* Report submit button */
+.report-submit-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  justify-content: center;
+}
+.report-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+.report-feedback {
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 0;
+  margin-top: 8px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.report-feedback-success {
+  color: #34d399;
+}
+.report-feedback-error {
+  color: #f87171;
+}
+
 /* Button secondary */
 .btn-secondary {
   background: rgba(255, 255, 255, 0.06);

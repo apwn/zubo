@@ -242,7 +242,8 @@ export default async function (input) {
           <label for="report-details">Details (optional)</label>
           <textarea id="report-details" rows="3" placeholder="Describe the issue..."></textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Submit Report</button>
+        <div id="report-feedback" class="report-feedback"></div>
+        <button type="submit" id="report-submit-btn" class="btn btn-primary report-submit-btn">Submit Report</button>
       </form>
     </div>
   </div>
@@ -998,12 +999,19 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
 
     document.getElementById('report-form').addEventListener('submit', function(e) {
       e.preventDefault();
+      var btn = document.getElementById('report-submit-btn');
+      var feedback = document.getElementById('report-feedback');
       var skillId = document.getElementById('report-skill-id').value;
       var body = {
         email: document.getElementById('report-email').value,
         reason: document.getElementById('report-reason').value,
         details: document.getElementById('report-details').value || undefined,
       };
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      feedback.textContent = '';
+      feedback.className = 'report-feedback';
 
       fetch(API + '/skills/' + skillId + '/report', {
         method: 'POST',
@@ -1013,11 +1021,29 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.ok) {
-            document.getElementById('report-modal').style.display = 'none';
-            document.getElementById('report-form').reset();
+            feedback.textContent = 'Report submitted. Thank you.';
+            feedback.className = 'report-feedback report-feedback-success';
+            setTimeout(function() {
+              document.getElementById('report-modal').style.display = 'none';
+              document.getElementById('report-form').reset();
+              feedback.textContent = '';
+              feedback.className = 'report-feedback';
+              btn.disabled = false;
+              btn.textContent = 'Submit Report';
+            }, 1500);
+          } else {
+            feedback.textContent = data.error || 'Something went wrong.';
+            feedback.className = 'report-feedback report-feedback-error';
+            btn.disabled = false;
+            btn.textContent = 'Submit Report';
           }
         })
-        .catch(function() {});
+        .catch(function() {
+          feedback.textContent = 'Network error. Please try again.';
+          feedback.className = 'report-feedback report-feedback-error';
+          btn.disabled = false;
+          btn.textContent = 'Submit Report';
+        });
     });
 
     var aiCopyBtn = document.getElementById('ai-prompt-copy');
