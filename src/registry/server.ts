@@ -43,14 +43,29 @@ function initDb(): Database {
       const applied = db.query<{ name: string }, []>("SELECT name FROM _migrations WHERE name = '023_skill_registry.sql'").get();
       if (!applied) {
         const sql = readFileSync(migrationPath, "utf-8");
-        // Execute statements one at a time (SQLite doesn't support multiple in one run for some DDL)
-        const statements = sql
-          .split(";")
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0);
+        // Split SQL respecting trigger BEGIN...END blocks (which contain semicolons)
+        const statements: string[] = [];
+        let current = "";
+        let inTrigger = false;
+        for (const line of sql.split("\n")) {
+          const trimmed = line.trim().toUpperCase();
+          if (trimmed.startsWith("CREATE TRIGGER")) inTrigger = true;
+          current += line + "\n";
+          if (inTrigger && trimmed === "END;") {
+            statements.push(current.trim());
+            current = "";
+            inTrigger = false;
+          } else if (!inTrigger && line.includes(";")) {
+            statements.push(current.trim());
+            current = "";
+          }
+        }
+        if (current.trim()) statements.push(current.trim());
+
         db.transaction(() => {
           for (const stmt of statements) {
-            db.run(stmt);
+            const cleaned = stmt.replace(/;$/, "").trim();
+            if (cleaned.length > 0) db.run(cleaned);
           }
           db.prepare("INSERT INTO _migrations (name) VALUES (?)").run("023_skill_registry.sql");
         })();
