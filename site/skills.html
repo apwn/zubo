@@ -42,6 +42,24 @@
         <a href="index.html#get-started">Get Started</a>
       </nav>
       <div class="nav-right">
+        <!-- Auth UI -->
+        <div id="auth-area">
+          <button id="gh-login-btn" class="gh-login-btn" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            Sign in with GitHub
+          </button>
+          <div id="user-menu" class="user-menu" style="display:none;">
+            <button id="user-menu-btn" class="user-menu-btn">
+              <img id="user-avatar" class="user-avatar" src="" alt="">
+              <span id="user-name"></span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="user-dropdown" class="user-dropdown">
+              <a id="user-profile-link" href="#">My Profile</a>
+              <button id="logout-btn">Sign Out</button>
+            </div>
+          </div>
+        </div>
         <a href="https://github.com/apwn/zubo" class="nav-github" aria-label="GitHub">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
         </a>
@@ -76,15 +94,158 @@
     </div>
   </section>
 
+  <!-- Sort Controls -->
+  <section class="skills-sort-section">
+    <div class="container">
+      <div class="skills-sort" id="skills-sort">
+        <button class="sort-btn active" data-sort="newest">Newest</button>
+        <button class="sort-btn" data-sort="stars">Most Starred</button>
+        <button class="sort-btn" data-sort="installs">Most Installed</button>
+        <button class="sort-btn" data-sort="trending">Trending</button>
+      </div>
+    </div>
+  </section>
+
   <!-- Skills Grid -->
   <section class="skills-listing">
     <div class="container">
       <div id="skills-loading" class="skills-state">Loading skills...</div>
       <div id="skills-error" class="skills-state" style="display:none;"></div>
-      <div id="skills-empty" class="skills-state" style="display:none;">No skills match your search.</div>
+      <div id="skills-empty" class="skills-state" style="display:none;">
+        <p>No skills yet. Be the first to publish one!</p>
+      </div>
       <div class="skills-grid" id="skills-grid"></div>
     </div>
   </section>
+
+  <!-- Submit Skill Section -->
+  <section class="skill-submit-section" id="submit">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">Publish</span>
+        <h2 class="section-title">Submit your <span class="gradient-text">skill</span></h2>
+        <p class="section-subtitle">Share your custom skills with the community. Auto-reviewed for security.</p>
+      </div>
+
+      <div id="submit-login-gate" class="submit-gate" style="display:none;">
+        <p>Sign in with GitHub to submit skills to the registry.</p>
+        <button class="gh-login-btn" onclick="window.location='/api/registry/auth/github'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          Sign in with GitHub
+        </button>
+      </div>
+
+      <form id="submit-form" class="submit-form" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="skill-name">Skill Name</label>
+            <input type="text" id="skill-name" placeholder="my_skill" pattern="[a-z0-9_-]+" required>
+            <span class="form-hint">Lowercase letters, numbers, hyphens, underscores only</span>
+          </div>
+          <div class="form-group">
+            <label for="skill-version">Version</label>
+            <input type="text" id="skill-version" placeholder="1.0.0" value="1.0.0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="skill-description">Description</label>
+          <input type="text" id="skill-description" placeholder="A brief description of what this skill does" required minlength="10">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="skill-tags">Tags (comma-separated)</label>
+            <input type="text" id="skill-tags" placeholder="api, utility, weather">
+          </div>
+          <div class="form-group">
+            <label for="skill-secrets">Required Secrets (comma-separated)</label>
+            <input type="text" id="skill-secrets" placeholder="API_KEY, TOKEN">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="skill-handler">Handler Code (handler.ts)</label>
+          <textarea id="skill-handler" rows="12" placeholder='export const skill = {
+  name: "my_skill",
+  description: "...",
+  params: {}
+};
+
+export default async function (input) {
+  return JSON.stringify({ result: "..." });
+}' required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="skill-md">SKILL.md (optional)</label>
+          <textarea id="skill-md" rows="4" placeholder="Additional documentation for this skill..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="skill-repo">Repository URL (optional)</label>
+          <input type="url" id="skill-repo" placeholder="https://github.com/you/your-skill">
+        </div>
+        <button type="submit" class="btn btn-primary submit-btn">Submit Skill</button>
+      </form>
+
+      <div id="submit-result" class="submit-result" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- Profile View (hidden by default, shown when viewing a profile) -->
+  <section id="profile-view" class="profile-view" style="display:none;">
+    <div class="container">
+      <div class="profile-card">
+        <img id="profile-avatar" class="profile-avatar" src="" alt="">
+        <div class="profile-info">
+          <h2 id="profile-display-name"></h2>
+          <p id="profile-username" class="profile-username"></p>
+          <p id="profile-bio" class="profile-bio"></p>
+          <div class="profile-links">
+            <a id="profile-github" href="#" target="_blank" rel="noopener">GitHub</a>
+            <a id="profile-website" href="#" target="_blank" rel="noopener" style="display:none;">Website</a>
+          </div>
+        </div>
+        <div class="profile-stats">
+          <div class="profile-stat"><span id="profile-skills-count">0</span><label>Skills</label></div>
+          <div class="profile-stat"><span id="profile-stars-count">0</span><label>Stars</label></div>
+          <div class="profile-stat"><span id="profile-installs-count">0</span><label>Installs</label></div>
+        </div>
+      </div>
+      <h3 class="profile-skills-heading">Published Skills</h3>
+      <div class="skills-grid" id="profile-skills-grid"></div>
+      <button id="back-to-browse" class="btn btn-secondary" style="margin-top:24px;">Back to Browse</button>
+    </div>
+  </section>
+
+  <!-- Report Modal -->
+  <div id="report-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Report Skill</h3>
+        <button id="report-close" class="modal-close">&times;</button>
+      </div>
+      <form id="report-form">
+        <input type="hidden" id="report-skill-id">
+        <div class="form-group">
+          <label for="report-reason">Reason</label>
+          <select id="report-reason" required>
+            <option value="">Select a reason...</option>
+            <option value="Misleading">Misleading</option>
+            <option value="Malicious">Malicious</option>
+            <option value="Spam">Spam</option>
+            <option value="Broken">Broken</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="report-email">Your Email (required)</label>
+          <input type="email" id="report-email" required placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label for="report-details">Details (optional)</label>
+          <textarea id="report-details" rows="3" placeholder="Describe the issue..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Report</button>
+      </form>
+    </div>
+  </div>
 
   <!-- Create a Skill Guide -->
   <section class="skill-guide" id="create">
@@ -118,7 +279,6 @@
         </div>
       </div>
 
-      <!-- Single-file format example -->
       <div class="skill-format-block reveal">
         <div class="terminal" style="border-radius:var(--radius-lg);overflow:hidden;">
           <div class="terminal-chrome">
@@ -188,24 +348,6 @@ Format:
     const param_name = input.param_name as string;
     // your logic here
     return JSON.stringify({ result: "..." });
-  }
-
-Example — a complete working skill:
-
-  export const skill = {
-    name: "word_count",
-    description: "Count words, characters, and sentences in text",
-    params: {
-      text: { type: "string", description: "The text to analyze", required: true }
-    }
-  };
-
-  export default async function (input: Record&lt;string, unknown&gt;): Promise&lt;string&gt; {
-    const text = input.text as string;
-    const words = text.split(/\s+/).filter(Boolean).length;
-    const chars = text.length;
-    const sentences = text.split(/[.!?]+/).filter(Boolean).length;
-    return JSON.stringify({ words, characters: chars, sentences });
   }
 
 Rules:
@@ -279,9 +421,77 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
   (function() {
     'use strict';
 
-    var REGISTRY_URL = 'https://raw.githubusercontent.com/zubo-skills/registry/main/registry.json';
+    var API = '/api/registry';
     var allSkills = [];
     var activeTag = 'all';
+    var activeSort = 'newest';
+    var currentUser = null;
+    var userStars = [];
+
+    function checkAuth() {
+      fetch(API + '/auth/me', { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          currentUser = data.profile;
+          userStars = data.stars || [];
+          updateAuthUI();
+          updateSubmitSection();
+        })
+        .catch(function() {
+          currentUser = null;
+          userStars = [];
+          updateAuthUI();
+          updateSubmitSection();
+        });
+    }
+
+    function updateAuthUI() {
+      var loginBtn = document.getElementById('gh-login-btn');
+      var userMenu = document.getElementById('user-menu');
+      if (currentUser) {
+        loginBtn.style.display = 'none';
+        userMenu.style.display = 'flex';
+        document.getElementById('user-avatar').src = currentUser.avatar_url || '';
+        document.getElementById('user-name').textContent = currentUser.username;
+      } else {
+        loginBtn.style.display = 'inline-flex';
+        userMenu.style.display = 'none';
+      }
+    }
+
+    function updateSubmitSection() {
+      var gate = document.getElementById('submit-login-gate');
+      var form = document.getElementById('submit-form');
+      if (currentUser) {
+        gate.style.display = 'none';
+        form.style.display = 'block';
+      } else {
+        gate.style.display = 'block';
+        form.style.display = 'none';
+      }
+    }
+
+    document.getElementById('gh-login-btn').addEventListener('click', function() {
+      window.location = '/api/registry/auth/github';
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      fetch(API + '/auth/logout', { method: 'POST', credentials: 'same-origin' })
+        .then(function() {
+          currentUser = null;
+          userStars = [];
+          updateAuthUI();
+          updateSubmitSection();
+        });
+    });
+
+    document.getElementById('user-menu-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('user-dropdown').classList.toggle('open');
+    });
+    document.addEventListener('click', function() {
+      document.getElementById('user-dropdown').classList.remove('open');
+    });
 
     function escapeHtml(str) {
       var d = document.createElement('div');
@@ -301,30 +511,63 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
       nameEl.textContent = skill.name;
       header.appendChild(nameEl);
 
-      var metaEl = document.createElement('div');
-      metaEl.className = 'skill-card-meta';
-      if (skill.author) {
-        var authorSpan = document.createElement('span');
-        authorSpan.textContent = 'by ' + skill.author;
-        metaEl.appendChild(authorSpan);
+      if (skill.status === 'flagged') {
+        var badge = document.createElement('span');
+        badge.className = 'status-badge status-flagged';
+        badge.textContent = 'Under Review';
+        header.appendChild(badge);
+      } else if (skill.status === 'rejected') {
+        var badge2 = document.createElement('span');
+        badge2.className = 'status-badge status-rejected';
+        badge2.textContent = 'Rejected';
+        header.appendChild(badge2);
       }
-      if (skill.version) {
-        var versionSpan = document.createElement('span');
-        versionSpan.textContent = 'v' + skill.version;
-        metaEl.appendChild(versionSpan);
-      }
-      header.appendChild(metaEl);
+
       card.appendChild(header);
+
+      if (skill.author_username) {
+        var authorEl = document.createElement('div');
+        authorEl.className = 'skill-card-author';
+        if (skill.author_avatar_url) {
+          var avatarImg = document.createElement('img');
+          avatarImg.className = 'skill-card-author-avatar';
+          avatarImg.src = skill.author_avatar_url;
+          avatarImg.alt = '';
+          avatarImg.width = 18;
+          avatarImg.height = 18;
+          authorEl.appendChild(avatarImg);
+        }
+        var authorLink = document.createElement('a');
+        authorLink.href = '#';
+        authorLink.className = 'skill-card-author-link';
+        authorLink.textContent = skill.author_username;
+        authorLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          showProfile(skill.author_username);
+        });
+        authorEl.appendChild(authorLink);
+
+        if (skill.version) {
+          authorEl.appendChild(document.createTextNode(' \u00B7 '));
+          var vSpan = document.createElement('span');
+          vSpan.className = 'skill-card-version';
+          vSpan.textContent = 'v' + skill.version;
+          authorEl.appendChild(vSpan);
+        }
+        card.appendChild(authorEl);
+      }
 
       var descEl = document.createElement('div');
       descEl.className = 'skill-card-desc';
       descEl.textContent = skill.description || '';
       card.appendChild(descEl);
 
-      if (skill.tags && skill.tags.length) {
+      var tags = [];
+      try { tags = typeof skill.tags === 'string' ? JSON.parse(skill.tags) : (skill.tags || []); } catch(e) {}
+      if (tags.length) {
         var tagsEl = document.createElement('div');
         tagsEl.className = 'skill-card-tags';
-        skill.tags.forEach(function(t) {
+        tags.forEach(function(t) {
           var tagSpan = document.createElement('span');
           tagSpan.className = 'skill-card-tag';
           tagSpan.textContent = t;
@@ -333,11 +576,13 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
         card.appendChild(tagsEl);
       }
 
-      if (skill.secrets && skill.secrets.length) {
+      var secrets = [];
+      try { secrets = typeof skill.secrets === 'string' ? JSON.parse(skill.secrets) : (skill.secrets || []); } catch(e) {}
+      if (secrets.length) {
         var secretsEl = document.createElement('div');
         secretsEl.className = 'skill-card-secrets';
         secretsEl.appendChild(document.createTextNode('Requires: '));
-        skill.secrets.forEach(function(s, i) {
+        secrets.forEach(function(s, i) {
           if (i > 0) secretsEl.appendChild(document.createTextNode(', '));
           var code = document.createElement('code');
           code.textContent = s;
@@ -345,6 +590,85 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
         });
         card.appendChild(secretsEl);
       }
+
+      var statsRow = document.createElement('div');
+      statsRow.className = 'skill-card-stats';
+
+      var starBtn = document.createElement('button');
+      starBtn.className = 'star-btn';
+      var isStarred = userStars.indexOf(skill.id) !== -1;
+      if (isStarred) starBtn.classList.add('starred');
+      var starSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      starSvg.setAttribute('width', '14');
+      starSvg.setAttribute('height', '14');
+      starSvg.setAttribute('viewBox', '0 0 24 24');
+      starSvg.setAttribute('stroke', 'currentColor');
+      starSvg.setAttribute('stroke-width', isStarred ? '1' : '2');
+      starSvg.setAttribute('fill', isStarred ? 'currentColor' : 'none');
+      var starPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      starPoly.setAttribute('points', '12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2');
+      starSvg.appendChild(starPoly);
+      starBtn.appendChild(starSvg);
+      var starCount = document.createElement('span');
+      starCount.textContent = skill.stars_count || 0;
+      starBtn.appendChild(starCount);
+      starBtn.addEventListener('click', function() {
+        if (!currentUser) {
+          window.location = '/api/registry/auth/github';
+          return;
+        }
+        fetch(API + '/skills/' + skill.id + '/star', {
+          method: 'POST',
+          credentials: 'same-origin',
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          starCount.textContent = data.stars_count;
+          if (data.starred) {
+            starBtn.classList.add('starred');
+            starSvg.setAttribute('fill', 'currentColor');
+            starSvg.setAttribute('stroke-width', '1');
+            if (userStars.indexOf(skill.id) === -1) userStars.push(skill.id);
+          } else {
+            starBtn.classList.remove('starred');
+            starSvg.setAttribute('fill', 'none');
+            starSvg.setAttribute('stroke-width', '2');
+            userStars = userStars.filter(function(id) { return id !== skill.id; });
+          }
+        });
+      });
+      statsRow.appendChild(starBtn);
+
+      var installStat = document.createElement('span');
+      installStat.className = 'install-stat';
+      var dlSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      dlSvg.setAttribute('width', '14');
+      dlSvg.setAttribute('height', '14');
+      dlSvg.setAttribute('viewBox', '0 0 24 24');
+      dlSvg.setAttribute('fill', 'none');
+      dlSvg.setAttribute('stroke', 'currentColor');
+      dlSvg.setAttribute('stroke-width', '2');
+      var dlPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      dlPath.setAttribute('d', 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4');
+      dlSvg.appendChild(dlPath);
+      var dlPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      dlPoly.setAttribute('points', '7 10 12 15 17 10');
+      dlSvg.appendChild(dlPoly);
+      var dlLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      dlLine.setAttribute('x1', '12'); dlLine.setAttribute('y1', '15');
+      dlLine.setAttribute('x2', '12'); dlLine.setAttribute('y2', '3');
+      dlSvg.appendChild(dlLine);
+      installStat.appendChild(dlSvg);
+      installStat.appendChild(document.createTextNode(' ' + (skill.install_count || 0)));
+      statsRow.appendChild(installStat);
+
+      var reportLink = document.createElement('button');
+      reportLink.className = 'report-link';
+      reportLink.textContent = 'Report';
+      reportLink.addEventListener('click', function() {
+        openReportModal(skill.id);
+      });
+      statsRow.appendChild(reportLink);
+
+      card.appendChild(statsRow);
 
       var installEl = document.createElement('div');
       installEl.className = 'skill-card-install';
@@ -357,15 +681,25 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
       var copyBtn = document.createElement('button');
       copyBtn.className = 'skill-copy-btn';
       copyBtn.setAttribute('aria-label', 'Copy install command');
-      copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+      var copySvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      copySvg.setAttribute('width', '14'); copySvg.setAttribute('height', '14');
+      copySvg.setAttribute('viewBox', '0 0 24 24');
+      copySvg.setAttribute('fill', 'none'); copySvg.setAttribute('stroke', 'currentColor');
+      copySvg.setAttribute('stroke-width', '2');
+      copySvg.setAttribute('stroke-linecap', 'round'); copySvg.setAttribute('stroke-linejoin', 'round');
+      var copyRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      copyRect.setAttribute('x', '9'); copyRect.setAttribute('y', '9');
+      copyRect.setAttribute('width', '13'); copyRect.setAttribute('height', '13');
+      copyRect.setAttribute('rx', '2');
+      copySvg.appendChild(copyRect);
+      var copyPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      copyPath.setAttribute('d', 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1');
+      copySvg.appendChild(copyPath);
+      copyBtn.appendChild(copySvg);
       copyBtn.addEventListener('click', function() {
         navigator.clipboard.writeText(installCmd).then(function() {
-          copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
           copyBtn.style.color = '#10b981';
-          setTimeout(function() {
-            copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-            copyBtn.style.color = '';
-          }, 2000);
+          setTimeout(function() { copyBtn.style.color = ''; }, 2000);
         }).catch(function() {});
       });
       installEl.appendChild(copyBtn);
@@ -379,9 +713,7 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
       var empty = document.getElementById('skills-empty');
       var loading = document.getElementById('skills-loading');
       loading.style.display = 'none';
-
       grid.textContent = '';
-
       if (!skills.length) {
         empty.style.display = 'block';
         return;
@@ -392,140 +724,292 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
       });
     }
 
-    function buildTagButtons(skills) {
-      var tagSet = {};
-      skills.forEach(function(s) {
-        (s.tags || []).forEach(function(t) { tagSet[t] = (tagSet[t] || 0) + 1; });
-      });
-      var container = document.getElementById('skills-tags');
-      Object.keys(tagSet).sort().forEach(function(tag) {
-        var btn = document.createElement('button');
-        btn.className = 'skill-tag-btn';
-        btn.setAttribute('data-tag', tag);
-        btn.textContent = tag + ' (' + tagSet[tag] + ')';
-        container.appendChild(btn);
-      });
+    function loadSkills() {
+      document.getElementById('skills-loading').style.display = 'block';
+      document.getElementById('skills-error').style.display = 'none';
 
-      container.addEventListener('click', function(e) {
-        var btn = e.target.closest('.skill-tag-btn');
-        if (!btn) return;
-        activeTag = btn.getAttribute('data-tag');
-        container.querySelectorAll('.skill-tag-btn').forEach(function(b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        filterAndRender();
-      });
+      var params = '?sort=' + activeSort + '&limit=100';
+      if (activeTag !== 'all') params += '&tag=' + encodeURIComponent(activeTag);
+
+      fetch(API + '/skills' + params)
+        .then(function(r) {
+          if (!r.ok) throw new Error('Failed');
+          return r.json();
+        })
+        .then(function(data) {
+          allSkills = data.skills || [];
+          filterAndRender();
+          loadTags();
+        })
+        .catch(function() {
+          document.getElementById('skills-loading').style.display = 'none';
+          var errEl = document.getElementById('skills-error');
+          errEl.style.display = 'block';
+          errEl.textContent = 'Could not load skills. The registry server may be offline.';
+        });
+    }
+
+    function loadTags() {
+      fetch(API + '/tags')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var container = document.getElementById('skills-tags');
+          container.querySelectorAll('.skill-tag-btn:not([data-tag="all"])').forEach(function(b) { b.remove(); });
+          var tags = data.tags || {};
+          Object.keys(tags).sort().forEach(function(tag) {
+            var btn = document.createElement('button');
+            btn.className = 'skill-tag-btn';
+            if (tag === activeTag) btn.classList.add('active');
+            btn.setAttribute('data-tag', tag);
+            btn.textContent = tag + ' (' + tags[tag] + ')';
+            container.appendChild(btn);
+          });
+        })
+        .catch(function() {});
     }
 
     function filterAndRender() {
       var query = (document.getElementById('skills-search').value || '').toLowerCase().trim();
       var filtered = allSkills.filter(function(s) {
-        if (activeTag !== 'all' && (s.tags || []).indexOf(activeTag) === -1) return false;
         if (!query) return true;
-        var haystack = ((s.name || '') + ' ' + (s.description || '') + ' ' + (s.tags || []).join(' ')).toLowerCase();
+        var tags = [];
+        try { tags = typeof s.tags === 'string' ? JSON.parse(s.tags) : (s.tags || []); } catch(e) {}
+        var haystack = ((s.name || '') + ' ' + (s.description || '') + ' ' + tags.join(' ')).toLowerCase();
         return haystack.indexOf(query) !== -1;
       });
       renderSkills(filtered);
     }
 
-    // Fetch registry
-    fetch(REGISTRY_URL)
-      .then(function(r) {
-        if (!r.ok) throw new Error('Failed to load registry');
-        return r.json();
-      })
-      .then(function(data) {
-        allSkills = data.skills || data || [];
-        if (!Array.isArray(allSkills)) allSkills = [];
-        buildTagButtons(allSkills);
-        renderSkills(allSkills);
-      })
-      .catch(function() {
-        document.getElementById('skills-loading').style.display = 'none';
-        var errEl = document.getElementById('skills-error');
-        errEl.style.display = 'block';
-        errEl.textContent = 'Could not load the skill registry. The registry may not be published yet.';
-        // Show placeholder skills for demo
-        allSkills = [
-          { name: 'weather', description: 'Get current weather and forecasts for any location', author: 'zubo', version: '1.0.0', tags: ['api', 'weather', 'utility'], secrets: ['OPENWEATHER_API_KEY'] },
-          { name: 'email-summary', description: 'Summarize unread emails and draft replies', author: 'community', version: '0.2.0', tags: ['email', 'productivity'], secrets: ['GMAIL_TOKEN'] },
-          { name: 'stock-price', description: 'Fetch real-time stock quotes and market data', author: 'zubo', version: '1.1.0', tags: ['finance', 'api'], secrets: ['ALPHA_VANTAGE_KEY'] },
-          { name: 'pomodoro', description: 'Pomodoro timer with session tracking and break reminders', author: 'community', version: '0.1.0', tags: ['productivity', 'timer'], secrets: [] },
-          { name: 'translate', description: 'Translate text between 100+ languages using DeepL', author: 'zubo', version: '1.0.0', tags: ['translation', 'api', 'utility'], secrets: ['DEEPL_API_KEY'] },
-          { name: 'screenshot', description: 'Take screenshots of any URL and return the image', author: 'community', version: '0.3.0', tags: ['web', 'utility'], secrets: [] },
-        ];
-        buildTagButtons(allSkills);
-        renderSkills(allSkills);
-      });
-
-    // Search
-    var searchInput = document.getElementById('skills-search');
-    var searchTimeout;
-    searchInput.addEventListener('input', function() {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(filterAndRender, 200);
+    document.getElementById('skills-tags').addEventListener('click', function(e) {
+      var btn = e.target.closest('.skill-tag-btn');
+      if (!btn) return;
+      activeTag = btn.getAttribute('data-tag');
+      document.querySelectorAll('#skills-tags .skill-tag-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      loadSkills();
     });
 
-    // AI Prompt copy button
+    document.getElementById('skills-sort').addEventListener('click', function(e) {
+      var btn = e.target.closest('.sort-btn');
+      if (!btn) return;
+      activeSort = btn.getAttribute('data-sort');
+      document.querySelectorAll('#skills-sort .sort-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      loadSkills();
+    });
+
+    var searchTimeout;
+    document.getElementById('skills-search').addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      var q = this.value.trim();
+      searchTimeout = setTimeout(function() {
+        if (q.length > 0) {
+          fetch(API + '/search?q=' + encodeURIComponent(q))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              allSkills = data.skills || [];
+              renderSkills(allSkills);
+            })
+            .catch(function() { filterAndRender(); });
+        } else {
+          loadSkills();
+        }
+      }, 300);
+    });
+
+    document.getElementById('submit-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var resultEl = document.getElementById('submit-result');
+      resultEl.style.display = 'none';
+
+      var body = {
+        name: document.getElementById('skill-name').value.trim(),
+        description: document.getElementById('skill-description').value.trim(),
+        version: document.getElementById('skill-version').value.trim() || '1.0.0',
+        tags: document.getElementById('skill-tags').value.split(',').map(function(t) { return t.trim(); }).filter(Boolean),
+        secrets: document.getElementById('skill-secrets').value.split(',').map(function(t) { return t.trim(); }).filter(Boolean),
+        handler_code: document.getElementById('skill-handler').value,
+        skill_md: document.getElementById('skill-md').value || undefined,
+        repo_url: document.getElementById('skill-repo').value || undefined,
+      };
+
+      fetch(API + '/skills', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+          resultEl.style.display = 'block';
+          if (!res.ok) {
+            resultEl.className = 'submit-result submit-error';
+            resultEl.textContent = res.data.error || 'Submission failed';
+            return;
+          }
+
+          var review = res.data.review;
+          resultEl.textContent = '';
+
+          var strong = document.createElement('strong');
+          strong.textContent = 'Submitted! ';
+          resultEl.appendChild(strong);
+
+          if (review.status === 'approved') {
+            resultEl.className = 'submit-result submit-approved';
+            resultEl.appendChild(document.createTextNode('Your skill was approved automatically.'));
+          } else if (review.status === 'flagged') {
+            resultEl.className = 'submit-result submit-flagged';
+            resultEl.appendChild(document.createTextNode('Your skill is under review (network/system access detected).'));
+          } else {
+            resultEl.className = 'submit-result submit-rejected';
+            resultEl.appendChild(document.createTextNode('Your skill was rejected due to security concerns.'));
+          }
+
+          if (review.findings && review.findings.length) {
+            var ul = document.createElement('ul');
+            ul.className = 'review-findings';
+            review.findings.forEach(function(f) {
+              var li = document.createElement('li');
+              var lineStrong = document.createElement('strong');
+              lineStrong.textContent = 'Line ' + f.line + ': ';
+              li.appendChild(lineStrong);
+              li.appendChild(document.createTextNode(f.description + ' '));
+              var sev = document.createElement('span');
+              sev.className = 'finding-severity finding-' + f.severity;
+              sev.textContent = f.severity;
+              li.appendChild(sev);
+              ul.appendChild(li);
+            });
+            resultEl.appendChild(ul);
+          }
+
+          if (review.status === 'approved') {
+            document.getElementById('submit-form').reset();
+            loadSkills();
+          }
+        })
+        .catch(function(err) {
+          resultEl.style.display = 'block';
+          resultEl.className = 'submit-result submit-error';
+          resultEl.textContent = 'Network error: ' + err.message;
+        });
+    });
+
+    function showProfile(username) {
+      fetch(API + '/profiles/' + encodeURIComponent(username))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.profile) return;
+
+          document.querySelector('.skills-hero').style.display = 'none';
+          document.querySelector('.skills-filter').style.display = 'none';
+          document.querySelector('.skills-sort-section').style.display = 'none';
+          document.querySelector('.skills-listing').style.display = 'none';
+          document.querySelector('.skill-submit-section').style.display = 'none';
+          document.querySelector('.skill-guide').style.display = 'none';
+          document.querySelector('.ai-prompt-section').style.display = 'none';
+          document.getElementById('profile-view').style.display = 'block';
+
+          var p = data.profile;
+          document.getElementById('profile-avatar').src = p.avatar_url || '';
+          document.getElementById('profile-display-name').textContent = p.display_name || p.username;
+          document.getElementById('profile-username').textContent = '@' + p.username;
+          document.getElementById('profile-bio').textContent = p.bio || '';
+          document.getElementById('profile-github').href = p.github_url || '#';
+          var websiteEl = document.getElementById('profile-website');
+          if (p.website) {
+            websiteEl.href = p.website;
+            websiteEl.style.display = 'inline';
+          } else {
+            websiteEl.style.display = 'none';
+          }
+
+          var stats = data.stats || {};
+          document.getElementById('profile-skills-count').textContent = stats.skills_count || 0;
+          document.getElementById('profile-stars-count').textContent = stats.total_stars || 0;
+          document.getElementById('profile-installs-count').textContent = stats.total_installs || 0;
+
+          var grid = document.getElementById('profile-skills-grid');
+          grid.textContent = '';
+          (data.skills || []).forEach(function(skill) {
+            grid.appendChild(createSkillCard(skill));
+          });
+        });
+    }
+
+    document.getElementById('back-to-browse').addEventListener('click', function() {
+      document.querySelector('.skills-hero').style.display = '';
+      document.querySelector('.skills-filter').style.display = '';
+      document.querySelector('.skills-sort-section').style.display = '';
+      document.querySelector('.skills-listing').style.display = '';
+      document.querySelector('.skill-submit-section').style.display = '';
+      document.querySelector('.skill-guide').style.display = '';
+      document.querySelector('.ai-prompt-section').style.display = '';
+      document.getElementById('profile-view').style.display = 'none';
+    });
+
+    document.getElementById('user-profile-link').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (currentUser) showProfile(currentUser.username);
+      document.getElementById('user-dropdown').classList.remove('open');
+    });
+
+    function openReportModal(skillId) {
+      document.getElementById('report-skill-id').value = skillId;
+      document.getElementById('report-modal').style.display = 'flex';
+    }
+
+    document.getElementById('report-close').addEventListener('click', function() {
+      document.getElementById('report-modal').style.display = 'none';
+    });
+    document.getElementById('report-modal').addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
+
+    document.getElementById('report-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var skillId = document.getElementById('report-skill-id').value;
+      var body = {
+        email: document.getElementById('report-email').value,
+        reason: document.getElementById('report-reason').value,
+        details: document.getElementById('report-details').value || undefined,
+      };
+
+      fetch(API + '/skills/' + skillId + '/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            document.getElementById('report-modal').style.display = 'none';
+            document.getElementById('report-form').reset();
+          }
+        })
+        .catch(function() {});
+    });
+
     var aiCopyBtn = document.getElementById('ai-prompt-copy');
     var aiPromptText = document.getElementById('ai-prompt-text');
     if (aiCopyBtn && aiPromptText) {
       aiCopyBtn.addEventListener('click', function() {
         navigator.clipboard.writeText(aiPromptText.textContent).then(function() {
-          var svgCheck = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          svgCheck.setAttribute('width', '16');
-          svgCheck.setAttribute('height', '16');
-          svgCheck.setAttribute('viewBox', '0 0 24 24');
-          svgCheck.setAttribute('fill', 'none');
-          svgCheck.setAttribute('stroke', 'currentColor');
-          svgCheck.setAttribute('stroke-width', '2');
-          svgCheck.setAttribute('stroke-linecap', 'round');
-          svgCheck.setAttribute('stroke-linejoin', 'round');
-          var polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-          polyline.setAttribute('points', '20 6 9 17 4 12');
-          svgCheck.appendChild(polyline);
-
-          var label = document.createElement('span');
-          label.textContent = 'Copied!';
-
-          aiCopyBtn.textContent = '';
-          aiCopyBtn.appendChild(svgCheck);
-          aiCopyBtn.appendChild(label);
+          aiCopyBtn.querySelector('span').textContent = 'Copied!';
           aiCopyBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
           aiCopyBtn.style.color = '#10b981';
-
           setTimeout(function() {
-            var svgCopy = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svgCopy.setAttribute('width', '16');
-            svgCopy.setAttribute('height', '16');
-            svgCopy.setAttribute('viewBox', '0 0 24 24');
-            svgCopy.setAttribute('fill', 'none');
-            svgCopy.setAttribute('stroke', 'currentColor');
-            svgCopy.setAttribute('stroke-width', '2');
-            svgCopy.setAttribute('stroke-linecap', 'round');
-            svgCopy.setAttribute('stroke-linejoin', 'round');
-            var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('x', '9');
-            rect.setAttribute('y', '9');
-            rect.setAttribute('width', '13');
-            rect.setAttribute('height', '13');
-            rect.setAttribute('rx', '2');
-            svgCopy.appendChild(rect);
-            var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1');
-            svgCopy.appendChild(path);
-
-            var resetLabel = document.createElement('span');
-            resetLabel.textContent = 'Copy';
-
-            aiCopyBtn.textContent = '';
-            aiCopyBtn.appendChild(svgCopy);
-            aiCopyBtn.appendChild(resetLabel);
+            aiCopyBtn.querySelector('span').textContent = 'Copy';
             aiCopyBtn.style.borderColor = '';
             aiCopyBtn.style.color = '';
           }, 2500);
         }).catch(function() {});
       });
     }
+
+    checkAuth();
+    loadSkills();
   })();
   </script>
 </body>

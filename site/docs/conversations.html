@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation History — Zubo Docs</title>
+  <meta name="description" content="Cross-channel conversation history with FTS5 search, dashboard browsing, and API access. Zubo stores every message across all channels in a unified, searchable history.">
+  <meta name="theme-color" content="#060608">
+  <link rel="canonical" href="https://zubo.bot/docs/conversations.html">
+  <meta property="og:title" content="Conversation History — Zubo Docs">
+  <meta property="og:description" content="Cross-channel conversation history with FTS5 search, dashboard browsing, and API access.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://zubo.bot/docs/conversations.html">
+  <meta property="og:image" content="https://zubo.bot/og-image.png">
+  <meta property="og:site_name" content="Zubo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Conversation History — Zubo Docs">
+  <meta name="twitter:description" content="Cross-channel conversation history with FTS5 search, dashboard browsing, and API access.">
+  <meta name="twitter:image" content="https://zubo.bot/og-image.png">
+  <meta name="twitter:creator" content="@thomaskanze">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><path d='M50 15C52 37 63 48 85 50C63 52 52 63 50 85C48 63 37 52 15 50C37 48 48 37 50 15Z' fill='white'/></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/apwn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Features</div>
+        <div class="docs-sidebar-links">
+          <a href="conversations.html" class="active">Conversation History</a>
+          <a href="webhooks.html">Webhooks</a>
+          <a href="workflows.html">Visual Workflows</a>
+          <a href="marketplace.html">MCP Marketplace</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="integrations.html#oauth">OAuth</a>
+          <a href="security.html">Security &amp; Auth</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Conversation History</div>
+
+      <h1>Conversation History</h1>
+
+      <p>
+        Zubo records every message exchanged across all channels &mdash; Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat &mdash; into a unified conversation history backed by SQLite. Every conversation is tagged with its source channel, user identifier, and timestamp, making it possible to search, browse, and analyze your entire interaction history from a single place.
+      </p>
+
+      <!-- ================================================================ -->
+      <h2 id="cross-channel-history">Cross-Channel History</h2>
+
+      <p>
+        Unlike siloed chat logs, Zubo's conversation history is channel-agnostic. A conversation that starts on Telegram and continues on Discord is linked by user identity and stored in the same database. This means:
+      </p>
+
+      <ul>
+        <li><strong>Unified timeline</strong> &mdash; every message from every channel appears in a single chronological view. You can see the full picture of your interactions regardless of where they happened.</li>
+        <li><strong>Channel metadata</strong> &mdash; each message is tagged with its source channel (<code>telegram</code>, <code>discord</code>, <code>slack</code>, <code>whatsapp</code>, <code>signal</code>, <code>email</code>, <code>webchat</code>) so you can filter by channel when needed.</li>
+        <li><strong>User identity</strong> &mdash; messages are associated with user identifiers (Telegram user ID, Discord user ID, email address, etc.), enabling per-user history views.</li>
+        <li><strong>Conversation grouping</strong> &mdash; messages are grouped into conversations by session. Each conversation has a unique ID, a title (auto-generated or user-set), and metadata including message count and time range.</li>
+      </ul>
+
+      <p>Conversation data is stored in the <code>zubo.db</code> SQLite database in WAL mode, allowing concurrent reads from the dashboard while the agent writes new messages.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="fts5-search">Full-Text Search</h2>
+
+      <p>
+        Zubo indexes all conversation messages using SQLite FTS5, the same full-text search engine used for memory retrieval. This gives you instant keyword search across your entire conversation history with BM25 relevance ranking.
+      </p>
+
+      <ul>
+        <li><strong>BM25 ranking</strong> &mdash; results are ranked by relevance using the BM25 algorithm, which considers term frequency, document length, and corpus statistics. The most relevant messages appear first.</li>
+        <li><strong>Prefix matching</strong> &mdash; search for <code>deploy*</code> to match "deploy", "deployed", "deploying", "deployment".</li>
+        <li><strong>Phrase search</strong> &mdash; wrap terms in double quotes for exact phrase matching: <code>"error handling"</code>.</li>
+        <li><strong>Boolean operators</strong> &mdash; combine terms with <code>AND</code>, <code>OR</code>, and <code>NOT</code> for precise filtering.</li>
+        <li><strong>Channel filtering</strong> &mdash; combine FTS search with channel filters to search only within a specific channel.</li>
+      </ul>
+
+      <h3>Search Examples</h3>
+
+<pre><code># Simple keyword search
+GET /api/conversations/search?q=deployment
+
+# Phrase search
+GET /api/conversations/search?q="kubernetes cluster"
+
+# Channel-scoped search
+GET /api/conversations/search?q=budget&amp;channel=telegram
+
+# Date-range search
+GET /api/conversations/search?q=error&amp;from=2026-02-01&amp;to=2026-02-14</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="dashboard-history">Dashboard History Panel</h2>
+
+      <p>
+        The web dashboard includes a dedicated History panel for browsing and searching conversations visually. Access it by clicking <strong>History</strong> in the dashboard sidebar.
+      </p>
+
+      <ul>
+        <li><strong>Conversation list</strong> &mdash; all conversations are listed in reverse chronological order, showing the title, channel, message count, and last activity time. Click any conversation to expand it and view the full message thread.</li>
+        <li><strong>Search bar</strong> &mdash; type keywords into the search bar at the top to perform a full-text search across all conversations. Results update in real time as you type, with matching terms highlighted in context.</li>
+        <li><strong>Channel filter</strong> &mdash; use the channel dropdown to filter conversations by source channel. Select "All Channels" to see everything, or a specific channel to narrow down.</li>
+        <li><strong>Statistics view</strong> &mdash; the History panel shows aggregate statistics at the top: total conversations, total messages, messages per channel, and a timeline chart of conversation activity over the last 30 days.</li>
+        <li><strong>Export</strong> &mdash; export any conversation as Markdown or JSON using the export button on each conversation card.</li>
+      </ul>
+
+      <!-- ================================================================ -->
+      <h2 id="api-endpoints">API Endpoints</h2>
+
+      <p>All conversation endpoints are under <code>/api/conversations</code> and require authentication when <code>auth.enabled</code> is <code>true</code>.</p>
+
+      <h3>List Conversations</h3>
+<pre><code>GET /api/conversations?limit=20&amp;offset=0&amp;channel=telegram</code></pre>
+      <p>Returns a paginated list of conversations, ordered by most recent activity.</p>
+      <p><strong>Query parameters:</strong></p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>limit</code></td><td>20</td><td>Number of conversations to return. Maximum 100.</td></tr>
+          <tr><td><code>offset</code></td><td>0</td><td>Number of conversations to skip for pagination.</td></tr>
+          <tr><td><code>channel</code></td><td>&mdash;</td><td>Filter by source channel (e.g., <code>telegram</code>, <code>discord</code>, <code>webchat</code>).</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "conversations": [
+    {
+      "id": "conv_abc123",
+      "title": "Deployment discussion",
+      "channel": "telegram",
+      "messageCount": 24,
+      "firstMessageAt": "2026-02-10T09:15:00Z",
+      "lastMessageAt": "2026-02-10T11:30:00Z"
+    }
+  ],
+  "total": 156,
+  "limit": 20,
+  "offset": 0
+}</code></pre>
+
+      <h3>Search Conversations</h3>
+<pre><code>GET /api/conversations/search?q=kubernetes&amp;channel=slack&amp;limit=20</code></pre>
+      <p>Search across all conversation messages using FTS5. Returns conversations containing matching messages, ranked by relevance.</p>
+      <p><strong>Query parameters:</strong></p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>q</code></td><td>&mdash;</td><td>Search query string. Supports FTS5 syntax: phrases (<code>"exact match"</code>), prefix (<code>deploy*</code>), boolean (<code>error AND production</code>).</td></tr>
+          <tr><td><code>channel</code></td><td>&mdash;</td><td>Filter results to a specific channel.</td></tr>
+          <tr><td><code>from</code></td><td>&mdash;</td><td>Start date filter (ISO 8601 format).</td></tr>
+          <tr><td><code>to</code></td><td>&mdash;</td><td>End date filter (ISO 8601 format).</td></tr>
+          <tr><td><code>limit</code></td><td>20</td><td>Maximum results to return.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "results": [
+    {
+      "conversationId": "conv_abc123",
+      "title": "Kubernetes setup",
+      "channel": "slack",
+      "matchCount": 3,
+      "snippet": "...deployed the <mark>kubernetes</mark> cluster to production...",
+      "lastMessageAt": "2026-02-12T14:20:00Z"
+    }
+  ],
+  "total": 8,
+  "query": "kubernetes"
+}</code></pre>
+
+      <h3>Conversation Statistics</h3>
+<pre><code>GET /api/conversations/stats</code></pre>
+      <p>Returns aggregate statistics about conversation history.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "totalConversations": 156,
+  "totalMessages": 4280,
+  "byChannel": {
+    "webchat": 2100,
+    "telegram": 1200,
+    "discord": 680,
+    "slack": 200,
+    "email": 100
+  },
+  "last30Days": [
+    { "date": "2026-02-14", "conversations": 5, "messages": 87 },
+    { "date": "2026-02-13", "conversations": 3, "messages": 42 }
+  ]
+}</code></pre>
+
+      <h3>Get Conversation Messages</h3>
+<pre><code>GET /api/conversations/:id/messages?limit=100</code></pre>
+      <p>Returns the messages in a specific conversation, ordered chronologically.</p>
+      <p><strong>Query parameters:</strong></p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>limit</code></td><td>100</td><td>Maximum messages to return. Maximum 500.</td></tr>
+          <tr><td><code>offset</code></td><td>0</td><td>Number of messages to skip for pagination.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "conversationId": "conv_abc123",
+  "title": "Deployment discussion",
+  "channel": "telegram",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Can you check the deployment status?",
+      "timestamp": "2026-02-10T09:15:00Z"
+    },
+    {
+      "role": "assistant",
+      "content": "The deployment to production completed successfully at 9:12 AM. All health checks are passing.",
+      "timestamp": "2026-02-10T09:15:04Z"
+    }
+  ],
+  "total": 24
+}</code></pre>
+
+      <div class="docs-page-nav">
+        <a href="channels.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Channel Setup</span></a>
+        <a href="webhooks.html"><span class="nav-dir">Next</span><span class="nav-label">Webhooks &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zubo.bot/" },
+      { "@type": "ListItem", "position": 2, "name": "Docs", "item": "https://zubo.bot/docs/" },
+      { "@type": "ListItem", "position": 3, "name": "Conversation History", "item": "https://zubo.bot/docs/conversations.html" }
+    ]
+  }
+  </script>
+</body>
+</html>

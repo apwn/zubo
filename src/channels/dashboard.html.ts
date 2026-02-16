@@ -805,6 +805,106 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px;
   }
   .channel-row-label { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+
+  /* ===== CONVERSATION HISTORY ===== */
+  .conv-layout { display: flex; height: 100%; gap: 0; }
+  .conv-list-pane { width: 320px; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  .conv-list-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+  .conv-list-header .search-bar { margin-bottom: 0; }
+  .conv-filter-row { display: flex; gap: 8px; align-items: center; }
+  .conv-filter-row select { padding: 6px 10px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; font-family: var(--font); }
+  .conv-list-body { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .conv-item { padding: 12px 14px; border-radius: 8px; cursor: pointer; transition: all var(--transition); position: relative; }
+  .conv-item:hover { background: var(--bg-hover); }
+  .conv-item.active { background: var(--accent-bg); border-left: 3px solid var(--accent); }
+  .conv-item-title { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conv-item-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .conv-item-channel { font-size: 10px; padding: 2px 6px; border-radius: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .conv-item-channel.webchat { background: rgba(124,58,237,0.15); color: var(--accent); }
+  .conv-item-channel.telegram { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .conv-item-channel.discord { background: rgba(99,102,241,0.15); color: #6366f1; }
+  .conv-item-channel.slack { background: rgba(16,185,129,0.15); color: var(--green); }
+  .conv-item-channel.email { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .conv-item-channel.whatsapp { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .conv-item-time { font-size: 11px; color: var(--text-faint); }
+  .conv-item-count { font-size: 10px; color: var(--text-muted); margin-left: auto; }
+  .conv-detail-pane { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+  .conv-detail-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .conv-detail-title { font-family: var(--display); font-weight: 700; font-size: 15px; }
+  .conv-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .conv-msg { max-width: 75%; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+  .conv-msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+  .conv-msg.assistant { align-self: flex-start; background: var(--bg-surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .conv-msg-time { font-size: 10px; color: var(--text-faint); margin-top: 4px; }
+  .conv-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 768px) {
+    .conv-layout { flex-direction: column; }
+    .conv-list-pane { width: 100%; max-height: 40vh; border-right: none; border-bottom: 1px solid var(--border); }
+    .conv-stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ===== WEBHOOKS PANEL ===== */
+  .webhook-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; transition: all var(--transition); }
+  .webhook-card:hover { border-color: rgba(124,58,237,0.25); }
+  .webhook-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .webhook-card-name { font-family: var(--display); font-weight: 700; font-size: 15px; }
+  .webhook-card-url { font-family: var(--mono); font-size: 11px; color: var(--text-muted); padding: 4px 8px; background: var(--bg); border-radius: 4px; cursor: pointer; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .webhook-card-url:hover { color: var(--accent); }
+  .webhook-card-stats { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--text-secondary); }
+  .webhook-card-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .webhook-events-list { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .webhook-event-item { padding: 8px 12px; background: var(--bg); border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .webhook-event-payload { font-family: var(--mono); font-size: 11px; color: var(--text-muted); max-height: 100px; overflow-y: auto; white-space: pre-wrap; margin-top: 4px; padding: 8px; background: var(--bg); border-radius: 4px; }
+
+  /* ===== VISUAL WORKFLOW BUILDER ===== */
+  .vw-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .vw-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; transition: all var(--transition); cursor: pointer; }
+  .vw-card:hover { border-color: var(--accent-border); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .vw-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .vw-card-name { font-family: var(--display); font-weight: 700; font-size: 14px; }
+  .vw-trigger-badge { font-size: 10px; padding: 2px 8px; border-radius: 8px; font-weight: 600; text-transform: uppercase; }
+  .vw-trigger-badge.cron { background: rgba(99,102,241,0.15); color: var(--indigo); }
+  .vw-trigger-badge.webhook { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .vw-trigger-badge.manual { background: rgba(124,58,237,0.15); color: var(--accent); }
+  .vw-card-desc { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+  .vw-card-meta { display: flex; gap: 12px; font-size: 11px; color: var(--text-muted); }
+  .vw-builder-overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 250; flex-direction: column; }
+  .vw-builder-overlay.visible { display: flex; }
+  .vw-builder-topbar { padding: 12px 20px; background: var(--bg-raised); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+  .vw-builder-topbar input { padding: 8px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; font-family: var(--display); font-weight: 600; outline: none; flex: 1; max-width: 300px; }
+  .vw-builder-body { flex: 1; display: flex; overflow: hidden; }
+  .vw-palette { width: 200px; background: var(--bg-raised); border-right: 1px solid var(--border); padding: 16px; overflow-y: auto; flex-shrink: 0; }
+  .vw-palette-item { padding: 10px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: grab; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; transition: all var(--transition); }
+  .vw-palette-item:hover { border-color: var(--accent); color: var(--text); }
+  .vw-palette-item .vw-block-icon { font-size: 16px; }
+  .vw-canvas { flex: 1; overflow: auto; position: relative; background: var(--bg); background-image: radial-gradient(circle, var(--border) 1px, transparent 1px); background-size: 24px 24px; }
+  .vw-canvas-inner { min-width: 100%; min-height: 100%; padding: 40px; position: relative; }
+  .vw-block { position: relative; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; min-width: 220px; margin-bottom: 16px; cursor: default; transition: border-color var(--transition); }
+  .vw-block:hover { border-color: var(--accent-border); }
+  .vw-block.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,58,237,0.15); }
+  .vw-block-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-faint); font-weight: 600; margin-bottom: 4px; }
+  .vw-block-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .vw-props-panel { width: 280px; background: var(--bg-raised); border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; flex-shrink: 0; }
+  .vw-props-title { font-family: var(--display); font-weight: 700; font-size: 14px; margin-bottom: 16px; }
+  @media (max-width: 768px) {
+    .vw-palette { display: none; }
+    .vw-props-panel { width: 100%; position: absolute; bottom: 0; left: 0; right: 0; max-height: 40vh; border-left: none; border-top: 1px solid var(--border); }
+  }
+
+  /* ===== MCP MARKETPLACE ===== */
+  .mcp-marketplace-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .mcp-server-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; transition: all var(--transition); }
+  .mcp-server-card:hover { border-color: var(--accent-border); transform: translateY(-1px); }
+  .mcp-server-card-name { font-family: var(--display); font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .mcp-server-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .mcp-server-card-actions { display: flex; justify-content: space-between; align-items: center; }
+  .mcp-installed-badge { font-size: 11px; color: var(--green); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+
+  /* ===== DIGEST SETTINGS ===== */
+  .digest-preview-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 250; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .digest-preview-modal.visible { display: flex; }
+  .digest-preview-content { background: white; border-radius: 12px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+  .digest-preview-close { position: absolute; top: 16px; right: 16px; background: var(--bg-raised); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--text); cursor: pointer; z-index: 1; }
 </style>
 </head>
 <body>
@@ -819,6 +919,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <a href="#agent" class="active" onclick="showPanel('agent')">
       <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span> Chat
     </a>
+    <a href="#history" onclick="showPanel('history')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> History
+    </a>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">Overview</div>
     <a href="#dashboard" onclick="showPanel('dashboard')">
@@ -832,6 +935,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     </a>
     <a href="#workflows" onclick="showPanel('workflows')">
       <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></span> Workflows
+    </a>
+    <a href="#webhooks" onclick="showPanel('webhooks')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16.98h1.67c2.49 0 4.5-2.01 4.5-4.49 0-2.48-2.01-4.49-4.5-4.49h-.16C19.17 5.35 16.68 3 13.67 3 11.23 3 9.14 4.56 8.34 6.78c-.3-.05-.6-.08-.91-.08-2.76 0-5 2.24-5 5s2.24 5 5 5h1.48"/><polyline points="12 13 12 21"/><polyline points="9 18 12 21 15 18"/></svg></span> Webhooks
+    </a>
+    <a href="#mcp" onclick="showPanel('mcp')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M14 12h4"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/></svg></span> MCP
     </a>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">Settings</div>
@@ -1047,28 +1156,181 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       </div>
     </div>
 
+    <!-- HISTORY PANEL -->
+    <div id="panel-history" class="panel">
+      <div class="panel-body" style="padding:0;height:100%;">
+        <div style="padding:16px 20px 0;">
+          <div class="conv-stats-row" id="conv-stats-row"></div>
+        </div>
+        <div class="conv-layout" style="flex:1;min-height:0;">
+          <div class="conv-list-pane">
+            <div class="conv-list-header">
+              <div class="search-bar" style="margin-bottom:0;">
+                <input id="conv-search" type="text" placeholder="Search conversations..." onkeydown="if(event.key==='Enter')searchConversations()">
+                <button class="btn btn-primary btn-sm" onclick="searchConversations()">Search</button>
+              </div>
+              <div class="conv-filter-row">
+                <select id="conv-channel-filter" onchange="loadConversations()">
+                  <option value="">All Channels</option>
+                  <option value="webchat">Webchat</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="discord">Discord</option>
+                  <option value="slack">Slack</option>
+                  <option value="email">Email</option>
+                  <option value="whatsapp">WhatsApp</option>
+                </select>
+              </div>
+            </div>
+            <div class="conv-list-body" id="conv-list"></div>
+          </div>
+          <div class="conv-detail-pane">
+            <div class="conv-detail-header" id="conv-detail-header" style="display:none;">
+              <span class="conv-detail-title" id="conv-detail-title"></span>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="exportConversation()">Export</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="deleteConversation()">Delete</button>
+              </div>
+            </div>
+            <div class="conv-messages" id="conv-messages">
+              <div class="empty-state-card">
+                <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                <h4>Select a conversation</h4>
+                <p>Browse your conversation history across all channels.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- WORKFLOWS PANEL -->
     <div id="panel-workflows" class="panel">
       <div class="panel-body">
-        <div class="memory-section-title">
-          <span>Workflow Recipes</span>
-          <span class="badge" id="recipe-count"></span>
+        <div class="tab-bar" id="workflows-tabs">
+          <button class="tab active" onclick="switchTab('workflows','recipes')">Recipes</button>
+          <button class="tab" onclick="switchTab('workflows','custom')">Custom Workflows</button>
+          <button class="tab" onclick="switchTab('workflows','visual')">Visual Builder</button>
         </div>
-        <p class="settings-desc" style="margin-bottom:16px;">Pre-built automations you can activate with one click.</p>
-        <div id="recipes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:32px;"></div>
 
-        <div class="memory-section-title" style="margin-top:28px;">
-          <span>Custom Workflows</span>
+        <div class="tab-content active" id="workflows-tab-recipes">
+          <div class="memory-section-title">
+            <span>Workflow Recipes</span>
+            <span class="badge" id="recipe-count"></span>
+          </div>
+          <p class="settings-desc" style="margin-bottom:16px;">Pre-built automations you can activate with one click.</p>
+          <div id="recipes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;"></div>
         </div>
-        <div class="editor-toolbar">
-          <button class="btn btn-ghost" onclick="loadWorkflows()">Refresh</button>
-          <span id="workflows-status" class="status-text"></span>
+
+        <div class="tab-content" id="workflows-tab-custom">
+          <div class="editor-toolbar">
+            <button class="btn btn-ghost" onclick="loadWorkflows()">Refresh</button>
+            <span id="workflows-status" class="status-text"></span>
+          </div>
+          <div id="workflows-list" style="display:flex;flex-direction:column;gap:14px;"></div>
+          <div id="workflows-empty" class="empty-state-card" style="display:none;">
+            <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
+            <h4>No custom workflows yet</h4>
+            <p>Ask Zubo to create a workflow in chat, or activate a recipe above.</p>
+          </div>
         </div>
-        <div id="workflows-list" style="display:flex;flex-direction:column;gap:14px;"></div>
-        <div id="workflows-empty" class="empty-state-card" style="display:none;">
-          <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
-          <h4>No custom workflows yet</h4>
-          <p>Ask Zubo to create a workflow in chat, or activate a recipe above.</p>
+
+        <div class="tab-content" id="workflows-tab-visual">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div>
+              <h3 style="font-family:var(--display);font-weight:700;margin-bottom:4px;">Visual Workflows</h3>
+              <p class="settings-desc" style="margin-bottom:0;">Drag-and-drop workflow builder with triggers, conditions, and actions.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openVisualBuilder()">+ New Workflow</button>
+          </div>
+          <div class="vw-list" id="vw-list"></div>
+          <div id="vw-empty" class="empty-state-card" style="display:none;">
+            <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></div>
+            <h4>No visual workflows yet</h4>
+            <p>Create automated workflows with a visual drag-and-drop builder.</p>
+            <button class="btn btn-primary" onclick="openVisualBuilder()">Create Workflow</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEBHOOKS PANEL -->
+    <div id="panel-webhooks" class="panel">
+      <div class="panel-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div>
+            <h3 style="font-family:var(--display);font-weight:700;margin-bottom:4px;">Webhooks</h3>
+            <p class="settings-desc" style="margin-bottom:0;">Receive events from external services and trigger your agent automatically.</p>
+          </div>
+          <button class="btn btn-primary" onclick="showCreateWebhookForm()">+ New Webhook</button>
+        </div>
+
+        <div id="webhook-create-form" style="display:none;margin-bottom:20px;">
+          <div class="settings-section">
+            <h3 class="settings-title">Create Webhook</h3>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label class="settings-label" for="wh-name">Name</label>
+                <input id="wh-name" type="text" class="settings-input" placeholder="e.g. github-push">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="wh-desc">Description</label>
+                <input id="wh-desc" type="text" class="settings-input" placeholder="e.g. Triggered on GitHub push events">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="wh-secret">HMAC Secret (optional)</label>
+                <input id="wh-secret" type="text" class="settings-input" placeholder="Leave empty for no signature verification">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="wh-prompt">Prompt Template (optional)</label>
+                <textarea id="wh-prompt" class="settings-input" rows="3" style="resize:vertical;font-family:var(--mono);font-size:12px;" placeholder="Analyze this webhook payload: {{payload}}"></textarea>
+              </div>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:10px;">
+              <button class="btn btn-primary" onclick="createWebhook()">Create</button>
+              <button class="btn btn-ghost" onclick="hideCreateWebhookForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="webhooks-list" style="display:flex;flex-direction:column;gap:14px;"></div>
+        <div id="webhooks-empty" class="empty-state-card" style="display:none;">
+          <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16.98h1.67c2.49 0 4.5-2.01 4.5-4.49 0-2.48-2.01-4.49-4.5-4.49h-.16C19.17 5.35 16.68 3 13.67 3 11.23 3 9.14 4.56 8.34 6.78c-.3-.05-.6-.08-.91-.08-2.76 0-5 2.24-5 5s2.24 5 5 5h1.48"/><polyline points="12 13 12 21"/><polyline points="9 18 12 21 15 18"/></svg></div>
+          <h4>No webhooks configured</h4>
+          <p>Create a webhook to receive events from GitHub, Stripe, or any external service.</p>
+          <button class="btn btn-primary" onclick="showCreateWebhookForm()">Create Webhook</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MCP MARKETPLACE PANEL -->
+    <div id="panel-mcp" class="panel">
+      <div class="panel-body">
+        <div class="tab-bar" id="mcp-tabs">
+          <button class="tab active" onclick="switchTab('mcp','installed')">Installed</button>
+          <button class="tab" onclick="switchTab('mcp','marketplace')">Marketplace</button>
+        </div>
+
+        <div class="tab-content active" id="mcp-tab-installed">
+          <div id="mcp-installed-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+          <div id="mcp-installed-empty" class="empty-state-card" style="display:none;">
+            <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M14 12h4"/></svg></div>
+            <h4>No MCP servers installed</h4>
+            <p>Browse the marketplace to add powerful tool servers.</p>
+            <button class="btn btn-primary" onclick="switchTab('mcp','marketplace')">Browse Marketplace</button>
+          </div>
+        </div>
+
+        <div class="tab-content" id="mcp-tab-marketplace">
+          <div class="search-bar">
+            <input id="mcp-marketplace-search" type="text" placeholder="Search MCP servers (e.g. filesystem, github, database...)" onkeydown="if(event.key==='Enter')searchMcpMarketplace()">
+            <button class="btn btn-primary" onclick="searchMcpMarketplace()">Search</button>
+          </div>
+          <div class="mcp-marketplace-grid" id="mcp-marketplace-results"></div>
+          <div id="mcp-marketplace-empty" class="empty-state-card">
+            <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+            <h4>Discover MCP Servers</h4>
+            <p>Search the official MCP registry to find and install tool servers.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -1145,6 +1407,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <button class="tab" onclick="switchTab('settings','logs')">Logs</button>
           <button class="tab" onclick="switchTab('settings','privacy')">Privacy</button>
           <button class="tab" onclick="switchTab('settings','budget')">Budget</button>
+          <button class="tab" onclick="switchTab('settings','digests')">Email Digests</button>
         </div>
 
         <!-- General Tab -->
@@ -1497,9 +1760,116 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           </div>
         </div>
 
+        <!-- Email Digests Tab -->
+        <div class="tab-content" id="settings-tab-digests">
+          <div class="settings-section">
+            <h3 class="settings-title">Email Digest</h3>
+            <p class="settings-desc">Receive periodic email summaries of your agent's activity, conversations, and errors.</p>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label class="settings-label" for="digest-enabled">Status</label>
+                <select id="digest-enabled" class="settings-select">
+                  <option value="0">Disabled</option>
+                  <option value="1">Enabled</option>
+                </select>
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="digest-frequency">Frequency</label>
+                <select id="digest-frequency" class="settings-select">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="digest-time">Send Time</label>
+                <input id="digest-time" type="time" class="settings-input" value="09:00">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="digest-email">Recipient Email</label>
+                <input id="digest-email" type="email" class="settings-input" placeholder="you@example.com">
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <p class="settings-label" style="margin-bottom:8px;">Include in digest:</p>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;">
+                  <input type="checkbox" id="digest-inc-conversations" checked> Conversations summary
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;">
+                  <input type="checkbox" id="digest-inc-tools" checked> Tool usage stats
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;">
+                  <input type="checkbox" id="digest-inc-errors" checked> Errors
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;">
+                  <input type="checkbox" id="digest-inc-scheduled" checked> Scheduled tasks
+                </label>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+              <button class="btn btn-primary" onclick="saveDigestConfig()">Save</button>
+              <button class="btn btn-ghost" onclick="previewDigest()">Preview</button>
+              <button class="btn btn-ghost" onclick="sendTestDigest()">Send Test</button>
+              <span id="digest-status" class="status-text"></span>
+            </div>
+            <div id="digest-last-sent" style="margin-top:10px;font-size:12px;color:var(--text-faint);"></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Visual Workflow Builder Overlay -->
+<div class="vw-builder-overlay" id="vw-builder">
+  <div class="vw-builder-topbar">
+    <button class="btn btn-ghost" onclick="closeVisualBuilder()">&#8592; Back</button>
+    <input type="text" id="vw-builder-name" placeholder="Workflow name...">
+    <select id="vw-builder-trigger" class="settings-select" style="width:auto;" onchange="onVwTriggerChange()">
+      <option value="manual">Manual Trigger</option>
+      <option value="cron">Cron Schedule</option>
+      <option value="webhook">Webhook</option>
+    </select>
+    <input type="text" id="vw-builder-schedule" class="settings-input" style="width:160px;display:none;" placeholder="*/5 * * * *">
+    <select id="vw-builder-webhook" class="settings-select" style="width:auto;display:none;"></select>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn btn-primary" onclick="saveVisualWorkflow()">Save</button>
+      <button class="btn btn-ghost" onclick="runVisualWorkflow()">Run Now</button>
+    </div>
+  </div>
+  <div class="vw-builder-body">
+    <div class="vw-palette">
+      <div style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:10px;">Blocks</div>
+      <div class="vw-palette-item" draggable="true" data-type="tool"><span class="vw-block-icon">&#9881;</span> Tool Call</div>
+      <div class="vw-palette-item" draggable="true" data-type="agent"><span class="vw-block-icon">&#129302;</span> Agent Prompt</div>
+      <div class="vw-palette-item" draggable="true" data-type="message"><span class="vw-block-icon">&#9993;</span> Send Message</div>
+      <div class="vw-palette-item" draggable="true" data-type="condition"><span class="vw-block-icon">&#10067;</span> Condition</div>
+      <div class="vw-palette-item" draggable="true" data-type="delay"><span class="vw-block-icon">&#9203;</span> Delay</div>
+    </div>
+    <div class="vw-canvas" id="vw-canvas">
+      <div class="vw-canvas-inner" id="vw-canvas-inner">
+        <div class="empty-state-card" id="vw-canvas-empty">
+          <h4>Drag blocks here to build your workflow</h4>
+          <p>Add steps from the palette on the left, then configure them in the panel on the right.</p>
+        </div>
+      </div>
+    </div>
+    <div class="vw-props-panel" id="vw-props">
+      <div class="vw-props-title">Properties</div>
+      <div id="vw-props-content">
+        <p class="settings-desc">Select a block to edit its properties.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Digest Preview Modal -->
+<div class="digest-preview-modal" id="digest-preview-modal">
+  <div style="position:relative;">
+    <button class="digest-preview-close" onclick="closeDigestPreview()">Close</button>
+    <div class="digest-preview-content" id="digest-preview-content"></div>
   </div>
 </div>
 
@@ -1536,8 +1906,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <script>
 // --- Panel routing ---
-var panelNames = ['agent','dashboard','memory','skills','workflows','integrations','settings'];
-var panelTitles = { agent:'Chat', dashboard:'Dashboard', memory:'Memory', skills:'Skills', workflows:'Workflows', integrations:'Integrations', settings:'Settings' };
+var panelNames = ['agent','history','dashboard','memory','skills','workflows','webhooks','mcp','integrations','settings'];
+var panelTitles = { agent:'Chat', history:'History', dashboard:'Dashboard', memory:'Memory', skills:'Skills', workflows:'Workflows', webhooks:'Webhooks', mcp:'MCP', integrations:'Integrations', settings:'Settings' };
 
 // Legacy panel name mapping (old names -> new names + tab)
 var legacyPanelMap = {
@@ -1575,7 +1945,10 @@ function showPanel(name) {
   if (name === 'memory') loadMemory();
   if (name === 'skills') loadSkills();
   if (name === 'workflows') loadWorkflows();
+  if (name === 'history') loadHistory();
   if (name === 'integrations') loadIntegrations();
+  if (name === 'webhooks') loadWebhooks();
+  if (name === 'mcp') loadMcpPanel();
   if (name === 'settings') loadSettingsPanel();
   closeMobileMenu();
 }
@@ -1616,10 +1989,22 @@ function switchTab(panelId, tabName) {
     if (tabName === 'performance') loadPerformance();
   }
   if (panelId === 'skills' && tabName === 'browse') {
-    // Focus search
     var searchInput = document.getElementById('registry-search');
     if (searchInput) searchInput.focus();
   }
+  if (panelId === 'workflows') {
+    if (tabName === 'recipes') loadRecipes();
+    if (tabName === 'custom') loadWorkflows();
+    if (tabName === 'visual') loadVisualWorkflows();
+  }
+  if (panelId === 'mcp') {
+    if (tabName === 'installed') loadMcpInstalled();
+    if (tabName === 'marketplace') {
+      var s = document.getElementById('mcp-marketplace-search');
+      if (s) s.focus();
+    }
+  }
+  if (panelId === 'settings' && tabName === 'digests') loadDigestConfig();
 }
 
 // --- Unified Dashboard loader ---
@@ -2446,7 +2831,9 @@ function uninstallRecipe(id) {
 
 // --- WORKFLOWS ---
 function loadWorkflows() {
-  loadRecipes();
+  // Load recipes only if the recipes tab is visible
+  var recipesTab = document.getElementById('workflows-tab-recipes');
+  if (recipesTab && recipesTab.classList.contains('active')) loadRecipes();
   api('/workflows').then(function(data) {
     var container = document.getElementById('workflows-list');
     var empty = document.getElementById('workflows-empty');
@@ -3985,6 +4372,9 @@ function renderCmdResults(query) {
     { title: 'MCP Servers', action: function() { showPanel('settings'); switchTab('settings','mcp'); } },
     { title: 'Smart Routing', action: function() { showPanel('settings'); switchTab('settings','routing'); } },
     { title: 'Browse Registry', action: function() { showPanel('skills'); switchTab('skills','browse'); } },
+    { title: 'Visual Builder', action: function() { showPanel('workflows'); switchTab('workflows','visual'); } },
+    { title: 'MCP Marketplace', action: function() { showPanel('mcp'); switchTab('mcp','marketplace'); } },
+    { title: 'Email Digests', action: function() { showPanel('settings'); switchTab('settings','digests'); } },
   ];
   subTabs.forEach(function(st) { items.push({ name: st.title.toLowerCase(), title: st.title, action: st.action }); });
 
@@ -4171,6 +4561,935 @@ setInterval(function() {
     if (mcpTab && mcpTab.classList.contains('active')) loadMcpServers();
   }
 }, 30000);
+
+// ============================================================
+// CONVERSATION HISTORY
+// ============================================================
+var activeConvId = null;
+
+function loadHistory() {
+  loadConversationStats();
+  loadConversations();
+}
+
+function loadConversationStats() {
+  api('/conversations/stats').then(function(data) {
+    var row = document.getElementById('conv-stats-row');
+    if (!row) return;
+    row.replaceChildren();
+    var stats = [
+      { label: 'Conversations', value: data.totalConversations || 0 },
+      { label: 'Messages', value: data.totalMessages || 0 },
+      { label: 'Channels', value: Object.keys(data.messagesByChannel || {}).length },
+      { label: 'Recent (24h)', value: data.recentActivity || 0 },
+    ];
+    stats.forEach(function(s) {
+      var card = document.createElement('div');
+      card.className = 'stat-card';
+      var lbl = document.createElement('div');
+      lbl.className = 'stat-label';
+      lbl.textContent = s.label;
+      var val = document.createElement('div');
+      val.className = 'stat-value';
+      val.textContent = s.value;
+      card.appendChild(lbl);
+      card.appendChild(val);
+      row.appendChild(card);
+    });
+  }).catch(function() {});
+}
+
+function loadConversations() {
+  var channel = document.getElementById('conv-channel-filter').value;
+  var url = '/conversations?limit=50' + (channel ? '&channel=' + channel : '');
+  api(url).then(function(data) {
+    var list = document.getElementById('conv-list');
+    list.replaceChildren();
+    var convs = data.conversations || [];
+    if (!convs.length) {
+      var msg = document.createElement('div');
+      msg.className = 'empty-state';
+      msg.style.padding = '40px 16px';
+      msg.textContent = 'No conversations found.';
+      list.appendChild(msg);
+      return;
+    }
+    convs.forEach(function(c) {
+      var item = document.createElement('div');
+      item.className = 'conv-item' + (c.id === activeConvId ? ' active' : '');
+      var title = document.createElement('div');
+      title.className = 'conv-item-title';
+      title.textContent = c.title || c.id;
+      item.appendChild(title);
+      var meta = document.createElement('div');
+      meta.className = 'conv-item-meta';
+      var ch = c.channel || 'webchat';
+      var chBadge = document.createElement('span');
+      chBadge.className = 'conv-item-channel ' + ch;
+      chBadge.textContent = ch;
+      meta.appendChild(chBadge);
+      var time = document.createElement('span');
+      time.className = 'conv-item-time';
+      time.textContent = timeAgo(c.updated_at || c.created_at);
+      meta.appendChild(time);
+      var count = document.createElement('span');
+      count.className = 'conv-item-count';
+      count.textContent = (c.message_count || 0) + ' msgs';
+      meta.appendChild(count);
+      item.appendChild(meta);
+      item.onclick = function() { openConversation(c.id, c.title || c.id); };
+      list.appendChild(item);
+    });
+  }).catch(function() {});
+}
+
+function openConversation(id, title) {
+  activeConvId = id;
+  document.querySelectorAll('.conv-item').forEach(function(i) { i.classList.remove('active'); });
+  var header = document.getElementById('conv-detail-header');
+  header.style.display = 'flex';
+  document.getElementById('conv-detail-title').textContent = title;
+  var msgs = document.getElementById('conv-messages');
+  msgs.replaceChildren();
+  var loading = document.createElement('div');
+  loading.className = 'empty-state';
+  loading.textContent = 'Loading...';
+  msgs.appendChild(loading);
+  // Re-highlight in list
+  document.querySelectorAll('.conv-item').forEach(function(item) {
+    var t = item.querySelector('.conv-item-title');
+    if (t && t.textContent === title) item.classList.add('active');
+  });
+  api('/conversations/' + encodeURIComponent(id) + '/messages?limit=100').then(function(data) {
+    msgs.replaceChildren();
+    var messages = data.messages || [];
+    if (!messages.length) {
+      var e = document.createElement('div');
+      e.className = 'empty-state';
+      e.textContent = 'No messages in this conversation.';
+      msgs.appendChild(e);
+      return;
+    }
+    messages.forEach(function(m) {
+      var div = document.createElement('div');
+      div.className = 'conv-msg ' + (m.role === 'user' ? 'user' : 'assistant');
+      div.textContent = m.content;
+      var tm = document.createElement('div');
+      tm.className = 'conv-msg-time';
+      tm.textContent = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
+      div.appendChild(tm);
+      msgs.appendChild(div);
+    });
+    msgs.scrollTop = msgs.scrollHeight;
+  }).catch(function() {
+    msgs.replaceChildren();
+    var e = document.createElement('div');
+    e.className = 'empty-state';
+    e.textContent = 'Failed to load messages.';
+    msgs.appendChild(e);
+  });
+}
+
+function searchConversations() {
+  var q = document.getElementById('conv-search').value.trim();
+  if (!q) { loadConversations(); return; }
+  api('/conversations/search?q=' + encodeURIComponent(q) + '&limit=30').then(function(data) {
+    var list = document.getElementById('conv-list');
+    list.replaceChildren();
+    var results = data.results || [];
+    if (!results.length) {
+      var e = document.createElement('div');
+      e.className = 'empty-state';
+      e.style.padding = '40px 16px';
+      e.textContent = 'No results for "' + q + '"';
+      list.appendChild(e);
+      return;
+    }
+    results.forEach(function(r) {
+      var item = document.createElement('div');
+      item.className = 'conv-item';
+      var title = document.createElement('div');
+      title.className = 'conv-item-title';
+      title.textContent = (r.content || '').substring(0, 80);
+      item.appendChild(title);
+      var meta = document.createElement('div');
+      meta.className = 'conv-item-meta';
+      var roleBadge = document.createElement('span');
+      roleBadge.className = 'conv-item-channel';
+      roleBadge.textContent = r.role || '';
+      meta.appendChild(roleBadge);
+      var tid = document.createElement('span');
+      tid.className = 'conv-item-time';
+      tid.textContent = r.thread_id || '';
+      meta.appendChild(tid);
+      item.appendChild(meta);
+      item.onclick = function() { openConversation(r.thread_id, r.thread_id); };
+      list.appendChild(item);
+    });
+  }).catch(function() {});
+}
+
+function exportConversation() {
+  if (!activeConvId) { toast('Select a conversation first'); return; }
+  api('/conversations/' + encodeURIComponent(activeConvId) + '/messages?limit=999').then(function(data) {
+    var msgs = data.messages || [];
+    var md = '# Conversation: ' + activeConvId + '\\n\\n';
+    msgs.forEach(function(m) {
+      md += '**' + m.role + '** (' + (m.timestamp || '') + ')\\n' + m.content + '\\n\\n---\\n\\n';
+    });
+    var blob = new Blob([md], { type: 'text/markdown' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'conversation-' + activeConvId.replace(/[^a-z0-9]/gi, '_') + '.md';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Conversation exported');
+  });
+}
+
+function deleteConversation() {
+  if (!activeConvId) return;
+  if (!confirm('Delete this conversation?')) return;
+  api('/threads/' + encodeURIComponent(activeConvId), { method: 'DELETE' }).then(function() {
+    activeConvId = null;
+    document.getElementById('conv-detail-header').style.display = 'none';
+    var msgs = document.getElementById('conv-messages');
+    msgs.replaceChildren();
+    var e = document.createElement('div');
+    e.className = 'empty-state-card';
+    var h = document.createElement('h4');
+    h.textContent = 'Select a conversation';
+    e.appendChild(h);
+    msgs.appendChild(e);
+    loadConversations();
+    toast('Conversation deleted');
+  }).catch(function() { toast('Failed to delete'); });
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr);
+  var now = Date.now();
+  var diff = Math.floor((now - d.getTime()) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+  return d.toLocaleDateString();
+}
+
+function escHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ============================================================
+// WEBHOOKS
+// ============================================================
+function loadWebhooks() {
+  api('/webhooks').then(function(data) {
+    var list = document.getElementById('webhooks-list');
+    var empty = document.getElementById('webhooks-empty');
+    list.replaceChildren();
+    var webhooks = data.webhooks || [];
+    empty.style.display = webhooks.length ? 'none' : 'flex';
+    webhooks.forEach(function(wh) {
+      var card = document.createElement('div');
+      card.className = 'webhook-card';
+      var whUrl = window.location.origin + '/api/webhook/' + wh.id;
+      // Header
+      var hdr = document.createElement('div');
+      hdr.className = 'webhook-card-header';
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'webhook-card-name';
+      var dot = document.createElement('span');
+      dot.className = 'status-dot ' + (wh.active ? 'ok' : 'error');
+      nameSpan.appendChild(dot);
+      nameSpan.appendChild(document.createTextNode(wh.name));
+      hdr.appendChild(nameSpan);
+      card.appendChild(hdr);
+      // Description
+      if (wh.description) {
+        var desc = document.createElement('div');
+        desc.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-bottom:6px;';
+        desc.textContent = wh.description;
+        card.appendChild(desc);
+      }
+      // URL
+      var urlEl = document.createElement('div');
+      urlEl.className = 'webhook-card-url';
+      urlEl.textContent = whUrl;
+      urlEl.setAttribute('data-tooltip', 'Click to copy');
+      urlEl.onclick = function() { copyToClipboard(whUrl); };
+      card.appendChild(urlEl);
+      // Stats
+      var stats = document.createElement('div');
+      stats.className = 'webhook-card-stats';
+      var trig = document.createElement('span');
+      trig.textContent = 'Triggered: ' + (wh.trigger_count || 0) + ' times';
+      stats.appendChild(trig);
+      if (wh.last_triggered_at) {
+        var last = document.createElement('span');
+        last.textContent = 'Last: ' + timeAgo(wh.last_triggered_at);
+        stats.appendChild(last);
+      }
+      card.appendChild(stats);
+      // Actions
+      var actions = document.createElement('div');
+      actions.className = 'webhook-card-actions';
+      var testBtn = document.createElement('button');
+      testBtn.className = 'btn btn-ghost btn-sm';
+      testBtn.textContent = 'Test';
+      testBtn.onclick = function() { testWebhook(wh.id); };
+      actions.appendChild(testBtn);
+      var eventsBtn = document.createElement('button');
+      eventsBtn.className = 'btn btn-ghost btn-sm';
+      eventsBtn.textContent = 'Events';
+      eventsBtn.onclick = function() { toggleWebhookEvents(wh.id); };
+      actions.appendChild(eventsBtn);
+      var delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-ghost btn-sm';
+      delBtn.style.color = 'var(--red)';
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = function() { deleteWebhook(wh.id); };
+      actions.appendChild(delBtn);
+      card.appendChild(actions);
+      // Events container
+      var evContainer = document.createElement('div');
+      evContainer.className = 'webhook-events-list';
+      evContainer.id = 'wh-events-' + wh.id;
+      evContainer.style.display = 'none';
+      card.appendChild(evContainer);
+      list.appendChild(card);
+    });
+  }).catch(function() {});
+}
+
+function showCreateWebhookForm() { document.getElementById('webhook-create-form').style.display = 'block'; }
+function hideCreateWebhookForm() { document.getElementById('webhook-create-form').style.display = 'none'; }
+
+function createWebhook() {
+  var body = {
+    name: document.getElementById('wh-name').value.trim(),
+    description: document.getElementById('wh-desc').value.trim(),
+    secret: document.getElementById('wh-secret').value.trim() || undefined,
+    prompt_template: document.getElementById('wh-prompt').value.trim() || undefined,
+  };
+  if (!body.name) { toast('Name is required'); return; }
+  api('/webhooks', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+  }).then(function() {
+    hideCreateWebhookForm();
+    document.getElementById('wh-name').value = '';
+    document.getElementById('wh-desc').value = '';
+    document.getElementById('wh-secret').value = '';
+    document.getElementById('wh-prompt').value = '';
+    loadWebhooks();
+    toast('Webhook created');
+  }).catch(function(e) { toast('Failed: ' + e.message); });
+}
+
+function deleteWebhook(id) {
+  if (!confirm('Delete this webhook?')) return;
+  api('/webhooks/' + id, { method: 'DELETE' }).then(function() {
+    loadWebhooks();
+    toast('Webhook deleted');
+  });
+}
+
+function testWebhook(id) {
+  api('/webhooks/' + id + '/test', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ test: true }) })
+    .then(function() { toast('Test payload sent'); })
+    .catch(function() { toast('Test failed'); });
+}
+
+function toggleWebhookEvents(id) {
+  var container = document.getElementById('wh-events-' + id);
+  if (container.style.display !== 'none') { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+  container.replaceChildren();
+  var loadMsg = document.createElement('div');
+  loadMsg.className = 'empty-state';
+  loadMsg.style.padding = '10px';
+  loadMsg.textContent = 'Loading...';
+  container.appendChild(loadMsg);
+  api('/webhooks/' + id + '/events?limit=10').then(function(data) {
+    container.replaceChildren();
+    var events = data.events || [];
+    if (!events.length) {
+      var e = document.createElement('div');
+      e.className = 'empty-state';
+      e.style.cssText = 'padding:10px;font-size:12px;';
+      e.textContent = 'No events yet';
+      container.appendChild(e);
+      return;
+    }
+    events.forEach(function(ev) {
+      var item = document.createElement('div');
+      item.className = 'webhook-event-item';
+      var timeSpan = document.createElement('span');
+      timeSpan.textContent = timeAgo(ev.created_at);
+      item.appendChild(timeSpan);
+      var statusDot = document.createElement('span');
+      statusDot.className = 'status-dot ' + (ev.processed ? 'ok' : 'error');
+      item.appendChild(statusDot);
+      var payload = document.createElement('div');
+      payload.className = 'webhook-event-payload';
+      try { payload.textContent = JSON.stringify(JSON.parse(ev.payload), null, 2); } catch(e2) { payload.textContent = ev.payload; }
+      payload.style.display = 'none';
+      item.style.cursor = 'pointer';
+      item.onclick = function() { payload.style.display = payload.style.display === 'none' ? 'block' : 'none'; };
+      container.appendChild(item);
+      container.appendChild(payload);
+    });
+  });
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(function() { toast('Copied to clipboard'); });
+}
+
+// ============================================================
+// MCP MARKETPLACE
+// ============================================================
+function loadMcpPanel() {
+  loadMcpInstalled();
+}
+
+function loadMcpInstalled() {
+  api('/mcp/servers').then(function(data) {
+    var list = document.getElementById('mcp-installed-list');
+    var empty = document.getElementById('mcp-installed-empty');
+    list.replaceChildren();
+    var servers = data.servers || [];
+    empty.style.display = servers.length ? 'none' : 'flex';
+    servers.forEach(function(s) {
+      var card = document.createElement('div');
+      card.className = 'mcp-server-card';
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+      var info = document.createElement('div');
+      var nameDiv = document.createElement('div');
+      nameDiv.className = 'mcp-server-card-name';
+      var dot = document.createElement('span');
+      dot.className = 'status-dot ' + (s.status === 'connected' ? 'ok' : 'error');
+      nameDiv.appendChild(dot);
+      nameDiv.appendChild(document.createTextNode(s.name));
+      info.appendChild(nameDiv);
+      var toolsDiv = document.createElement('div');
+      toolsDiv.style.cssText = 'font-size:12px;color:var(--text-muted);';
+      toolsDiv.textContent = (s.tools || 0) + ' tools';
+      info.appendChild(toolsDiv);
+      row.appendChild(info);
+      var btns = document.createElement('div');
+      btns.style.cssText = 'display:flex;gap:8px;';
+      var restartBtn = document.createElement('button');
+      restartBtn.className = 'btn btn-ghost btn-sm';
+      restartBtn.textContent = 'Restart';
+      restartBtn.onclick = (function(name) { return function() { restartMcpServer(name); }; })(s.name);
+      btns.appendChild(restartBtn);
+      var uninstallBtn = document.createElement('button');
+      uninstallBtn.className = 'btn btn-ghost btn-sm';
+      uninstallBtn.style.color = 'var(--red)';
+      uninstallBtn.textContent = 'Uninstall';
+      uninstallBtn.onclick = (function(name) { return function() { uninstallMcpServer(name); }; })(s.name);
+      btns.appendChild(uninstallBtn);
+      row.appendChild(btns);
+      card.appendChild(row);
+      list.appendChild(card);
+    });
+  }).catch(function() {});
+}
+
+function searchMcpMarketplace() {
+  var q = document.getElementById('mcp-marketplace-search').value.trim();
+  var url = '/mcp/marketplace' + (q ? '?q=' + encodeURIComponent(q) : '');
+  var grid = document.getElementById('mcp-marketplace-results');
+  var empty = document.getElementById('mcp-marketplace-empty');
+  grid.replaceChildren();
+  api(url).then(function(data) {
+    var servers = data.servers || [];
+    empty.style.display = servers.length ? 'none' : 'flex';
+    servers.forEach(function(s) {
+      var card = document.createElement('div');
+      card.className = 'mcp-server-card';
+      var name = document.createElement('div');
+      name.className = 'mcp-server-card-name';
+      name.textContent = s.name;
+      card.appendChild(name);
+      var desc = document.createElement('div');
+      desc.className = 'mcp-server-card-desc';
+      desc.textContent = s.description || '';
+      card.appendChild(desc);
+      var acts = document.createElement('div');
+      acts.className = 'mcp-server-card-actions';
+      if (s.repository) {
+        var link = document.createElement('a');
+        link.href = s.repository;
+        link.target = '_blank';
+        link.style.cssText = 'font-size:12px;color:var(--text-muted);';
+        link.textContent = 'View Repo';
+        acts.appendChild(link);
+      } else {
+        acts.appendChild(document.createElement('span'));
+      }
+      var installBtn = document.createElement('button');
+      installBtn.className = 'btn btn-primary btn-sm';
+      installBtn.textContent = 'Install';
+      installBtn.onclick = (function(serverName, btn) {
+        return function() { installMcpServer(serverName, btn); };
+      })(s.name, installBtn);
+      acts.appendChild(installBtn);
+      card.appendChild(acts);
+      grid.appendChild(card);
+    });
+  }).catch(function() { empty.style.display = 'flex'; });
+}
+
+function installMcpServer(name, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Installing...';
+  api('/mcp/marketplace/' + encodeURIComponent(name) + '/install', { method: 'POST' })
+    .then(function(data) {
+      btn.textContent = 'Installed';
+      btn.className = 'btn btn-ghost btn-sm';
+      btn.style.color = 'var(--green)';
+      toast('Installed ' + name + ' (' + (data.tools || 0) + ' tools)');
+      loadMcpInstalled();
+    })
+    .catch(function(e) {
+      btn.disabled = false;
+      btn.textContent = 'Install';
+      toast('Install failed: ' + (e.message || 'Unknown error'));
+    });
+}
+
+function uninstallMcpServer(name) {
+  if (!confirm('Uninstall ' + name + '?')) return;
+  api('/mcp/servers/' + encodeURIComponent(name) + '/uninstall', { method: 'POST' })
+    .then(function() { loadMcpInstalled(); toast(name + ' uninstalled'); })
+    .catch(function() { toast('Uninstall failed'); });
+}
+
+function restartMcpServer(name) {
+  api('/mcp/servers/' + encodeURIComponent(name) + '/restart', { method: 'POST' })
+    .then(function() { toast(name + ' restarting...'); setTimeout(loadMcpInstalled, 2000); })
+    .catch(function() { toast('Restart failed'); });
+}
+
+// ============================================================
+// VISUAL WORKFLOWS
+// ============================================================
+var vwBlocks = [];
+var vwSelectedBlock = null;
+var vwEditingId = null;
+
+function loadVisualWorkflows() {
+  api('/visual-workflows').then(function(data) {
+    var list = document.getElementById('vw-list');
+    var empty = document.getElementById('vw-empty');
+    list.replaceChildren();
+    var wfs = data.workflows || [];
+    empty.style.display = wfs.length ? 'none' : 'flex';
+    wfs.forEach(function(wf) {
+      var card = document.createElement('div');
+      card.className = 'vw-card';
+      // Header
+      var hdr = document.createElement('div');
+      hdr.className = 'vw-card-header';
+      var n = document.createElement('span');
+      n.className = 'vw-card-name';
+      n.textContent = wf.name;
+      hdr.appendChild(n);
+      var badge = document.createElement('span');
+      badge.className = 'vw-trigger-badge ' + wf.trigger_type;
+      badge.textContent = wf.trigger_type;
+      hdr.appendChild(badge);
+      card.appendChild(hdr);
+      // Description
+      if (wf.description) {
+        var d = document.createElement('div');
+        d.className = 'vw-card-desc';
+        d.textContent = wf.description;
+        card.appendChild(d);
+      }
+      // Meta
+      var meta = document.createElement('div');
+      meta.className = 'vw-card-meta';
+      var runs = document.createElement('span');
+      runs.textContent = 'Runs: ' + (wf.run_count || 0);
+      meta.appendChild(runs);
+      if (wf.last_run_at) {
+        var lr = document.createElement('span');
+        lr.textContent = 'Last: ' + timeAgo(wf.last_run_at);
+        meta.appendChild(lr);
+      }
+      var st = document.createElement('span');
+      st.textContent = wf.enabled ? '\\u2705 Active' : '\\u274c Disabled';
+      meta.appendChild(st);
+      card.appendChild(meta);
+      // Actions
+      var acts = document.createElement('div');
+      acts.style.cssText = 'margin-top:10px;display:flex;gap:8px;';
+      var editBtn = document.createElement('button');
+      editBtn.className = 'btn btn-ghost btn-sm';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = function(e) { e.stopPropagation(); editVisualWorkflow(wf.id); };
+      acts.appendChild(editBtn);
+      var runBtn = document.createElement('button');
+      runBtn.className = 'btn btn-ghost btn-sm';
+      runBtn.textContent = 'Run';
+      runBtn.onclick = function(e) { e.stopPropagation(); runVisualWorkflowById(wf.id); };
+      acts.appendChild(runBtn);
+      var togBtn = document.createElement('button');
+      togBtn.className = 'btn btn-ghost btn-sm';
+      togBtn.textContent = wf.enabled ? 'Disable' : 'Enable';
+      togBtn.onclick = function(e) { e.stopPropagation(); toggleVisualWorkflow(wf.id, wf.enabled ? 0 : 1); };
+      acts.appendChild(togBtn);
+      var delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-ghost btn-sm';
+      delBtn.style.color = 'var(--red)';
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = function(e) { e.stopPropagation(); deleteVisualWorkflow(wf.id); };
+      acts.appendChild(delBtn);
+      card.appendChild(acts);
+      list.appendChild(card);
+    });
+  }).catch(function() {});
+}
+
+function openVisualBuilder(id) {
+  vwBlocks = [];
+  vwSelectedBlock = null;
+  vwEditingId = id || null;
+  document.getElementById('vw-builder-name').value = '';
+  document.getElementById('vw-builder-trigger').value = 'manual';
+  document.getElementById('vw-builder-schedule').style.display = 'none';
+  document.getElementById('vw-builder-webhook').style.display = 'none';
+  var canvasInner = document.getElementById('vw-canvas-inner');
+  canvasInner.replaceChildren();
+  var emptyEl = document.createElement('div');
+  emptyEl.className = 'empty-state-card';
+  emptyEl.id = 'vw-canvas-empty';
+  var h = document.createElement('h4');
+  h.textContent = 'Drag blocks here to build your workflow';
+  var p = document.createElement('p');
+  p.textContent = 'Add steps from the palette on the left.';
+  emptyEl.appendChild(h);
+  emptyEl.appendChild(p);
+  canvasInner.appendChild(emptyEl);
+  var propsContent = document.getElementById('vw-props-content');
+  propsContent.replaceChildren();
+  var propsMsg = document.createElement('p');
+  propsMsg.className = 'settings-desc';
+  propsMsg.textContent = 'Select a block to edit its properties.';
+  propsContent.appendChild(propsMsg);
+
+  if (id) {
+    api('/visual-workflows/' + id).then(function(data) {
+      var wf = data.workflow || data;
+      document.getElementById('vw-builder-name').value = wf.name || '';
+      document.getElementById('vw-builder-trigger').value = wf.trigger_type || 'manual';
+      onVwTriggerChange();
+      try {
+        var tc = JSON.parse(wf.trigger_config || '{}');
+        if (tc.schedule) document.getElementById('vw-builder-schedule').value = tc.schedule;
+      } catch(e) {}
+      try {
+        var steps = JSON.parse(wf.steps || '[]');
+        steps.forEach(function(s) { addVwBlock(s.type, s); });
+      } catch(e) {}
+    });
+  }
+
+  document.getElementById('vw-builder').classList.add('visible');
+}
+
+function closeVisualBuilder() {
+  document.getElementById('vw-builder').classList.remove('visible');
+  loadVisualWorkflows();
+}
+
+function onVwTriggerChange() {
+  var v = document.getElementById('vw-builder-trigger').value;
+  document.getElementById('vw-builder-schedule').style.display = v === 'cron' ? 'inline-block' : 'none';
+  document.getElementById('vw-builder-webhook').style.display = v === 'webhook' ? 'inline-block' : 'none';
+}
+
+function editVisualWorkflow(id) { openVisualBuilder(id); }
+
+function runVisualWorkflowById(id) {
+  api('/visual-workflows/' + id + '/run', { method: 'POST' })
+    .then(function(data) { toast(data.success ? 'Workflow completed' : 'Workflow failed: ' + (data.error || '')); })
+    .catch(function() { toast('Run failed'); });
+}
+
+function toggleVisualWorkflow(id, enabled) {
+  api('/visual-workflows/' + id + '/toggle', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ enabled: enabled }) })
+    .then(function() { loadVisualWorkflows(); toast(enabled ? 'Enabled' : 'Disabled'); });
+}
+
+function deleteVisualWorkflow(id) {
+  if (!confirm('Delete this workflow?')) return;
+  api('/visual-workflows/' + id, { method: 'DELETE' }).then(function() { loadVisualWorkflows(); toast('Deleted'); });
+}
+
+var vwBlockCounter = 0;
+
+function addVwBlock(type, existingStep) {
+  var canvas = document.getElementById('vw-canvas-inner');
+  var empty = document.getElementById('vw-canvas-empty');
+  if (empty) empty.style.display = 'none';
+
+  var id = existingStep ? existingStep.id : 'step_' + (++vwBlockCounter);
+  var config = existingStep ? existingStep.config : {};
+  var labels = { tool: 'Tool Call', agent: 'Agent Prompt', message: 'Send Message', condition: 'Condition', delay: 'Delay' };
+
+  var block = document.createElement('div');
+  block.className = 'vw-block';
+  block.dataset.id = id;
+  block.dataset.type = type;
+  var typeLabel = document.createElement('div');
+  typeLabel.className = 'vw-block-type';
+  typeLabel.textContent = labels[type] || type;
+  block.appendChild(typeLabel);
+  var blockLabel = document.createElement('div');
+  blockLabel.className = 'vw-block-label';
+  blockLabel.id = 'vw-label-' + id;
+  blockLabel.textContent = config.toolName || config.prompt || config.text || config.expression || (config.seconds ? config.seconds + 's' : '') || 'Configure...';
+  block.appendChild(blockLabel);
+  var removeBtn = document.createElement('button');
+  removeBtn.style.cssText = 'position:absolute;top:6px;right:8px;background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:14px;';
+  removeBtn.textContent = '\\u00d7';
+  removeBtn.onclick = (function(blockId) { return function() { removeVwBlock(blockId); }; })(id);
+  block.appendChild(removeBtn);
+  block.onclick = function(e) { if (e.target.tagName !== 'BUTTON') selectVwBlock(id); };
+  canvas.appendChild(block);
+
+  vwBlocks.push({ id: id, type: type, config: config, next: null });
+  if (vwBlocks.length > 1) {
+    vwBlocks[vwBlocks.length - 2].next = id;
+  }
+}
+
+function removeVwBlock(id) {
+  vwBlocks = vwBlocks.filter(function(b) { return b.id !== id; });
+  var el = document.querySelector('.vw-block[data-id="'+id+'"]');
+  if (el) el.remove();
+  if (vwSelectedBlock === id) {
+    vwSelectedBlock = null;
+    var propsContent = document.getElementById('vw-props-content');
+    propsContent.replaceChildren();
+    var p = document.createElement('p');
+    p.className = 'settings-desc';
+    p.textContent = 'Select a block to edit its properties.';
+    propsContent.appendChild(p);
+  }
+  if (!vwBlocks.length) {
+    var empty = document.getElementById('vw-canvas-empty');
+    if (empty) empty.style.display = 'flex';
+  }
+  for (var i = 0; i < vwBlocks.length; i++) {
+    vwBlocks[i].next = (i < vwBlocks.length - 1) ? vwBlocks[i + 1].id : null;
+  }
+}
+
+function selectVwBlock(id) {
+  vwSelectedBlock = id;
+  document.querySelectorAll('.vw-block').forEach(function(b) { b.classList.remove('selected'); });
+  var el = document.querySelector('.vw-block[data-id="'+id+'"]');
+  if (el) el.classList.add('selected');
+  var block = vwBlocks.find(function(b) { return b.id === id; });
+  if (!block) return;
+
+  var props = document.getElementById('vw-props-content');
+  props.replaceChildren();
+  var grid = document.createElement('div');
+  grid.className = 'settings-grid';
+
+  function makeField(label, inputEl) {
+    var f = document.createElement('div');
+    f.className = 'settings-field';
+    var l = document.createElement('label');
+    l.className = 'settings-label';
+    l.textContent = label;
+    f.appendChild(l);
+    f.appendChild(inputEl);
+    return f;
+  }
+
+  if (block.type === 'tool') {
+    var inp1 = document.createElement('input');
+    inp1.className = 'settings-input';
+    inp1.value = block.config.toolName || '';
+    inp1.onchange = function() { updateVwProp('toolName', inp1.value); };
+    grid.appendChild(makeField('Tool Name', inp1));
+    var ta1 = document.createElement('textarea');
+    ta1.className = 'settings-input';
+    ta1.rows = 3;
+    ta1.style.cssText = 'font-family:var(--mono);font-size:12px;';
+    ta1.value = JSON.stringify(block.config.input || {});
+    ta1.onchange = function() { updateVwPropJson('input', ta1.value); };
+    grid.appendChild(makeField('Input (JSON)', ta1));
+  } else if (block.type === 'agent') {
+    var ta2 = document.createElement('textarea');
+    ta2.className = 'settings-input';
+    ta2.rows = 4;
+    ta2.value = block.config.prompt || '';
+    ta2.onchange = function() { updateVwProp('prompt', ta2.value); };
+    grid.appendChild(makeField('Prompt', ta2));
+  } else if (block.type === 'message') {
+    var ta3 = document.createElement('textarea');
+    ta3.className = 'settings-input';
+    ta3.rows = 3;
+    ta3.value = block.config.text || '';
+    ta3.onchange = function() { updateVwProp('text', ta3.value); };
+    grid.appendChild(makeField('Message Text', ta3));
+  } else if (block.type === 'condition') {
+    var inp2 = document.createElement('input');
+    inp2.className = 'settings-input';
+    inp2.value = block.config.sourceStepId || '';
+    inp2.onchange = function() { updateVwProp('sourceStepId', inp2.value); };
+    grid.appendChild(makeField('Source Step ID', inp2));
+    var inp3 = document.createElement('input');
+    inp3.className = 'settings-input';
+    inp3.value = block.config.expression || '';
+    inp3.placeholder = 'contains:X, equals:X, or truthy';
+    inp3.onchange = function() { updateVwProp('expression', inp3.value); };
+    grid.appendChild(makeField('Expression', inp3));
+  } else if (block.type === 'delay') {
+    var inp4 = document.createElement('input');
+    inp4.className = 'settings-input';
+    inp4.type = 'number';
+    inp4.min = '1';
+    inp4.max = '300';
+    inp4.value = block.config.seconds || 5;
+    inp4.onchange = function() { updateVwProp('seconds', Number(inp4.value)); };
+    grid.appendChild(makeField('Seconds', inp4));
+  }
+  props.appendChild(grid);
+}
+
+function updateVwProp(key, value) {
+  var block = vwBlocks.find(function(b) { return b.id === vwSelectedBlock; });
+  if (block) {
+    block.config[key] = value;
+    var label = document.getElementById('vw-label-' + block.id);
+    if (label) label.textContent = String(value || 'Configure...');
+  }
+}
+
+function updateVwPropJson(key, value) {
+  try {
+    var block = vwBlocks.find(function(b) { return b.id === vwSelectedBlock; });
+    if (block) block.config[key] = JSON.parse(value);
+  } catch(e) { toast('Invalid JSON'); }
+}
+
+function saveVisualWorkflow() {
+  var name = document.getElementById('vw-builder-name').value.trim();
+  if (!name) { toast('Workflow name is required'); return; }
+  var trigger_type = document.getElementById('vw-builder-trigger').value;
+  var trigger_config = {};
+  if (trigger_type === 'cron') trigger_config.schedule = document.getElementById('vw-builder-schedule').value;
+  if (trigger_type === 'webhook') trigger_config.webhookId = document.getElementById('vw-builder-webhook').value;
+
+  var body = {
+    name: name,
+    trigger_type: trigger_type,
+    trigger_config: JSON.stringify(trigger_config),
+    steps: JSON.stringify(vwBlocks.map(function(b) { return { id: b.id, type: b.type, config: b.config, next: b.next }; })),
+    canvas_data: JSON.stringify({ blocks: vwBlocks }),
+  };
+
+  var url = vwEditingId ? '/visual-workflows/' + vwEditingId : '/visual-workflows';
+  var method = vwEditingId ? 'PUT' : 'POST';
+  api(url, { method: method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(function() { toast('Workflow saved'); closeVisualBuilder(); })
+    .catch(function(e) { toast('Save failed: ' + (e.message || '')); });
+}
+
+function runVisualWorkflow() {
+  if (!vwEditingId) { toast('Save the workflow first'); return; }
+  runVisualWorkflowById(vwEditingId);
+}
+
+// Drag and drop for palette items
+document.querySelectorAll('.vw-palette-item').forEach(function(item) {
+  item.addEventListener('dragstart', function(e) {
+    e.dataTransfer.setData('text/plain', item.dataset.type);
+  });
+});
+(function() {
+  var canvas = document.getElementById('vw-canvas');
+  if (!canvas) return;
+  canvas.addEventListener('dragover', function(e) { e.preventDefault(); });
+  canvas.addEventListener('drop', function(e) {
+    e.preventDefault();
+    var type = e.dataTransfer.getData('text/plain');
+    if (type) addVwBlock(type);
+  });
+})();
+
+// ============================================================
+// EMAIL DIGESTS
+// ============================================================
+function loadDigestConfig() {
+  api('/digests/config').then(function(data) {
+    var c = data.config || data;
+    document.getElementById('digest-enabled').value = c.enabled ? '1' : '0';
+    document.getElementById('digest-frequency').value = c.frequency || 'daily';
+    document.getElementById('digest-time').value = c.send_time || '09:00';
+    document.getElementById('digest-email').value = c.email_to || '';
+    document.getElementById('digest-inc-conversations').checked = c.include_conversations !== 0;
+    document.getElementById('digest-inc-tools').checked = c.include_tool_usage !== 0;
+    document.getElementById('digest-inc-errors').checked = c.include_errors !== 0;
+    document.getElementById('digest-inc-scheduled').checked = c.include_scheduled_tasks !== 0;
+    var lastSent = document.getElementById('digest-last-sent');
+    lastSent.textContent = c.last_sent_at ? 'Last sent: ' + new Date(c.last_sent_at).toLocaleString() : '';
+  }).catch(function() {});
+}
+
+function saveDigestConfig() {
+  var body = {
+    enabled: Number(document.getElementById('digest-enabled').value),
+    frequency: document.getElementById('digest-frequency').value,
+    send_time: document.getElementById('digest-time').value,
+    email_to: document.getElementById('digest-email').value.trim(),
+    include_conversations: document.getElementById('digest-inc-conversations').checked ? 1 : 0,
+    include_tool_usage: document.getElementById('digest-inc-tools').checked ? 1 : 0,
+    include_errors: document.getElementById('digest-inc-errors').checked ? 1 : 0,
+    include_scheduled_tasks: document.getElementById('digest-inc-scheduled').checked ? 1 : 0,
+  };
+  api('/digests/config', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(function() { document.getElementById('digest-status').textContent = 'Saved'; toast('Digest config saved'); })
+    .catch(function(e) { document.getElementById('digest-status').textContent = 'Error: ' + e.message; });
+}
+
+function previewDigest() {
+  fetch('/api/dashboard/digests/preview').then(function(r) { return r.json(); }).then(function(data) {
+    var modal = document.getElementById('digest-preview-modal');
+    var content = document.getElementById('digest-preview-content');
+    // Use srcdoc-based iframe to safely render HTML
+    var iframe = document.createElement('iframe');
+    iframe.srcdoc = data.html || '<p>No preview available</p>';
+    iframe.style.cssText = 'width:100%;height:70vh;border:none;border-radius:12px;';
+    content.replaceChildren();
+    content.appendChild(iframe);
+    modal.classList.add('visible');
+  }).catch(function(e) { toast('Preview failed: ' + e.message); });
+}
+
+function closeDigestPreview() {
+  document.getElementById('digest-preview-modal').classList.remove('visible');
+}
+
+function sendTestDigest() {
+  api('/digests/send', { method: 'POST' })
+    .then(function() { toast('Test digest sent'); loadDigestConfig(); })
+    .catch(function(e) { toast('Send failed: ' + (e.message || '')); });
+}
 
 // Init
 routeFromHash();

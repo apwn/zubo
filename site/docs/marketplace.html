@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Marketplace — Zubo Docs</title>
+  <meta name="description" content="Browse, install, and manage MCP servers from the official registry. Extend Zubo with community tools from the MCP Marketplace.">
+  <meta name="theme-color" content="#060608">
+  <link rel="canonical" href="https://zubo.bot/docs/marketplace.html">
+  <meta property="og:title" content="MCP Marketplace — Zubo Docs">
+  <meta property="og:description" content="Browse, install, and manage MCP servers from the official registry. Extend Zubo with community tools from the MCP Marketplace.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://zubo.bot/docs/marketplace.html">
+  <meta property="og:image" content="https://zubo.bot/og-image.png">
+  <meta property="og:site_name" content="Zubo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="MCP Marketplace — Zubo Docs">
+  <meta name="twitter:description" content="Browse, install, and manage MCP servers from the official registry.">
+  <meta name="twitter:image" content="https://zubo.bot/og-image.png">
+  <meta name="twitter:creator" content="@thomaskanze">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><path d='M50 15C52 37 63 48 85 50C63 52 52 63 50 85C48 63 37 52 15 50C37 48 48 37 50 15Z' fill='white'/></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/apwn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Features</div>
+        <div class="docs-sidebar-links">
+          <a href="conversations.html">Conversation History</a>
+          <a href="webhooks.html">Webhooks</a>
+          <a href="workflows.html">Visual Workflows</a>
+          <a href="marketplace.html" class="active">MCP Marketplace</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="integrations.html#oauth">OAuth</a>
+          <a href="security.html">Security &amp; Auth</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>MCP Marketplace</div>
+
+      <h1>MCP Marketplace</h1>
+
+      <p>
+        The MCP Marketplace lets you browse, install, and manage MCP (Model Context Protocol) servers from the official registry directly through the Zubo dashboard or API. Instead of manually configuring MCP server commands and arguments, you can discover servers from the community, install them with one click, and have their tools automatically registered in Zubo.
+      </p>
+
+      <!-- ================================================================ -->
+      <h2 id="browsing">Browsing the Registry</h2>
+
+      <p>
+        The marketplace connects to the official MCP server registry and presents available servers with their metadata, descriptions, and tool counts. You can browse the full catalog or search for specific functionality.
+      </p>
+
+      <h3>Via the Dashboard</h3>
+
+      <ol>
+        <li>Open the web dashboard and navigate to the <strong>MCP</strong> panel in the sidebar.</li>
+        <li>Click the <strong>Marketplace</strong> tab to view the available servers from the registry.</li>
+        <li>Use the search bar to filter servers by name or keyword (e.g., "filesystem", "database", "github").</li>
+        <li>Each server card shows the name, description, author, tool count, and install status.</li>
+      </ol>
+
+      <h3>Via the API</h3>
+
+<pre><code>GET /api/mcp/marketplace?q=filesystem&amp;category=utilities</code></pre>
+      <p><strong>Query parameters:</strong></p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>q</code></td><td>&mdash;</td><td>Search query to filter servers by name or description.</td></tr>
+          <tr><td><code>category</code></td><td>&mdash;</td><td>Filter by category (e.g., <code>utilities</code>, <code>databases</code>, <code>apis</code>, <code>development</code>).</td></tr>
+          <tr><td><code>limit</code></td><td>50</td><td>Maximum results to return.</td></tr>
+          <tr><td><code>offset</code></td><td>0</td><td>Pagination offset.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "servers": [
+    {
+      "name": "@modelcontextprotocol/server-filesystem",
+      "description": "MCP server providing file system operations",
+      "author": "Anthropic",
+      "category": "utilities",
+      "toolCount": 11,
+      "installed": false,
+      "version": "0.6.2",
+      "homepage": "https://github.com/modelcontextprotocol/servers"
+    }
+  ],
+  "total": 1
+}</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="installing">Installing MCP Servers</h2>
+
+      <p>
+        Installing an MCP server from the marketplace adds it to your Zubo configuration, downloads the required package, starts the server process, and automatically registers all of its tools. The entire process takes a few seconds.
+      </p>
+
+      <h3>Via the Dashboard</h3>
+
+      <ol>
+        <li>Find the server you want in the Marketplace tab.</li>
+        <li>Click the <strong>Install</strong> button on the server card.</li>
+        <li>If the server requires environment variables (API keys, paths, etc.), a configuration dialog appears. Fill in the required values and click <strong>Install</strong>.</li>
+        <li>The server connects automatically and its tools appear in the <strong>Installed</strong> tab with a green status indicator.</li>
+      </ol>
+
+      <h3>Via the API</h3>
+
+<pre><code>POST /api/mcp/marketplace/:name/install
+Content-Type: application/json
+
+{
+  "env": {
+    "GITHUB_TOKEN": "ghp_abc123..."
+  }
+}</code></pre>
+      <p>Install an MCP server by its registry name. The <code>env</code> field is optional and provides environment variables required by the server. The server is started immediately after installation.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "success": true,
+  "name": "@modelcontextprotocol/server-github",
+  "tools": [
+    "github__create_issue",
+    "github__list_repos",
+    "github__search_code",
+    "github__create_pull_request"
+  ],
+  "toolCount": 4,
+  "status": "connected"
+}</code></pre>
+
+      <h3>Via the CLI</h3>
+
+<pre><code># Install from the marketplace
+zubo mcp install @modelcontextprotocol/server-filesystem
+
+# Install with environment variables
+zubo mcp install @modelcontextprotocol/server-github \
+  --env GITHUB_TOKEN=ghp_abc123...
+
+# List installed MCP servers
+zubo mcp list</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="managing">Managing Installed Servers</h2>
+
+      <p>
+        Once installed, MCP servers are managed through the same interface as manually configured servers. You can view their status, restart them, or uninstall them.
+      </p>
+
+      <h3>Dashboard Management</h3>
+
+      <ul>
+        <li><strong>Installed tab</strong> &mdash; shows all installed MCP servers with their name, status (connected/disconnected), tool count, and uptime. Marketplace-installed servers are marked with a marketplace icon.</li>
+        <li><strong>Server details</strong> &mdash; click a server to view its tools, configuration, environment variables (masked), and connection log.</li>
+        <li><strong>Restart</strong> &mdash; restart a server's connection. Useful after updating environment variables or when a server becomes unresponsive.</li>
+        <li><strong>Uninstall</strong> &mdash; remove the server, stop its process, and deregister its tools from Zubo.</li>
+      </ul>
+
+      <h3>Uninstalling via the API</h3>
+
+<pre><code>POST /api/mcp/servers/:name/uninstall</code></pre>
+      <p>Uninstall an MCP server. The server process is terminated, its tools are deregistered, and the configuration is removed. Returns <code>204 No Content</code> on success.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="how-it-works">How It Works</h2>
+
+      <p>When you install a server from the marketplace, Zubo performs the following steps:</p>
+
+      <ol>
+        <li><strong>Fetch metadata</strong> &mdash; retrieves the server's registry entry, including the npm package name, required command, arguments, and environment variable requirements.</li>
+        <li><strong>Download package</strong> &mdash; runs <code>npx -y &lt;package-name&gt;</code> to download and cache the package locally. No global installation is performed.</li>
+        <li><strong>Add to config</strong> &mdash; adds the server to the <code>mcp.servers</code> array in <code>~/.zubo/config.json</code> with the appropriate command, arguments, and environment variables.</li>
+        <li><strong>Start process</strong> &mdash; spawns the MCP server as a subprocess and initiates the JSON-RPC initialization handshake.</li>
+        <li><strong>Discover tools</strong> &mdash; queries the server for its available tools and registers them in Zubo with the server name as a prefix (e.g., <code>filesystem__read_file</code>).</li>
+      </ol>
+
+      <p>Marketplace-installed servers behave identically to manually configured ones. The only difference is the installation method &mdash; once installed, they appear in both the MCP configuration and the installed servers list.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="api-endpoints">API Endpoints</h2>
+
+      <p>All marketplace endpoints are under <code>/api/mcp</code> and require authentication when <code>auth.enabled</code> is <code>true</code>.</p>
+
+      <h3>Browse Marketplace</h3>
+<pre><code>GET /api/mcp/marketplace?q=search&amp;category=utilities</code></pre>
+      <p>Search and browse the MCP server registry. See the <a href="#browsing">Browsing the Registry</a> section above for full query parameter and response documentation.</p>
+
+      <h3>Get Server Details</h3>
+<pre><code>GET /api/mcp/marketplace/:name</code></pre>
+      <p>Get detailed information about a specific server in the registry, including its full description, required environment variables, available tools, and installation instructions.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "name": "@modelcontextprotocol/server-filesystem",
+  "description": "MCP server providing file system operations including reading, writing, and searching files.",
+  "author": "Anthropic",
+  "version": "0.6.2",
+  "category": "utilities",
+  "tools": [
+    { "name": "read_file", "description": "Read the contents of a file" },
+    { "name": "write_file", "description": "Write content to a file" },
+    { "name": "list_directory", "description": "List directory contents" }
+  ],
+  "requiredEnv": [],
+  "optionalEnv": ["ALLOWED_DIRECTORIES"],
+  "installed": false,
+  "homepage": "https://github.com/modelcontextprotocol/servers"
+}</code></pre>
+
+      <h3>Install Server</h3>
+<pre><code>POST /api/mcp/marketplace/:name/install
+Content-Type: application/json
+
+{
+  "env": { "API_KEY": "..." }
+}</code></pre>
+      <p>Install an MCP server from the marketplace. See the <a href="#installing">Installing MCP Servers</a> section above for full documentation.</p>
+
+      <h3>Uninstall Server</h3>
+<pre><code>POST /api/mcp/servers/:name/uninstall</code></pre>
+      <p>Uninstall an MCP server. Works for both marketplace-installed and manually configured servers. The server process is stopped, tools are deregistered, and the configuration is removed.</p>
+
+      <div class="docs-page-nav">
+        <a href="workflows.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Visual Workflows</span></a>
+        <a href="channels.html"><span class="nav-dir">Next</span><span class="nav-label">Channel Setup &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zubo.bot/" },
+      { "@type": "ListItem", "position": 2, "name": "Docs", "item": "https://zubo.bot/docs/" },
+      { "@type": "ListItem", "position": 3, "name": "MCP Marketplace", "item": "https://zubo.bot/docs/marketplace.html" }
+    ]
+  }
+  </script>
+</body>
+</html>

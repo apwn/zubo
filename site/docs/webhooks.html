@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webhooks — Zubo Docs</title>
+  <meta name="description" content="Create webhook endpoints that receive events from GitHub, Stripe, CI/CD, and any external service. HMAC verification, prompt templates, and dashboard management.">
+  <meta name="theme-color" content="#060608">
+  <link rel="canonical" href="https://zubo.bot/docs/webhooks.html">
+  <meta property="og:title" content="Webhooks — Zubo Docs">
+  <meta property="og:description" content="Create webhook endpoints that receive events from GitHub, Stripe, CI/CD, and any external service. HMAC verification, prompt templates, and dashboard management.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://zubo.bot/docs/webhooks.html">
+  <meta property="og:image" content="https://zubo.bot/og-image.png">
+  <meta property="og:site_name" content="Zubo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Webhooks — Zubo Docs">
+  <meta name="twitter:description" content="Create webhook endpoints for GitHub, Stripe, CI/CD with HMAC verification and prompt templates.">
+  <meta name="twitter:image" content="https://zubo.bot/og-image.png">
+  <meta name="twitter:creator" content="@thomaskanze">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><path d='M50 15C52 37 63 48 85 50C63 52 52 63 50 85C48 63 37 52 15 50C37 48 48 37 50 15Z' fill='white'/></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/apwn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Features</div>
+        <div class="docs-sidebar-links">
+          <a href="conversations.html">Conversation History</a>
+          <a href="webhooks.html" class="active">Webhooks</a>
+          <a href="workflows.html">Visual Workflows</a>
+          <a href="marketplace.html">MCP Marketplace</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="integrations.html#oauth">OAuth</a>
+          <a href="security.html">Security &amp; Auth</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Webhooks</div>
+
+      <h1>Webhooks</h1>
+
+      <p>
+        Webhooks let external services push events to Zubo in real time. When a webhook receives an event, Zubo processes the payload through a configurable prompt template and takes action automatically. This turns Zubo into a reactive automation hub &mdash; connect GitHub for push notifications, Stripe for payment events, CI/CD pipelines for build results, or any service that can send HTTP POST requests.
+      </p>
+
+      <!-- ================================================================ -->
+      <h2 id="creating-webhooks">Creating Webhooks</h2>
+
+      <p>You can create webhooks through the dashboard, the CLI, or the API.</p>
+
+      <h3>Via the Dashboard</h3>
+
+      <ol>
+        <li>Open the web dashboard and navigate to the <strong>Webhooks</strong> panel in the sidebar.</li>
+        <li>Click <strong>Create Webhook</strong>.</li>
+        <li>Enter a descriptive name (e.g., <code>github-pushes</code>) and an optional HMAC secret for signature verification.</li>
+        <li>Write a prompt template that tells Zubo how to process incoming events. Use <code>{{payload}}</code> to inject the raw event payload.</li>
+        <li>Click <strong>Save</strong>. The dashboard displays the webhook URL to configure in your external service.</li>
+      </ol>
+
+      <h3>Via the CLI</h3>
+
+<pre><code># Create a webhook with a prompt template
+zubo webhook create \
+  --name "github-pushes" \
+  --secret "whsec_abc123..." \
+  --prompt "A GitHub push event just occurred: {{payload}}. Summarize what was pushed and notify me."
+
+# List all webhooks
+zubo webhook list
+
+# Delete a webhook
+zubo webhook delete github-pushes</code></pre>
+
+      <h3>Via the API</h3>
+
+<pre><code>POST /api/webhooks
+Content-Type: application/json
+
+{
+  "name": "github-pushes",
+  "secret": "whsec_abc123...",
+  "prompt": "A GitHub push event just occurred: {{payload}}. Summarize what was pushed and notify me."
+}</code></pre>
+
+      <p>The response includes the generated webhook URL and ID:</p>
+
+<pre><code>{
+  "id": "wh_a1b2c3",
+  "name": "github-pushes",
+  "url": "http://localhost:3000/webhooks/wh_a1b2c3",
+  "secret": "whsec_abc123...",
+  "createdAt": "2026-02-15T10:00:00Z"
+}</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="hmac-verification">HMAC Secret Verification</h2>
+
+      <p>
+        Zubo supports HMAC-SHA256 signature verification to ensure that incoming webhook payloads are authentic and have not been tampered with. When a webhook has a <code>secret</code> configured, Zubo validates the <code>X-Hub-Signature-256</code> header on every incoming request.
+      </p>
+
+      <ul>
+        <li><strong>How it works</strong> &mdash; the sending service computes an HMAC-SHA256 hash of the request body using the shared secret and includes it in the <code>X-Hub-Signature-256</code> header as <code>sha256=&lt;hex-digest&gt;</code>. Zubo independently computes the same hash and compares them using a constant-time comparison to prevent timing attacks.</li>
+        <li><strong>GitHub compatibility</strong> &mdash; the signature format is fully compatible with GitHub webhook secrets. Set the same secret in both Zubo and your GitHub webhook configuration.</li>
+        <li><strong>Stripe compatibility</strong> &mdash; for Stripe webhooks, Zubo also checks the <code>Stripe-Signature</code> header when the <code>X-Hub-Signature-256</code> header is absent.</li>
+        <li><strong>Failed verification</strong> &mdash; requests with invalid or missing signatures are rejected with a <code>401 Unauthorized</code> response. The event is logged but not processed.</li>
+        <li><strong>Optional</strong> &mdash; if no secret is configured on the webhook, signature verification is skipped and all incoming requests are accepted.</li>
+      </ul>
+
+      <!-- ================================================================ -->
+      <h2 id="prompt-templates">Prompt Templates</h2>
+
+      <p>
+        Each webhook has a prompt template that defines how Zubo should process incoming events. The template is a plain-text string with a special <code>{{payload}}</code> placeholder that gets replaced with the full JSON body of the incoming request.
+      </p>
+
+<pre><code># Simple notification
+"New event received: {{payload}}. Summarize it and save to memory."
+
+# GitHub-specific template
+"A GitHub {{payload.action}} event occurred on {{payload.repository.full_name}}.
+Details: {{payload}}
+Summarize the changes and notify me on Telegram."
+
+# Stripe-specific template
+"A Stripe payment event occurred: {{payload}}.
+If the payment succeeded, log the amount and customer.
+If the payment failed, alert me immediately."</code></pre>
+
+      <p>When a webhook receives a POST request, Zubo substitutes <code>{{payload}}</code> with the stringified JSON body, constructs a message from the resulting text, and sends it through the agent loop. The agent then processes the message like any other user input &mdash; it can use tools, search memory, send notifications, and take any action described in the prompt template.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="dashboard-management">Dashboard Management</h2>
+
+      <p>
+        The Webhooks panel in the dashboard provides a visual interface for managing all your webhooks.
+      </p>
+
+      <ul>
+        <li><strong>Webhook list</strong> &mdash; all configured webhooks are displayed with their name, URL, creation date, and last triggered time. Copy the webhook URL with one click.</li>
+        <li><strong>Event log</strong> &mdash; click a webhook to view its recent event history. Each event shows the timestamp, HTTP status, payload size, and whether it was processed successfully.</li>
+        <li><strong>Edit</strong> &mdash; update the name, secret, or prompt template of any webhook. Changes take effect immediately.</li>
+        <li><strong>Test</strong> &mdash; send a test payload to any webhook to verify it is working correctly. The test button sends a sample JSON payload and shows the agent's response.</li>
+        <li><strong>Delete</strong> &mdash; remove a webhook and all its event history.</li>
+      </ul>
+
+      <!-- ================================================================ -->
+      <h2 id="examples">Examples</h2>
+
+      <h3>GitHub Push Events</h3>
+
+      <p>Notify yourself on Telegram whenever code is pushed to your repository.</p>
+
+      <p><strong>Step 1:</strong> Create the webhook:</p>
+
+<pre><code>POST /api/webhooks
+Content-Type: application/json
+
+{
+  "name": "github-main-pushes",
+  "secret": "my-github-webhook-secret",
+  "prompt": "A GitHub push event just happened: {{payload}}. Tell me who pushed, to which branch, and list the commit messages. Send me a summary on Telegram."
+}</code></pre>
+
+      <p><strong>Step 2:</strong> In your GitHub repository, go to Settings &rarr; Webhooks &rarr; Add webhook. Set the Payload URL to the webhook URL returned above, Content type to <code>application/json</code>, and the Secret to the same value. Select "Just the push event."</p>
+
+      <p><strong>Result:</strong> Every time someone pushes to the repository, Zubo receives the event, summarizes the commits, and sends the summary to your Telegram.</p>
+
+      <h3>Stripe Payment Events</h3>
+
+      <p>Track successful payments and alert on failures.</p>
+
+<pre><code>POST /api/webhooks
+Content-Type: application/json
+
+{
+  "name": "stripe-payments",
+  "secret": "whsec_stripe_signing_secret",
+  "prompt": "A Stripe webhook event occurred: {{payload}}. If this is a successful payment (payment_intent.succeeded), save the amount, currency, and customer email to memory. If this is a failed payment (payment_intent.payment_failed), alert me immediately with the failure reason."
+}</code></pre>
+
+      <p>Configure the webhook URL in your Stripe Dashboard under Developers &rarr; Webhooks. Select the <code>payment_intent.succeeded</code> and <code>payment_intent.payment_failed</code> events.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="api-endpoints">API Endpoints</h2>
+
+      <p>All webhook management endpoints are under <code>/api/webhooks</code> and require authentication when <code>auth.enabled</code> is <code>true</code>.</p>
+
+      <h3>List Webhooks</h3>
+<pre><code>GET /api/webhooks</code></pre>
+      <p>Returns all configured webhooks with their metadata.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "webhooks": [
+    {
+      "id": "wh_a1b2c3",
+      "name": "github-pushes",
+      "url": "http://localhost:3000/webhooks/wh_a1b2c3",
+      "hasSecret": true,
+      "prompt": "A GitHub push event...",
+      "createdAt": "2026-02-15T10:00:00Z",
+      "lastTriggeredAt": "2026-02-15T14:30:00Z",
+      "eventCount": 12
+    }
+  ]
+}</code></pre>
+
+      <h3>Create Webhook</h3>
+<pre><code>POST /api/webhooks
+Content-Type: application/json
+
+{
+  "name": "github-pushes",
+  "secret": "whsec_abc123...",
+  "prompt": "Process this event: {{payload}}"
+}</code></pre>
+      <p>Create a new webhook endpoint. The <code>name</code> and <code>prompt</code> fields are required. The <code>secret</code> field is optional but recommended for production use.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "id": "wh_a1b2c3",
+  "name": "github-pushes",
+  "url": "http://localhost:3000/webhooks/wh_a1b2c3",
+  "secret": "whsec_abc123...",
+  "createdAt": "2026-02-15T10:00:00Z"
+}</code></pre>
+
+      <h3>Update Webhook</h3>
+<pre><code>PUT /api/webhooks/:id
+Content-Type: application/json
+
+{
+  "name": "github-all-events",
+  "secret": "new-secret",
+  "prompt": "Updated prompt: {{payload}}"
+}</code></pre>
+      <p>Update a webhook's name, secret, or prompt template. All fields are optional &mdash; only the fields you include will be updated.</p>
+
+      <h3>Delete Webhook</h3>
+<pre><code>DELETE /api/webhooks/:id</code></pre>
+      <p>Delete a webhook and all its associated event history. Returns <code>204 No Content</code> on success.</p>
+
+      <h3>Get Webhook Events</h3>
+<pre><code>GET /api/webhooks/:id/events?limit=20&amp;offset=0</code></pre>
+      <p>Returns the event history for a specific webhook, ordered by most recent first.</p>
+      <p><strong>Query parameters:</strong></p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>limit</code></td><td>20</td><td>Number of events to return. Maximum 100.</td></tr>
+          <tr><td><code>offset</code></td><td>0</td><td>Number of events to skip for pagination.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "events": [
+    {
+      "id": "evt_xyz789",
+      "webhookId": "wh_a1b2c3",
+      "timestamp": "2026-02-15T14:30:00Z",
+      "status": "processed",
+      "payloadSize": 2048,
+      "processingTimeMs": 1250
+    }
+  ],
+  "total": 12
+}</code></pre>
+
+      <h3>Test Webhook</h3>
+<pre><code>POST /api/webhooks/:id/test
+Content-Type: application/json
+
+{
+  "payload": {
+    "action": "push",
+    "repository": { "full_name": "user/repo" },
+    "commits": [{ "message": "test commit" }]
+  }
+}</code></pre>
+      <p>Send a test payload to a webhook. The payload is processed through the prompt template and the agent's response is returned. The event is recorded in the webhook's event history with a <code>"test"</code> status. If no <code>payload</code> is provided, a default sample payload is used.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "reply": "A push to user/repo was received with 1 commit: 'test commit'.",
+  "eventId": "evt_test_001"
+}</code></pre>
+
+      <div class="docs-page-nav">
+        <a href="conversations.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Conversation History</span></a>
+        <a href="workflows.html"><span class="nav-dir">Next</span><span class="nav-label">Visual Workflows &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zubo.bot/" },
+      { "@type": "ListItem", "position": 2, "name": "Docs", "item": "https://zubo.bot/docs/" },
+      { "@type": "ListItem", "position": 3, "name": "Webhooks", "item": "https://zubo.bot/docs/webhooks.html" }
+    ]
+  }
+  </script>
+</body>
+</html>

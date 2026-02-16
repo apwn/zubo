@@ -377,6 +377,24 @@ export async function startZubo(isDaemon = false) {
   const { initProactiveIntelligence } = await import("./scheduler/proactive");
   initProactiveIntelligence(db, router, llm, config);
 
+  // Schedule email digests (if enabled)
+  try {
+    const { scheduleDigest } = await import("./scheduler/digest");
+    scheduleDigest();
+    logger.info("Email digest scheduler initialized");
+  } catch (err: any) {
+    logger.warn("Failed to initialize email digest scheduler", { error: err.message });
+  }
+
+  // Register visual workflow triggers (cron-based)
+  try {
+    const { registerWorkflowTriggers } = await import("./scheduler/visual-workflows");
+    registerWorkflowTriggers();
+    logger.info("Visual workflow triggers registered");
+  } catch (err: any) {
+    logger.warn("Failed to register visual workflow triggers", { error: err.message });
+  }
+
   // Ensure morning briefing cron exists
   const { ensureBriefingCron } = await import("./scheduler/briefing");
   ensureBriefingCron(db);

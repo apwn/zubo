@@ -1,8 +1,10 @@
 import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { join } from "path";
+import { join, resolve } from "path";
 import { paths } from "../config/paths";
 import { getRegistryEntry } from "./client";
 import { logger } from "../util/logger";
+
+const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://skills.zubo.bot/api/registry";
 
 export interface InstallResult {
   success: boolean;
@@ -13,7 +15,7 @@ export interface InstallResult {
 }
 
 export async function installFromRegistry(name: string): Promise<InstallResult> {
-  // Validate skill name — only allow safe characters to prevent path traversal
+  // Validate skill name
   if (!/^[a-z0-9_-]+$/.test(name)) {
     return { success: false, name, error: "Invalid skill name — only lowercase letters, numbers, hyphens, and underscores allowed" };
   }
@@ -25,7 +27,6 @@ export async function installFromRegistry(name: string): Promise<InstallResult> 
 
   const skillDir = join(paths.skills, name);
   // Verify resolved path stays within skills directory
-  const { resolve } = await import("path");
   if (!resolve(skillDir).startsWith(resolve(paths.skills))) {
     return { success: false, name, error: "Path traversal detected" };
   }
@@ -35,23 +36,30 @@ export async function installFromRegistry(name: string): Promise<InstallResult> 
   }
 
   try {
-    // Fetch SKILL.md from the repo
-    const baseUrl = `https://raw.githubusercontent.com/${entry.repo}/main`;
-    const [skillMdRes, handlerRes] = await Promise.all([
-      fetch(`${baseUrl}/SKILL.md`),
-      fetch(`${baseUrl}/handler.ts`),
-    ]);
+    // Fetch full skill detail from central API (includes handler_code)
+    let handlerCode = entry.handler_code;
+    let skillMd = entry.skill_md;
 
-    if (!skillMdRes.ok || !handlerRes.ok) {
-      return { success: false, name, error: `Failed to download skill files from ${entry.repo}` };
+    if (!handlerCode) {
+      // If handler_code wasn't in the list response, fetch the detail
+      const detailRes = await fetch(`${REGISTRY_API}/skills/${entry.id}?install=true`);
+      if (!detailRes.ok) {
+        return { success: false, name, error: "Failed to download skill from registry" };
+      }
+      const detail = (await detailRes.json()) as { skill: any };
+      handlerCode = detail.skill.handler_code;
+      skillMd = detail.skill.skill_md;
     }
 
-    const skillMd = await skillMdRes.text();
-    const handler = await handlerRes.text();
+    if (!handlerCode) {
+      return { success: false, name, error: "Skill has no handler code" };
+    }
 
     mkdirSync(skillDir, { recursive: true });
-    writeFileSync(join(skillDir, "SKILL.md"), skillMd);
-    writeFileSync(join(skillDir, "handler.ts"), handler);
+    writeFileSync(join(skillDir, "handler.ts"), handlerCode);
+    if (skillMd) {
+      writeFileSync(join(skillDir, "SKILL.md"), skillMd);
+    }
 
     logger.info(`Installed skill from registry: ${name}`);
 

@@ -26,6 +26,21 @@ function sessionPath(sessionId: string): string {
 export function appendMessage(sessionId: string, message: SessionMessage) {
   const path = sessionPath(sessionId);
   appendFileSync(path, JSON.stringify(message) + "\n");
+
+  // Dual-write to conversation_messages DB for cross-channel history + FTS search
+  try {
+    const { recordMessage } = require("./history") as { recordMessage: (threadId: string, role: string, content: string, channel?: string) => void };
+    const textContent = typeof message.content === "string"
+      ? message.content
+      : Array.isArray(message.content)
+        ? message.content.filter((b: any) => b.type === "text").map((b: any) => b.text ?? "").join("\n")
+        : JSON.stringify(message.content);
+    // Parse channel from sessionId (format: "channel:userId" or bare id)
+    const channel = sessionId.includes(":") ? sessionId.split(":")[0] : "webchat";
+    recordMessage(sessionId, message.role, textContent, channel);
+  } catch {
+    // history module may not be available yet (e.g. before migrations run)
+  }
 }
 
 /**

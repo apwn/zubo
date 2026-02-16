@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visual Workflows — Zubo Docs</title>
+  <meta name="description" content="Build multi-step automations visually with the Zubo workflow builder. Step types, triggers, template variables, and API reference for visual workflows.">
+  <meta name="theme-color" content="#060608">
+  <link rel="canonical" href="https://zubo.bot/docs/workflows.html">
+  <meta property="og:title" content="Visual Workflows — Zubo Docs">
+  <meta property="og:description" content="Build multi-step automations visually with the Zubo workflow builder. Step types, triggers, template variables, and API reference.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://zubo.bot/docs/workflows.html">
+  <meta property="og:image" content="https://zubo.bot/og-image.png">
+  <meta property="og:site_name" content="Zubo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Visual Workflows — Zubo Docs">
+  <meta name="twitter:description" content="Build multi-step automations visually with step types, triggers, and template variables.">
+  <meta name="twitter:image" content="https://zubo.bot/og-image.png">
+  <meta name="twitter:creator" content="@thomaskanze">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../docs.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c3aed'/><path d='M50 15C52 37 63 48 85 50C63 52 52 63 50 85C48 63 37 52 15 50C37 48 48 37 50 15Z' fill='white'/></svg>">
+</head>
+<body>
+
+  <header class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo"><span class="logo-wordmark">zubo</span></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="../index.html#features">Features</a>
+        <a href="index.html" style="color:#fff;">Docs</a>
+        <a href="../skills.html">Skills</a>
+        <a href="../index.html#get-started">Get Started</a>
+      </nav>
+      <div class="nav-right">
+        <a href="https://github.com/apwn/zubo" class="nav-github" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+        <a href="../index.html#get-started" class="btn btn-primary btn-nav">Get Started</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Getting Started</div>
+        <div class="docs-sidebar-links">
+          <a href="index.html">Overview</a>
+          <a href="config.html">Configuration</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Core Concepts</div>
+        <div class="docs-sidebar-links">
+          <a href="agents.html">Agents &amp; Workflows</a>
+          <a href="memory.html">Memory System</a>
+          <a href="skills.html">Skills</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Features</div>
+        <div class="docs-sidebar-links">
+          <a href="conversations.html">Conversation History</a>
+          <a href="webhooks.html">Webhooks</a>
+          <a href="workflows.html" class="active">Visual Workflows</a>
+          <a href="marketplace.html">MCP Marketplace</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Guides</div>
+        <div class="docs-sidebar-links">
+          <a href="channels.html">Channel Setup</a>
+          <a href="integrations.html">Integrations</a>
+          <a href="integrations.html#oauth">OAuth</a>
+          <a href="security.html">Security &amp; Auth</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Reference</div>
+        <div class="docs-sidebar-links">
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Commands</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Docs</a><span>/</span>Visual Workflows</div>
+
+      <h1>Visual Workflows</h1>
+
+      <p>
+        Visual workflows let you build multi-step automations using a drag-and-drop builder in the dashboard. Unlike markdown-based workflows (defined as JSON or YAML files in <code>~/.zubo/workspace/workflows/</code>), visual workflows are created entirely in the browser with an interactive canvas, step palette, and real-time execution preview.
+      </p>
+
+      <!-- ================================================================ -->
+      <h2 id="visual-vs-markdown">Visual Workflows vs. Markdown Workflows</h2>
+
+      <p>Zubo supports two workflow formats. Choose the one that fits your use case:</p>
+
+      <table>
+        <thead><tr><th>Feature</th><th>Visual Workflows</th><th>Markdown Workflows</th></tr></thead>
+        <tbody>
+          <tr><td>Creation</td><td>Dashboard drag-and-drop builder</td><td>JSON/YAML files in <code>~/.zubo/workspace/workflows/</code></td></tr>
+          <tr><td>Step types</td><td>Tool, Agent, Condition, Message, Delay</td><td>Agent steps with dependency resolution</td></tr>
+          <tr><td>Triggers</td><td>Manual, Cron, Webhook</td><td>Manual, Cron</td></tr>
+          <tr><td>Variables</td><td><code>{{trigger.payload}}</code>, <code>{{steps.stepId.result}}</code></td><td><code>{{prev.result}}</code>, named variables</td></tr>
+          <tr><td>Editing</td><td>Visual canvas in browser</td><td>Text editor</td></tr>
+          <tr><td>Best for</td><td>Interactive building, non-technical users, webhook-driven automation</td><td>Version control, CI/CD, complex pipelines</td></tr>
+        </tbody>
+      </table>
+
+      <p>Both formats are stored in the database and can be triggered via the API. Visual workflows are additionally accessible through the dashboard builder. Markdown workflows are documented in <a href="agents.html">Agents &amp; Workflows</a>.</p>
+
+      <!-- ================================================================ -->
+      <h2 id="step-types">Step Types</h2>
+
+      <p>Visual workflows are composed of steps. Each step has a type, a unique ID, optional configuration, and connections to other steps.</p>
+
+      <h3>Tool Step</h3>
+      <p>Execute a built-in tool or MCP tool. Configure the tool name and input parameters. The step result contains the tool's output.</p>
+<pre><code>{
+  "id": "search-web",
+  "type": "tool",
+  "tool": "web_search",
+  "input": {
+    "query": "{{trigger.payload.topic}} latest news"
+  }
+}</code></pre>
+
+      <h3>Agent Step</h3>
+      <p>Send a prompt to the agent (or a specific sub-agent) and capture the response. The agent has full access to tools and memory within the step.</p>
+<pre><code>{
+  "id": "summarize",
+  "type": "agent",
+  "agent": "default",
+  "prompt": "Summarize these search results: {{steps.search-web.result}}"
+}</code></pre>
+
+      <h3>Condition Step</h3>
+      <p>Branch the workflow based on a condition. Evaluates a JavaScript expression and routes to different steps based on the result.</p>
+<pre><code>{
+  "id": "check-sentiment",
+  "type": "condition",
+  "expression": "{{steps.analyze.result.sentiment}} === 'negative'",
+  "ifTrue": "escalate",
+  "ifFalse": "log-result"
+}</code></pre>
+
+      <h3>Message Step</h3>
+      <p>Send a message to a specific channel. Useful for notifications and alerts at any point in the workflow.</p>
+<pre><code>{
+  "id": "notify",
+  "type": "message",
+  "channel": "telegram",
+  "content": "Workflow complete. Result: {{steps.summarize.result}}"
+}</code></pre>
+
+      <h3>Delay Step</h3>
+      <p>Pause the workflow for a specified duration. Useful for rate limiting, waiting for external processes, or scheduling follow-ups.</p>
+<pre><code>{
+  "id": "wait",
+  "type": "delay",
+  "duration": "5m"
+}</code></pre>
+      <p>Duration supports shorthand notation: <code>30s</code> (seconds), <code>5m</code> (minutes), <code>2h</code> (hours), <code>1d</code> (days).</p>
+
+      <!-- ================================================================ -->
+      <h2 id="triggers">Trigger Types</h2>
+
+      <p>Every workflow has a trigger that defines when it runs.</p>
+
+      <h3>Manual Trigger</h3>
+      <p>Run the workflow on demand via the dashboard or API. You can pass an optional payload that is available as <code>{{trigger.payload}}</code> in all steps.</p>
+<pre><code>{
+  "trigger": {
+    "type": "manual"
+  }
+}</code></pre>
+
+      <h3>Cron Trigger</h3>
+      <p>Run the workflow on a schedule using a cron expression. The trigger payload contains the scheduled time.</p>
+<pre><code>{
+  "trigger": {
+    "type": "cron",
+    "schedule": "0 9 * * 1-5"
+  }
+}</code></pre>
+
+      <h3>Webhook Trigger</h3>
+      <p>Run the workflow when a specific webhook receives an event. The full webhook payload is available as <code>{{trigger.payload}}</code>.</p>
+<pre><code>{
+  "trigger": {
+    "type": "webhook",
+    "webhookId": "wh_a1b2c3"
+  }
+}</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="template-variables">Template Variables</h2>
+
+      <p>Template variables use double-brace syntax and are resolved at execution time. They allow data to flow between steps and from the trigger into the workflow.</p>
+
+      <table>
+        <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>{{trigger.payload}}</code></td><td>The full payload from the trigger (webhook body, manual input, or cron metadata).</td></tr>
+          <tr><td><code>{{trigger.payload.field}}</code></td><td>Access a specific field within the trigger payload using dot notation.</td></tr>
+          <tr><td><code>{{steps.stepId.result}}</code></td><td>The output of a previously completed step, referenced by its step ID.</td></tr>
+          <tr><td><code>{{steps.stepId.status}}</code></td><td>The status of a step: <code>"completed"</code>, <code>"failed"</code>, or <code>"skipped"</code>.</td></tr>
+          <tr><td><code>{{workflow.name}}</code></td><td>The name of the currently running workflow.</td></tr>
+          <tr><td><code>{{workflow.runId}}</code></td><td>The unique ID of the current workflow execution.</td></tr>
+          <tr><td><code>{{env.VARIABLE}}</code></td><td>Access an environment variable.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Variable Resolution Example</h3>
+
+<pre><code># Step 1: Fetch data
+{
+  "id": "fetch",
+  "type": "tool",
+  "tool": "http_request",
+  "input": { "url": "https://api.example.com/data/{{trigger.payload.id}}" }
+}
+
+# Step 2: Process with agent (references step 1 result)
+{
+  "id": "process",
+  "type": "agent",
+  "prompt": "Analyze this data: {{steps.fetch.result}}"
+}
+
+# Step 3: Notify (references step 2 result)
+{
+  "id": "notify",
+  "type": "message",
+  "channel": "telegram",
+  "content": "Analysis complete: {{steps.process.result}}"
+}</code></pre>
+
+      <!-- ================================================================ -->
+      <h2 id="dashboard-builder">Dashboard Builder</h2>
+
+      <p>
+        The visual workflow builder is accessible from the <strong>Workflows</strong> panel in the dashboard. It provides an interactive canvas for creating and editing workflows without writing JSON.
+      </p>
+
+      <ul>
+        <li><strong>Canvas</strong> &mdash; a zoomable, pannable workspace where steps are placed and connected. Drag steps from the palette on the left to add them to the canvas. Connect steps by dragging from one step's output handle to another step's input handle.</li>
+        <li><strong>Step palette</strong> &mdash; a sidebar listing all available step types (Tool, Agent, Condition, Message, Delay). Click or drag a step type to add it to the canvas.</li>
+        <li><strong>Step configuration</strong> &mdash; click any step on the canvas to open its configuration panel on the right. Configure the step type's specific fields (tool name, prompt text, condition expression, channel, duration).</li>
+        <li><strong>Trigger selector</strong> &mdash; the trigger is configured at the top of the canvas. Choose Manual, Cron, or Webhook and fill in the required fields.</li>
+        <li><strong>Test run</strong> &mdash; click the <strong>Run</strong> button to execute the workflow immediately with a test payload. Each step highlights in real time as it executes: blue for running, green for completed, red for failed.</li>
+        <li><strong>Execution history</strong> &mdash; the <strong>Runs</strong> tab shows all past executions of the workflow with their status, duration, trigger source, and step-by-step results.</li>
+        <li><strong>Auto-save</strong> &mdash; changes to the workflow are saved automatically as you edit. There is no explicit save button.</li>
+      </ul>
+
+      <!-- ================================================================ -->
+      <h2 id="api-endpoints">API Endpoints</h2>
+
+      <p>All visual workflow endpoints are under <code>/api/workflows/visual</code> and require authentication when <code>auth.enabled</code> is <code>true</code>.</p>
+
+      <h3>List Visual Workflows</h3>
+<pre><code>GET /api/workflows/visual</code></pre>
+      <p>Returns all visual workflows with their metadata, step count, and trigger type.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "workflows": [
+    {
+      "id": "vw_abc123",
+      "name": "Daily Report",
+      "trigger": { "type": "cron", "schedule": "0 9 * * 1-5" },
+      "stepCount": 4,
+      "enabled": true,
+      "lastRunAt": "2026-02-15T09:00:00Z",
+      "lastRunStatus": "completed",
+      "createdAt": "2026-02-10T12:00:00Z"
+    }
+  ]
+}</code></pre>
+
+      <h3>Get Visual Workflow</h3>
+<pre><code>GET /api/workflows/visual/:id</code></pre>
+      <p>Returns the full workflow definition, including all steps, connections, and trigger configuration.</p>
+
+      <h3>Create Visual Workflow</h3>
+<pre><code>POST /api/workflows/visual
+Content-Type: application/json
+
+{
+  "name": "Daily Report",
+  "trigger": { "type": "cron", "schedule": "0 9 * * 1-5" },
+  "steps": [
+    {
+      "id": "fetch-news",
+      "type": "tool",
+      "tool": "web_search",
+      "input": { "query": "tech news today" }
+    },
+    {
+      "id": "summarize",
+      "type": "agent",
+      "prompt": "Summarize: {{steps.fetch-news.result}}"
+    },
+    {
+      "id": "send",
+      "type": "message",
+      "channel": "telegram",
+      "content": "{{steps.summarize.result}}"
+    }
+  ],
+  "connections": [
+    { "from": "fetch-news", "to": "summarize" },
+    { "from": "summarize", "to": "send" }
+  ]
+}</code></pre>
+      <p>Create a new visual workflow. Returns the created workflow with its generated <code>id</code>.</p>
+
+      <h3>Update Visual Workflow</h3>
+<pre><code>PUT /api/workflows/visual/:id
+Content-Type: application/json
+
+{
+  "name": "Updated Report",
+  "steps": [...],
+  "connections": [...]
+}</code></pre>
+      <p>Update a workflow's name, trigger, steps, or connections. All fields are optional &mdash; only included fields are updated.</p>
+
+      <h3>Delete Visual Workflow</h3>
+<pre><code>DELETE /api/workflows/visual/:id</code></pre>
+      <p>Delete a workflow and all its execution history. Returns <code>204 No Content</code> on success.</p>
+
+      <h3>Run Visual Workflow</h3>
+<pre><code>POST /api/workflows/visual/:id/run
+Content-Type: application/json
+
+{
+  "payload": { "topic": "AI research" }
+}</code></pre>
+      <p>Execute a workflow immediately with an optional payload. The payload is available as <code>{{trigger.payload}}</code> in all steps. Returns the run ID for tracking execution.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "runId": "run_xyz789",
+  "status": "started",
+  "workflowId": "vw_abc123"
+}</code></pre>
+
+      <h3>Get Workflow Runs</h3>
+<pre><code>GET /api/workflows/visual/:id/runs?limit=20</code></pre>
+      <p>Returns the execution history for a workflow.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "runs": [
+    {
+      "runId": "run_xyz789",
+      "status": "completed",
+      "trigger": "manual",
+      "startedAt": "2026-02-15T14:00:00Z",
+      "completedAt": "2026-02-15T14:00:12Z",
+      "durationMs": 12340,
+      "steps": [
+        { "id": "fetch-news", "status": "completed", "durationMs": 3200 },
+        { "id": "summarize", "status": "completed", "durationMs": 8100 },
+        { "id": "send", "status": "completed", "durationMs": 420 }
+      ]
+    }
+  ]
+}</code></pre>
+
+      <h3>Toggle Visual Workflow</h3>
+<pre><code>PUT /api/workflows/visual/:id/toggle
+Content-Type: application/json
+
+{
+  "enabled": false
+}</code></pre>
+      <p>Enable or disable a workflow. Disabled workflows do not execute on their cron or webhook triggers but can still be run manually via the API.</p>
+
+      <div class="docs-page-nav">
+        <a href="webhooks.html"><span class="nav-dir">Previous</span><span class="nav-label">&larr; Webhooks</span></a>
+        <a href="marketplace.html"><span class="nav-dir">Next</span><span class="nav-label">MCP Marketplace &rarr;</span></a>
+      </div>
+    </main>
+  </div>
+
+  <button class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+  <script src="../script.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://zubo.bot/" },
+      { "@type": "ListItem", "position": 2, "name": "Docs", "item": "https://zubo.bot/docs/" },
+      { "@type": "ListItem", "position": 3, "name": "Visual Workflows", "item": "https://zubo.bot/docs/workflows.html" }
+    ]
+  }
+  </script>
+</body>
+</html>

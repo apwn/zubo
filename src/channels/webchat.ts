@@ -1891,6 +1891,532 @@ function handleDashboardApi(url: URL, req: Request): Response | null {
     })() as any;
   }
 
+  // ─── Conversation History ─────────────────────────────────────────────────
+
+  // GET /api/dashboard/conversations — list all conversations
+  if (path === "/conversations" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const page = parseInt(url.searchParams.get("page") ?? "1", 10);
+      const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "20", 10), 100);
+      const channelFilter = url.searchParams.get("channel");
+      const offset = (page - 1) * limit;
+
+      let query = "SELECT id, title, channel, message_count, summary, created_at, updated_at FROM threads";
+      const params: any[] = [];
+      if (channelFilter) {
+        query += " WHERE channel = ?";
+        params.push(channelFilter);
+      }
+      query += " ORDER BY updated_at DESC LIMIT ? OFFSET ?";
+      params.push(limit, offset);
+
+      const threads = db.query(query).all(...params);
+
+      let countQuery = "SELECT COUNT(*) as total FROM threads";
+      const total = channelFilter
+        ? (db.query(countQuery + " WHERE channel = ?").get(channelFilter) as any)?.total ?? 0
+        : (db.query(countQuery).get() as any)?.total ?? 0;
+
+      return Response.json({ conversations: threads, total, page, limit });
+    } catch (err: any) {
+      return Response.json({ conversations: [], total: 0, error: err.message });
+    }
+  }
+
+  // GET /api/dashboard/conversations/search — FTS search
+  if (path === "/conversations/search" && req.method === "GET") {
+    try {
+      const q = url.searchParams.get("q") ?? "";
+      const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "20", 10), 100);
+      const { searchConversations } = await import("../agent/history");
+      const results = searchConversations(q, limit);
+      return Response.json({ results });
+    } catch (err: any) {
+      return Response.json({ results: [], error: err.message });
+    }
+  }
+
+  // GET /api/dashboard/conversations/stats — aggregate stats
+  if (path === "/conversations/stats" && req.method === "GET") {
+    try {
+      const { getConversationStats } = await import("../agent/history");
+      return Response.json(getConversationStats());
+    } catch (err: any) {
+      return Response.json({ totalConversations: 0, totalMessages: 0, messagesByChannel: [], recentActivity: [], error: err.message });
+    }
+  }
+
+  // GET /api/dashboard/conversations/:id/messages — get messages for a conversation
+  const convMsgMatch = path.match(/^\/conversations\/([a-f0-9-]+)\/messages$/);
+  if (convMsgMatch && req.method === "GET") {
+    const threadId = convMsgMatch[1];
+    try {
+      const db = getDb();
+      const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "50", 10), 200);
+      const before = url.searchParams.get("before");
+
+      let query = "SELECT id, role, content, channel, timestamp FROM conversation_messages WHERE thread_id = ?";
+      const params: any[] = [threadId];
+      if (before) {
+        query += " AND timestamp < ?";
+        params.push(before);
+      }
+      query += " ORDER BY timestamp DESC LIMIT ?";
+      params.push(limit);
+
+      const messages = db.query(query).all(...params);
+      return Response.json({ messages: (messages as any[]).reverse() });
+    } catch (err: any) {
+      // Fallback to JSONL session file
+      try {
+        const { loadSession } = await import("../agent/session");
+        const messages = loadSession(threadId, 50);
+        return Response.json({ messages });
+      } catch {
+        return Response.json({ messages: [], error: err.message });
+      }
+    }
+  }
+
+  // ─── Email Digests ────────────────────────────────────────────────────────
+
+  // GET /api/dashboard/digests/config
+  if (path === "/digests/config" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const config = db.query("SELECT * FROM email_digest_config WHERE id = 1").get() as any;
+      if (!config) return Response.json({ enabled: false, frequency: "daily", send_time: "09:00", email_to: "", include_conversations: true, include_tool_usage: true, include_errors: true, include_scheduled_tasks: true });
+      return Response.json({
+        enabled: !!config.enabled,
+        frequency: config.frequency,
+        send_time: config.send_time,
+        email_to: config.email_to ?? "",
+        include_conversations: !!config.include_conversations,
+        include_tool_usage: !!config.include_tool_usage,
+        include_errors: !!config.include_errors,
+        include_scheduled_tasks: !!config.include_scheduled_tasks,
+        last_sent_at: config.last_sent_at,
+      });
+    } catch (err: any) {
+      return Response.json({ enabled: false, frequency: "daily", send_time: "09:00", email_to: "", error: err.message });
+    }
+  }
+
+  // PUT /api/dashboard/digests/config
+  if (path === "/digests/config" && req.method === "PUT") {
+    return (async () => {
+      try {
+        const body = await req.json() as any;
+        const db = getDb();
+        db.prepare(`
+          UPDATE email_digest_config SET
+            enabled = ?, frequency = ?, send_time = ?, email_to = ?,
+            include_conversations = ?, include_tool_usage = ?,
+            include_errors = ?, include_scheduled_tasks = ?
+          WHERE id = 1
+        `).run(
+          body.enabled ? 1 : 0,
+          body.frequency ?? "daily",
+          body.send_time ?? "09:00",
+          body.email_to ?? "",
+          body.include_conversations ? 1 : 0,
+          body.include_tool_usage ? 1 : 0,
+          body.include_errors ? 1 : 0,
+          body.include_scheduled_tasks ? 1 : 0
+        );
+        // Reschedule
+        const { scheduleDigest, unscheduleDigest } = await import("../scheduler/digest");
+        unscheduleDigest();
+        if (body.enabled) scheduleDigest();
+        return Response.json({ ok: true });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // GET /api/dashboard/digests/preview
+  if (path === "/digests/preview" && req.method === "GET") {
+    return (async () => {
+      try {
+        const { generateDigest } = await import("../scheduler/digest");
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const html = generateDigest(since);
+        return new Response(html, { headers: { "Content-Type": "text/html" } });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/digests/send
+  if (path === "/digests/send" && req.method === "POST") {
+    return (async () => {
+      try {
+        const { sendDigest } = await import("../scheduler/digest");
+        await sendDigest();
+        return Response.json({ ok: true });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // ─── Enhanced Webhooks ────────────────────────────────────────────────────
+
+  // GET /api/dashboard/webhooks — list all with stats
+  if (path === "/webhooks" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const webhooks = db.query(`
+        SELECT w.id, w.name, w.description, w.active, w.prompt_template,
+               w.last_triggered_at, w.trigger_count, w.created_at,
+               (SELECT COUNT(*) FROM webhook_events WHERE webhook_id = w.id) as event_count
+        FROM webhooks w ORDER BY w.created_at DESC
+      `).all();
+      return Response.json({ webhooks });
+    } catch (err: any) {
+      return Response.json({ webhooks: [], error: err.message });
+    }
+  }
+
+  // POST /api/dashboard/webhooks — create
+  if (path === "/webhooks" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = await req.json() as any;
+        if (!body.name || !/^[a-zA-Z0-9_-]+$/.test(body.name)) {
+          return Response.json({ error: "Name must be alphanumeric with hyphens/underscores" }, { status: 400 });
+        }
+        const db = getDb();
+        const id = crypto.randomUUID();
+        db.prepare(
+          "INSERT INTO webhooks (id, name, description, secret, prompt_template) VALUES (?, ?, ?, ?, ?)"
+        ).run(id, body.name, body.description ?? "", body.secret ?? null, body.prompt_template ?? null);
+        return Response.json({ ok: true, id, name: body.name, url: `/api/webhook/${id}` });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // PUT /api/dashboard/webhooks/:id — update
+  const webhookUpdateMatch = path.match(/^\/webhooks\/([a-f0-9-]+)$/);
+  if (webhookUpdateMatch && req.method === "PUT") {
+    const webhookId = webhookUpdateMatch[1];
+    return (async () => {
+      try {
+        const body = await req.json() as any;
+        const db = getDb();
+        const sets: string[] = [];
+        const params: any[] = [];
+        if (body.name !== undefined) { sets.push("name = ?"); params.push(body.name); }
+        if (body.description !== undefined) { sets.push("description = ?"); params.push(body.description); }
+        if (body.secret !== undefined) { sets.push("secret = ?"); params.push(body.secret || null); }
+        if (body.prompt_template !== undefined) { sets.push("prompt_template = ?"); params.push(body.prompt_template || null); }
+        if (typeof body.active === "boolean") { sets.push("active = ?"); params.push(body.active ? 1 : 0); }
+        if (!sets.length) return Response.json({ ok: true });
+        params.push(webhookId);
+        db.prepare(`UPDATE webhooks SET ${sets.join(", ")} WHERE id = ?`).run(...params);
+        return Response.json({ ok: true });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/webhooks/:id
+  const webhookDeleteMatch = path.match(/^\/webhooks\/([a-f0-9-]+)$/);
+  if (webhookDeleteMatch && req.method === "DELETE") {
+    const webhookId = webhookDeleteMatch[1];
+    try {
+      const db = getDb();
+      db.prepare("DELETE FROM webhook_events WHERE webhook_id = ?").run(webhookId);
+      db.prepare("DELETE FROM webhooks WHERE id = ?").run(webhookId);
+      return Response.json({ ok: true });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // GET /api/dashboard/webhooks/:id/events
+  const webhookEventsMatch = path.match(/^\/webhooks\/([a-f0-9-]+)\/events$/);
+  if (webhookEventsMatch && req.method === "GET") {
+    const webhookId = webhookEventsMatch[1];
+    try {
+      const db = getDb();
+      const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "20", 10), 100);
+      const events = db.query(
+        "SELECT id, payload, headers, processed, created_at FROM webhook_events WHERE webhook_id = ? ORDER BY created_at DESC LIMIT ?"
+      ).all(webhookId, limit);
+      return Response.json({ events });
+    } catch (err: any) {
+      return Response.json({ events: [], error: err.message });
+    }
+  }
+
+  // POST /api/dashboard/webhooks/:id/test — send test payload
+  const webhookTestMatch = path.match(/^\/webhooks\/([a-f0-9-]+)\/test$/);
+  if (webhookTestMatch && req.method === "POST") {
+    const webhookId = webhookTestMatch[1];
+    return (async () => {
+      try {
+        const db = getDb();
+        const webhook = db.query("SELECT id, name, active, prompt_template FROM webhooks WHERE id = ?").get(webhookId) as any;
+        if (!webhook) return Response.json({ error: "Webhook not found" }, { status: 404 });
+
+        const testPayload = { test: true, timestamp: new Date().toISOString(), source: "dashboard" };
+        db.prepare("INSERT INTO webhook_events (webhook_id, payload, headers) VALUES (?, ?, ?)").run(
+          webhookId, JSON.stringify(testPayload), "{}"
+        );
+
+        // Trigger agent
+        let message: string;
+        if (webhook.prompt_template) {
+          message = webhook.prompt_template.replace(/\{\{payload\}\}/g, JSON.stringify(testPayload));
+        } else {
+          message = `[Webhook: ${webhook.name}] Test event: ${JSON.stringify(testPayload)}`;
+        }
+
+        db.prepare("UPDATE webhooks SET last_triggered_at = datetime('now'), trigger_count = trigger_count + 1 WHERE id = ?").run(webhookId);
+        return Response.json({ ok: true, message });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // ─── MCP Marketplace ──────────────────────────────────────────────────────
+
+  // GET /api/dashboard/mcp/marketplace — search/browse registry
+  if (path === "/mcp/marketplace" && req.method === "GET") {
+    return (async () => {
+      try {
+        const q = url.searchParams.get("q") ?? "";
+        const cursor = url.searchParams.get("cursor") ?? undefined;
+        const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "20", 10), 50);
+        const { searchRegistry, listRegistry } = await import("../tools/mcp-registry");
+        if (q) {
+          const results = await searchRegistry(q, limit);
+          return Response.json({ servers: results });
+        } else {
+          const result = await listRegistry(cursor, limit);
+          return Response.json(result);
+        }
+      } catch (err: any) {
+        return Response.json({ servers: [], error: err.message });
+      }
+    })() as any;
+  }
+
+  // GET /api/dashboard/mcp/marketplace/:name — detail
+  const mcpMarketDetailMatch = path.match(/^\/mcp\/marketplace\/(.+)$/);
+  if (mcpMarketDetailMatch && req.method === "GET") {
+    const serverName = decodeURIComponent(mcpMarketDetailMatch[1]);
+    return (async () => {
+      try {
+        const { getServerDetail } = await import("../tools/mcp-registry");
+        const detail = await getServerDetail(serverName);
+        if (!detail) return Response.json({ error: "Server not found" }, { status: 404 });
+        return Response.json(detail);
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/mcp/marketplace/:name/install
+  const mcpInstallMatch = path.match(/^\/mcp\/marketplace\/(.+)\/install$/);
+  if (mcpInstallMatch && req.method === "POST") {
+    const serverName = decodeURIComponent(mcpInstallMatch[1]);
+    return (async () => {
+      try {
+        const { installFromRegistry } = await import("../tools/mcp-registry");
+        const result = await installFromRegistry(serverName);
+        return Response.json({ ok: true, ...result });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // POST /api/dashboard/mcp/servers/:name/uninstall
+  const mcpUninstallMatch = path.match(/^\/mcp\/servers\/([a-zA-Z0-9_-]+)\/uninstall$/);
+  if (mcpUninstallMatch && req.method === "POST") {
+    const serverName = decodeURIComponent(mcpUninstallMatch[1]);
+    return (async () => {
+      try {
+        const { uninstallMcpServer } = await import("../tools/mcp-registry");
+        await uninstallMcpServer(serverName);
+        return Response.json({ ok: true, uninstalled: serverName });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // ─── Visual Workflows ─────────────────────────────────────────────────────
+
+  // GET /api/dashboard/visual-workflows — list all
+  if (path === "/visual-workflows" && req.method === "GET") {
+    try {
+      const db = getDb();
+      const workflows = db.query(
+        "SELECT id, name, description, trigger_type, enabled, run_count, last_run_at, created_at, updated_at FROM visual_workflows ORDER BY updated_at DESC"
+      ).all();
+      return Response.json({ workflows });
+    } catch (err: any) {
+      return Response.json({ workflows: [], error: err.message });
+    }
+  }
+
+  // POST /api/dashboard/visual-workflows — create
+  if (path === "/visual-workflows" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = await req.json() as any;
+        if (!body.name) return Response.json({ error: "Name required" }, { status: 400 });
+        const db = getDb();
+        const id = crypto.randomUUID();
+        db.prepare(
+          "INSERT INTO visual_workflows (id, name, description, trigger_type, trigger_config, steps, canvas_data) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        ).run(
+          id, body.name, body.description ?? "",
+          body.trigger_type ?? "manual",
+          JSON.stringify(body.trigger_config ?? {}),
+          JSON.stringify(body.steps ?? []),
+          JSON.stringify(body.canvas_data ?? null)
+        );
+        return Response.json({ ok: true, id });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // GET /api/dashboard/visual-workflows/:id
+  const vwGetMatch = path.match(/^\/visual-workflows\/([a-f0-9-]+)$/);
+  if (vwGetMatch && req.method === "GET") {
+    const wfId = vwGetMatch[1];
+    try {
+      const db = getDb();
+      const wf = db.query("SELECT * FROM visual_workflows WHERE id = ?").get(wfId);
+      if (!wf) return Response.json({ error: "Not found" }, { status: 404 });
+      return Response.json(wf);
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // PUT /api/dashboard/visual-workflows/:id
+  const vwUpdateMatch = path.match(/^\/visual-workflows\/([a-f0-9-]+)$/);
+  if (vwUpdateMatch && req.method === "PUT") {
+    const wfId = vwUpdateMatch[1];
+    return (async () => {
+      try {
+        const body = await req.json() as any;
+        const db = getDb();
+        db.prepare(`
+          UPDATE visual_workflows SET
+            name = COALESCE(?, name),
+            description = COALESCE(?, description),
+            trigger_type = COALESCE(?, trigger_type),
+            trigger_config = COALESCE(?, trigger_config),
+            steps = COALESCE(?, steps),
+            canvas_data = COALESCE(?, canvas_data),
+            updated_at = datetime('now')
+          WHERE id = ?
+        `).run(
+          body.name ?? null, body.description ?? null,
+          body.trigger_type ?? null,
+          body.trigger_config ? JSON.stringify(body.trigger_config) : null,
+          body.steps ? JSON.stringify(body.steps) : null,
+          body.canvas_data ? JSON.stringify(body.canvas_data) : null,
+          wfId
+        );
+        // Re-register triggers if needed
+        try {
+          const { registerWorkflowTriggers, unregisterWorkflowTriggers } = await import("../scheduler/visual-workflows");
+          unregisterWorkflowTriggers();
+          registerWorkflowTriggers();
+        } catch {}
+        return Response.json({ ok: true });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/visual-workflows/:id
+  const vwDeleteMatch = path.match(/^\/visual-workflows\/([a-f0-9-]+)$/);
+  if (vwDeleteMatch && req.method === "DELETE") {
+    const wfId = vwDeleteMatch[1];
+    try {
+      const db = getDb();
+      db.prepare("DELETE FROM visual_workflows WHERE id = ?").run(wfId);
+      return Response.json({ ok: true });
+    } catch (err: any) {
+      return Response.json({ error: err.message }, { status: 500 });
+    }
+  }
+
+  // POST /api/dashboard/visual-workflows/:id/run — manual trigger
+  const vwRunMatch = path.match(/^\/visual-workflows\/([a-f0-9-]+)\/run$/);
+  if (vwRunMatch && req.method === "POST") {
+    const wfId = vwRunMatch[1];
+    return (async () => {
+      try {
+        const { executeVisualWorkflow } = await import("../scheduler/visual-workflows");
+        const result = await executeVisualWorkflow(wfId);
+        return Response.json(result);
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // PUT /api/dashboard/visual-workflows/:id/toggle
+  const vwToggleMatch = path.match(/^\/visual-workflows\/([a-f0-9-]+)\/toggle$/);
+  if (vwToggleMatch && req.method === "PUT") {
+    const wfId = vwToggleMatch[1];
+    return (async () => {
+      try {
+        const body = await req.json() as any;
+        const db = getDb();
+        db.prepare("UPDATE visual_workflows SET enabled = ?, updated_at = datetime('now') WHERE id = ?").run(
+          body.enabled ? 1 : 0, wfId
+        );
+        // Re-register cron triggers
+        try {
+          const { registerWorkflowTriggers, unregisterWorkflowTriggers } = await import("../scheduler/visual-workflows");
+          unregisterWorkflowTriggers();
+          registerWorkflowTriggers();
+        } catch {}
+        return Response.json({ ok: true, enabled: !!body.enabled });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // GET /api/dashboard/visual-workflows/:id/executions
+  const vwExecMatch = path.match(/^\/visual-workflows\/([a-f0-9-]+)\/executions$/);
+  if (vwExecMatch && req.method === "GET") {
+    const wfId = vwExecMatch[1];
+    try {
+      const db = getDb();
+      const wf = db.query("SELECT name FROM visual_workflows WHERE id = ?").get(wfId) as any;
+      if (!wf) return Response.json({ error: "Not found" }, { status: 404 });
+      const executions = db.query(
+        "SELECT * FROM workflow_executions WHERE workflow_name = ? ORDER BY started_at DESC LIMIT 20"
+      ).all(wf.name);
+      return Response.json({ executions });
+    } catch (err: any) {
+      return Response.json({ executions: [], error: err.message });
+    }
+  }
+
   return null;
 }
 
@@ -2144,8 +2670,8 @@ async function handleRequest(
               try {
                 const db = getDb();
                 const webhook = db.query(
-                  "SELECT id, name, secret, active FROM webhooks WHERE id = ?"
-                ).get(webhookId) as { id: string; name: string; secret: string | null; active: number } | null;
+                  "SELECT id, name, secret, active, prompt_template FROM webhooks WHERE id = ?"
+                ).get(webhookId) as { id: string; name: string; secret: string | null; active: number; prompt_template: string | null } | null;
 
                 if (!webhook) {
                   return Response.json({ error: "Webhook not found" }, { status: 404 });
@@ -2188,9 +2714,31 @@ async function handleRequest(
                   "INSERT INTO webhook_events (webhook_id, payload, headers) VALUES (?, ?, ?)"
                 ).run(webhook.id, rawBody, headersJson);
 
-                // Trigger agent via router
-                const summary = rawBody.slice(0, 500);
-                const message = `[Webhook: ${webhook.name}] Received event:\n${summary}`;
+                // Update trigger stats
+                try {
+                  db.prepare("UPDATE webhooks SET last_triggered_at = datetime('now'), trigger_count = trigger_count + 1 WHERE id = ?").run(webhook.id);
+                } catch {}
+
+                // Mark event as processed
+                try {
+                  const lastEvent = db.query("SELECT id FROM webhook_events WHERE webhook_id = ? ORDER BY id DESC LIMIT 1").get(webhook.id) as any;
+                  if (lastEvent) db.prepare("UPDATE webhook_events SET processed = 1 WHERE id = ?").run(lastEvent.id);
+                } catch {}
+
+                // Trigger agent via router — use prompt_template if set
+                let message: string;
+                if (webhook.prompt_template) {
+                  message = webhook.prompt_template.replace(/\{\{payload\}\}/g, rawBody.slice(0, 2000));
+                } else {
+                  const summary = rawBody.slice(0, 500);
+                  message = `[Webhook: ${webhook.name}] Received event:\n${summary}`;
+                }
+
+                // Also trigger any visual workflows linked to this webhook
+                import("../scheduler/visual-workflows").then(({ triggerByWebhook }) => {
+                  triggerByWebhook(webhook.id, rawBody).catch(() => {});
+                }).catch(() => {});
+
                 router.sendProactive(`webchat:webhook`, message).catch((err: any) => {
                   logger.warn("Webhook proactive message failed", { error: err.message });
                 });

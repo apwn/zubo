@@ -63,6 +63,15 @@
         </div>
       </div>
       <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Features</div>
+        <div class="docs-sidebar-links">
+          <a href="conversations.html">Conversation History</a>
+          <a href="webhooks.html">Webhooks</a>
+          <a href="workflows.html">Visual Workflows</a>
+          <a href="marketplace.html">MCP Marketplace</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
           <a href="channels.html">Channel Setup</a>
@@ -896,6 +905,73 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
       <p>Cost tracking is always active even without spending limits. View your usage breakdown in the dashboard under Analytics &rarr; Costs, or ask Zubo directly: &ldquo;How much have I spent today?&rdquo;</p>
 
       <!-- ================================================================ -->
+      <h2 id="email-digest">Email Digest</h2>
+
+      <p>
+        Zubo can send periodic email digests summarizing conversation activity, usage statistics, and key interactions. Digests are delivered via the configured email channel (IMAP/SMTP), so the <a href="#channel-configuration">email channel</a> must be configured for this feature to work.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>emailDigest.enabled</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>Enable automated email digest delivery.</td>
+          </tr>
+          <tr>
+            <td><code>emailDigest.schedule</code></td>
+            <td>string</td>
+            <td><code>"0 8 * * 1-5"</code></td>
+            <td>Cron expression for when to send digests. The default sends weekdays at 8:00 AM.</td>
+          </tr>
+          <tr>
+            <td><code>emailDigest.recipients</code></td>
+            <td>string[]</td>
+            <td><code>[]</code></td>
+            <td>Array of email addresses to receive digests. If empty, the digest is sent to the email channel's SMTP user address.</td>
+          </tr>
+          <tr>
+            <td><code>emailDigest.includeStats</code></td>
+            <td>boolean</td>
+            <td><code>true</code></td>
+            <td>Include usage statistics (messages, tokens, cost) in the digest.</td>
+          </tr>
+          <tr>
+            <td><code>emailDigest.includeTopConversations</code></td>
+            <td>boolean</td>
+            <td><code>true</code></td>
+            <td>Include summaries of the most active conversations since the last digest.</td>
+          </tr>
+          <tr>
+            <td><code>emailDigest.maxConversations</code></td>
+            <td>number</td>
+            <td><code>10</code></td>
+            <td>Maximum number of top conversations to include in the digest.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"emailDigest": {
+  "enabled": true,
+  "schedule": "0 8 * * 1-5",
+  "recipients": ["you@example.com", "team@example.com"],
+  "includeStats": true,
+  "includeTopConversations": true,
+  "maxConversations": 10
+}</code></pre>
+
+      <p>Digests are delivered using the same SMTP credentials configured in the email channel. The email's &ldquo;From&rdquo; name uses the <code>email.fromName</code> field (or defaults to the agent name). You can test the digest configuration by sending a test digest from the dashboard or via <code>POST /api/dashboard/email-digest/test</code>. See the <a href="api.html#email-digests">Email Digest API endpoints</a> for programmatic management.</p>
+
+      <!-- ================================================================ -->
       <h2 id="authentication">Authentication</h2>
 
       <p>
@@ -1100,6 +1176,15 @@ zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
     "dailyLimitUsd": 5,
     "monthlyLimitUsd": 50,
     "alertThreshold": 0.8
+  },
+
+  "emailDigest": {
+    "enabled": false,
+    "schedule": "0 8 * * 1-5",
+    "recipients": [],
+    "includeStats": true,
+    "includeTopConversations": true,
+    "maxConversations": 10
   },
 
   "auth": {

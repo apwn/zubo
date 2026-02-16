@@ -203,15 +203,40 @@ export default async function (input: Record&lt;string, unknown&gt;): Promise&lt
         <li><strong>Built-in tools are NOT sandboxed</strong> &mdash; tools like <code>get_current_datetime</code>, <code>memory_write</code>, <code>memory_search</code>, and other built-in tools run in the main process. Only user-created and registry-installed skills are sandboxed.</li>
       </ul>
 
-      <h2>Skill Registry</h2>
-      <p>The Zubo skill registry is a community-driven marketplace where you can discover, install, and publish skills:</p>
+      <h2>Community Skill Registry</h2>
+      <p>The Zubo Skill Registry is a centralized community marketplace at <code>skills.zubo.bot</code> where you can discover, install, star, and publish skills. It features:</p>
       <ul>
-        <li><strong>Browse skills:</strong> <code>zubo search &lt;query&gt;</code> or use the dashboard's Skills tab</li>
-        <li><strong>Install a skill:</strong> <code>zubo install &lt;skill-name&gt;</code> or click "Install" in the dashboard</li>
-        <li><strong>Publish your skill:</strong> <code>zubo publish &lt;skill-name&gt;</code> to share it with the community</li>
-        <li><strong>Automatic sandboxing:</strong> all registry-installed skills are sandboxed by default, just like locally created skills</li>
+        <li><strong>GitHub Authentication</strong> &mdash; Sign in with your GitHub account to publish skills, star your favorites, and build a profile.</li>
+        <li><strong>Auto-Review Scanner</strong> &mdash; Every submitted skill is automatically scanned for security risks:
+          <ul>
+            <li><strong>Low risk (approved)</strong> &mdash; No suspicious patterns detected. Immediately available in the registry.</li>
+            <li><strong>Medium risk (flagged)</strong> &mdash; Network calls, filesystem writes, process spawning, etc. Shows an "Under Review" badge and requires manual review.</li>
+            <li><strong>High risk (rejected)</strong> &mdash; Dynamic code execution (<code>eval</code>, <code>Function</code> constructor), base64 decoding, suspicious domains, sensitive environment variable access. Blocked from the registry.</li>
+          </ul>
+        </li>
+        <li><strong>Stars &amp; Install Tracking</strong> &mdash; Star skills you like. Install counts and star counts are tracked and displayed on each skill.</li>
+        <li><strong>User Profiles</strong> &mdash; Auto-created from GitHub. Shows your published skills, total stars, and total installs.</li>
+        <li><strong>Reporting</strong> &mdash; Report suspicious or broken skills anonymously (email required for follow-up).</li>
+        <li><strong>Trending &amp; Popular</strong> &mdash; Browse trending (most installs in 7 days), popular (most starred), and newest skills.</li>
       </ul>
       <p>You can also browse and install skills by chatting with Zubo: <em>"Search for a skill that sends emails"</em> or <em>"Install the github_issues skill."</em></p>
+
+      <h3>Publishing a Skill</h3>
+      <p>To publish a skill to the community registry:</p>
+      <ol>
+        <li>Create your skill locally in <code>~/.zubo/workspace/skills/my-skill/handler.ts</code>.</li>
+        <li>Authenticate by visiting <code>skills.zubo.bot</code> and signing in with GitHub.</li>
+        <li>Publish via the CLI: <code>zubo publish my-skill</code>.</li>
+        <li>Or publish via the web form on the skills page at <code>skills.zubo.bot</code>.</li>
+        <li>The auto-review scanner runs automatically. Clean code is approved immediately. Medium-risk code is flagged for manual review. High-risk code is rejected with detailed findings.</li>
+        <li>Both the CLI and web form display the auto-review results after submission.</li>
+      </ol>
+
+      <h3>Registry CLI Commands</h3>
+<pre><code>zubo search &lt;query&gt;     # Search the registry
+zubo install &lt;name&gt;     # Install a skill from the registry
+zubo publish &lt;name&gt;     # Publish your local skill to the registry</code></pre>
+      <p>The agent can also perform these actions via the <code>skill_registry</code> built-in tool, which supports <code>search</code>, <code>install</code>, and <code>publish</code> actions. All registry-installed skills are sandboxed by default, just like locally created skills.</p>
 
       <h2>Managing Skills</h2>
       <p>Use the CLI to manage your installed skills:</p>

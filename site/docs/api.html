@@ -62,6 +62,15 @@
         </div>
       </div>
       <div class="docs-sidebar-section">
+        <div class="docs-sidebar-heading">Features</div>
+        <div class="docs-sidebar-links">
+          <a href="conversations.html">Conversation History</a>
+          <a href="webhooks.html">Webhooks</a>
+          <a href="workflows.html">Visual Workflows</a>
+          <a href="marketplace.html">MCP Marketplace</a>
+        </div>
+      </div>
+      <div class="docs-sidebar-section">
         <div class="docs-sidebar-heading">Guides</div>
         <div class="docs-sidebar-links">
           <a href="channels.html">Channel Setup</a>
@@ -631,16 +640,223 @@ Content-Type: multipart/form-data</code></pre>
 <pre><code>GET /api/dashboard/uploads</code></pre>
       <p>List all uploaded files with their filenames, sizes, chunk counts, and upload timestamps.</p>
 
-      <h2>Skill Registry</h2>
-<pre><code>GET /api/dashboard/registry/search?q=weather</code></pre>
-      <p>Search the community skill registry by name or keyword. Returns matching skills with their names, descriptions, and install commands.</p>
-<pre><code>POST /api/dashboard/registry/install
+      <h2>Skill Registry API</h2>
+      <p>The Skill Registry is a standalone server running at <code>skills.zubo.bot</code>. It is <strong>not</strong> part of your local Zubo instance. The local Zubo CLI commands (<code>zubo search</code>, <code>zubo install</code>, <code>zubo publish</code>) communicate with this central registry via HTTP. All registry endpoints are under <code>/api/registry/</code>.</p>
+
+      <h3>Public Endpoints</h3>
+      <p>These endpoints require no authentication. Rate-limited to 30 requests per minute per IP.</p>
+
+<pre><code>GET /api/registry/skills?tag=weather&amp;sort=newest&amp;limit=50&amp;offset=0&amp;status=approved</code></pre>
+      <p>List skills with filtering and sorting. Sort options: <code>newest</code>, <code>stars</code>, <code>installs</code>, <code>trending</code>. Filter by <code>tag</code> and <code>status</code> (approved, flagged, rejected).</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "skills": [
+    {
+      "id": 1,
+      "name": "weather",
+      "description": "Get current weather for a location",
+      "author": "thomaskanze",
+      "version": "1.0.0",
+      "tags": ["weather", "utility"],
+      "stars_count": 12,
+      "installs_count": 58,
+      "status": "approved",
+      "risk_level": "low",
+      "created_at": "2026-02-10T09:00:00Z"
+    }
+  ],
+  "total": 100
+}</code></pre>
+
+<pre><code>GET /api/registry/skills/:id?install=true</code></pre>
+      <p>Get full skill detail by ID. When <code>install=true</code> is passed, the response includes the <code>handler_code</code> field with the full skill source code.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "skill": {
+    "id": 1,
+    "name": "weather",
+    "description": "Get current weather for a location",
+    "handler_code": "export const skill = { ... }; export default async function ...",
+    "skill_md": "# weather\nGet current weather...",
+    "version": "1.0.0",
+    "tags": ["weather"],
+    "secrets": ["WEATHER_API_KEY"],
+    "repo_url": "https://github.com/user/weather-skill",
+    "stars_count": 12,
+    "installs_count": 58,
+    "status": "approved",
+    "risk_level": "low"
+  }
+}</code></pre>
+
+<pre><code>GET /api/registry/search?q=weather</code></pre>
+      <p>Full-text search (FTS5) across skill names and descriptions. Returns matching skills ranked by relevance.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "skills": [...]
+}</code></pre>
+
+<pre><code>GET /api/registry/trending</code></pre>
+      <p>Skills with the most installs in the last 7 days.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "skills": [...]
+}</code></pre>
+
+<pre><code>GET /api/registry/popular</code></pre>
+      <p>Skills with the most stars, all-time.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "skills": [...]
+}</code></pre>
+
+<pre><code>GET /api/registry/newest</code></pre>
+      <p>Most recently submitted skills.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "skills": [...]
+}</code></pre>
+
+<pre><code>GET /api/registry/tags</code></pre>
+      <p>Returns all tags with the number of approved skills using each tag.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "tags": {
+    "weather": 5,
+    "automation": 3,
+    "utility": 12,
+    "email": 2
+  }
+}</code></pre>
+
+<pre><code>GET /api/registry/profiles/:username</code></pre>
+      <p>Get a user profile by GitHub username. Includes published skills and aggregate statistics.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "profile": {
+    "username": "thomaskanze",
+    "github_id": 12345,
+    "avatar_url": "https://avatars.githubusercontent.com/u/12345",
+    "created_at": "2026-02-01T00:00:00Z"
+  },
+  "stats": {
+    "total_skills": 5,
+    "total_stars": 42,
+    "total_installs": 230
+  },
+  "skills": [...]
+}</code></pre>
+
+<pre><code>POST /api/registry/skills/:id/report
 Content-Type: application/json
 
 {
-  "name": "weather"
+  "email": "user@example.com",
+  "reason": "Malicious",
+  "details": "Contains obfuscated code that phones home to an unknown domain"
 }</code></pre>
-      <p>Install a skill from the registry by name. The skill is downloaded and placed in <code>~/.zubo/skills/</code>.</p>
+      <p>Report a suspicious or broken skill. Email is required for follow-up but the report is otherwise anonymous. One report per email per skill is allowed.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "reported": true
+}</code></pre>
+
+      <h3>GitHub OAuth Endpoints</h3>
+      <p>These endpoints handle GitHub OAuth authentication for the registry. Users must sign in with GitHub to publish skills, star skills, or build a profile.</p>
+
+<pre><code>GET /api/registry/auth/github</code></pre>
+      <p>Redirects to the GitHub OAuth authorization page. After the user authorizes, GitHub redirects back to the callback endpoint.</p>
+
+<pre><code>GET /api/registry/auth/github/callback</code></pre>
+      <p>Handles the GitHub OAuth callback. Exchanges the authorization code for an access token, creates or updates the user profile, sets a session cookie, and redirects the user to the <code>/skills</code> page.</p>
+
+<pre><code>GET /api/registry/auth/me</code></pre>
+      <p>Returns the currently authenticated user's profile and starred skill IDs, based on the session cookie.</p>
+      <p><strong>Response (authenticated):</strong></p>
+<pre><code>{
+  "profile": {
+    "username": "thomaskanze",
+    "github_id": 12345,
+    "avatar_url": "https://avatars.githubusercontent.com/u/12345"
+  },
+  "stars": [1, 2, 5]
+}</code></pre>
+      <p><strong>Response (not authenticated):</strong></p>
+<pre><code>{
+  "profile": null
+}</code></pre>
+
+<pre><code>POST /api/registry/auth/logout</code></pre>
+      <p>Clears the session cookie and logs the user out.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "ok": true
+}</code></pre>
+
+      <h3>Authenticated Endpoints</h3>
+      <p>These endpoints require a valid GitHub session cookie, set during the OAuth sign-in flow.</p>
+
+<pre><code>POST /api/registry/skills
+Content-Type: application/json
+
+{
+  "name": "my-skill",
+  "description": "Does useful things",
+  "handler_code": "export const skill = { ... }; export default async function ...",
+  "skill_md": "# my-skill\nDoes useful things.",
+  "version": "1.0.0",
+  "tags": ["utility"],
+  "secrets": ["API_KEY"],
+  "repo_url": "https://github.com/user/my-skill"
+}</code></pre>
+      <p>Submit a new skill to the registry. The auto-review scanner runs immediately on the submitted code and returns the review results. Clean code (low risk) is approved instantly. Medium-risk code is flagged for manual review. High-risk code is rejected with detailed findings.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "skill": {
+    "id": 42,
+    "name": "my-skill",
+    "status": "approved",
+    "risk_level": "low"
+  },
+  "review": {
+    "status": "approved",
+    "risk_level": "low",
+    "findings": []
+  }
+}</code></pre>
+
+<pre><code>POST /api/registry/skills/:id/star</code></pre>
+      <p>Toggle star on a skill. If the user has already starred it, the star is removed. Returns the new starred state and total star count.</p>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "starred": true,
+  "stars_count": 5
+}</code></pre>
+
+      <h3>Admin Endpoints</h3>
+      <p>These endpoints require <code>Authorization: Bearer &lt;REGISTRY_ADMIN_KEY&gt;</code>. Used by registry administrators for moderation.</p>
+
+<pre><code>PUT /api/registry/admin/skills/:id/status
+Content-Type: application/json
+
+{
+  "status": "approved"
+}</code></pre>
+      <p>Update a skill's approval status. Valid values: <code>approved</code>, <code>flagged</code>, <code>rejected</code>.</p>
+
+<pre><code>DELETE /api/registry/admin/skills/:id</code></pre>
+      <p>Permanently delete a skill from the registry.</p>
+
+<pre><code>GET /api/registry/admin/reports</code></pre>
+      <p>List all skill reports, ordered by most recent. Used for moderation review.</p>
+
+<pre><code>PUT /api/registry/admin/reports/:id
+Content-Type: application/json
+
+{
+  "status": "resolved"
+}</code></pre>
+      <p>Update a report's status. Valid values: <code>pending</code>, <code>resolved</code>, <code>dismissed</code>.</p>
 
       <h2>API Keys</h2>
 <pre><code>POST /api/keys
@@ -692,6 +908,384 @@ Content-Type: application/json
   "response": "OK",
   "model": "claude-sonnet-4-5-20250929"
 }</code></pre>
+
+      <h2>Conversations</h2>
+      <p>Endpoints for querying and searching the unified cross-channel conversation history. See <a href="conversations.html">Conversation History</a> for full documentation.</p>
+
+      <h3>List Conversations</h3>
+<pre><code>GET /api/conversations?limit=20&amp;offset=0&amp;channel=telegram</code></pre>
+      <p>Returns a paginated list of conversations, ordered by most recent activity. Supports filtering by channel via the <code>channel</code> query parameter.</p>
+      <p><strong>Query parameters:</strong></p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>limit</code></td><td>20</td><td>Number of conversations to return. Maximum 100.</td></tr>
+          <tr><td><code>offset</code></td><td>0</td><td>Pagination offset.</td></tr>
+          <tr><td><code>channel</code></td><td>&mdash;</td><td>Filter by source channel.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "conversations": [
+    {
+      "id": "conv_abc123",
+      "title": "Deployment discussion",
+      "channel": "telegram",
+      "messageCount": 24,
+      "firstMessageAt": "2026-02-10T09:15:00Z",
+      "lastMessageAt": "2026-02-10T11:30:00Z"
+    }
+  ],
+  "total": 156,
+  "limit": 20,
+  "offset": 0
+}</code></pre>
+
+      <h3>Search Conversations</h3>
+<pre><code>GET /api/conversations/search?q=kubernetes&amp;channel=slack&amp;limit=20</code></pre>
+      <p>Full-text search across all conversation messages using FTS5 with BM25 ranking. Supports phrases, prefix matching, boolean operators, channel filtering, and date ranges.</p>
+      <p><strong>Query parameters:</strong></p>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>q</code></td><td>&mdash;</td><td>Search query. Supports FTS5 syntax.</td></tr>
+          <tr><td><code>channel</code></td><td>&mdash;</td><td>Filter to a specific channel.</td></tr>
+          <tr><td><code>from</code></td><td>&mdash;</td><td>Start date (ISO 8601).</td></tr>
+          <tr><td><code>to</code></td><td>&mdash;</td><td>End date (ISO 8601).</td></tr>
+          <tr><td><code>limit</code></td><td>20</td><td>Maximum results.</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Response:</strong></p>
+<pre><code>{
+  "results": [
+    {
+      "conversationId": "conv_abc123",
+      "title": "Kubernetes setup",
+      "channel": "slack",
+      "matchCount": 3,
+      "snippet": "...deployed the kubernetes cluster to production...",
+      "lastMessageAt": "2026-02-12T14:20:00Z"
+    }
+  ],
+  "total": 8,
+  "query": "kubernetes"
+}</code></pre>
+
+      <h3>Conversation Statistics</h3>
+<pre><code>GET /api/conversations/stats</code></pre>
+      <p>Returns aggregate statistics: total conversations, total messages, per-channel message counts, and a 30-day activity breakdown.</p>
+<pre><code>{
+  "totalConversations": 156,
+  "totalMessages": 4280,
+  "byChannel": {
+    "webchat": 2100,
+    "telegram": 1200,
+    "discord": 680
+  },
+  "last30Days": [
+    { "date": "2026-02-14", "conversations": 5, "messages": 87 }
+  ]
+}</code></pre>
+
+      <h3>Get Conversation Messages</h3>
+<pre><code>GET /api/conversations/:id/messages?limit=100&amp;offset=0</code></pre>
+      <p>Returns messages in a specific conversation, ordered chronologically. Supports pagination via <code>limit</code> (max 500) and <code>offset</code>.</p>
+<pre><code>{
+  "conversationId": "conv_abc123",
+  "title": "Deployment discussion",
+  "channel": "telegram",
+  "messages": [
+    { "role": "user", "content": "Check deployment status", "timestamp": "2026-02-10T09:15:00Z" },
+    { "role": "assistant", "content": "Deployment completed successfully.", "timestamp": "2026-02-10T09:15:04Z" }
+  ],
+  "total": 24
+}</code></pre>
+
+      <h2>Email Digests</h2>
+      <p>Endpoints for managing automated email digest summaries. Digests aggregate conversation activity and send periodic email reports.</p>
+
+      <h3>Get Digest Configuration</h3>
+<pre><code>GET /api/dashboard/email-digest</code></pre>
+      <p>Returns the current email digest configuration, including schedule, recipients, and enabled status.</p>
+<pre><code>{
+  "enabled": true,
+  "schedule": "0 8 * * 1-5",
+  "recipients": ["you@example.com"],
+  "includeStats": true,
+  "includeTopConversations": true,
+  "maxConversations": 10,
+  "lastSentAt": "2026-02-14T08:00:00Z"
+}</code></pre>
+
+      <h3>Update Digest Configuration</h3>
+<pre><code>PUT /api/dashboard/email-digest
+Content-Type: application/json
+
+{
+  "enabled": true,
+  "schedule": "0 8 * * 1-5",
+  "recipients": ["you@example.com"],
+  "includeStats": true,
+  "includeTopConversations": true,
+  "maxConversations": 10
+}</code></pre>
+      <p>Update the email digest settings. All fields are optional &mdash; only the fields you include will be updated. Requires the email channel to be configured.</p>
+
+      <h3>Send Test Digest</h3>
+<pre><code>POST /api/dashboard/email-digest/test</code></pre>
+      <p>Send a test digest email immediately to the configured recipients. Returns a confirmation with the email subject and recipient count.</p>
+<pre><code>{
+  "sent": true,
+  "recipients": 1,
+  "subject": "Zubo Daily Digest — Feb 15, 2026"
+}</code></pre>
+
+      <h3>Get Digest History</h3>
+<pre><code>GET /api/dashboard/email-digest/history?limit=10</code></pre>
+      <p>Returns the send history for email digests, including timestamp, recipient count, and delivery status.</p>
+<pre><code>{
+  "history": [
+    {
+      "sentAt": "2026-02-14T08:00:00Z",
+      "recipients": 1,
+      "status": "delivered",
+      "subject": "Zubo Daily Digest — Feb 14, 2026"
+    }
+  ]
+}</code></pre>
+
+      <h2>Webhooks</h2>
+      <p>Endpoints for managing webhook endpoints that receive events from external services. See <a href="webhooks.html">Webhooks</a> for full documentation including HMAC verification and prompt templates.</p>
+
+      <h3>List Webhooks</h3>
+<pre><code>GET /api/webhooks</code></pre>
+      <p>Returns all configured webhooks with their metadata, URL, event count, and last triggered time.</p>
+<pre><code>{
+  "webhooks": [
+    {
+      "id": "wh_a1b2c3",
+      "name": "github-pushes",
+      "url": "http://localhost:3000/webhooks/wh_a1b2c3",
+      "hasSecret": true,
+      "prompt": "A GitHub push event...",
+      "createdAt": "2026-02-15T10:00:00Z",
+      "lastTriggeredAt": "2026-02-15T14:30:00Z",
+      "eventCount": 12
+    }
+  ]
+}</code></pre>
+
+      <h3>Create Webhook</h3>
+<pre><code>POST /api/webhooks
+Content-Type: application/json
+
+{
+  "name": "github-pushes",
+  "secret": "whsec_abc123...",
+  "prompt": "Process this event: {{payload}}"
+}</code></pre>
+      <p>Create a new webhook endpoint. The <code>name</code> and <code>prompt</code> fields are required. The <code>secret</code> field is optional but enables HMAC-SHA256 signature verification (<code>X-Hub-Signature-256</code>).</p>
+<pre><code>{
+  "id": "wh_a1b2c3",
+  "name": "github-pushes",
+  "url": "http://localhost:3000/webhooks/wh_a1b2c3",
+  "secret": "whsec_abc123...",
+  "createdAt": "2026-02-15T10:00:00Z"
+}</code></pre>
+
+      <h3>Update Webhook</h3>
+<pre><code>PUT /api/webhooks/:id
+Content-Type: application/json
+
+{
+  "name": "github-all-events",
+  "secret": "new-secret",
+  "prompt": "Updated prompt: {{payload}}"
+}</code></pre>
+      <p>Update a webhook's name, secret, or prompt template. All fields are optional.</p>
+
+      <h3>Delete Webhook</h3>
+<pre><code>DELETE /api/webhooks/:id</code></pre>
+      <p>Delete a webhook and all its event history. Returns <code>204 No Content</code>.</p>
+
+      <h3>Get Webhook Events</h3>
+<pre><code>GET /api/webhooks/:id/events?limit=20&amp;offset=0</code></pre>
+      <p>Returns the event history for a specific webhook, ordered by most recent first. Supports pagination via <code>limit</code> (max 100) and <code>offset</code>.</p>
+<pre><code>{
+  "events": [
+    {
+      "id": "evt_xyz789",
+      "webhookId": "wh_a1b2c3",
+      "timestamp": "2026-02-15T14:30:00Z",
+      "status": "processed",
+      "payloadSize": 2048,
+      "processingTimeMs": 1250
+    }
+  ],
+  "total": 12
+}</code></pre>
+
+      <h3>Test Webhook</h3>
+<pre><code>POST /api/webhooks/:id/test
+Content-Type: application/json
+
+{
+  "payload": {
+    "action": "push",
+    "repository": { "full_name": "user/repo" }
+  }
+}</code></pre>
+      <p>Send a test payload to a webhook. The payload is processed through the prompt template and the agent's response is returned. If no <code>payload</code> is provided, a default sample is used.</p>
+<pre><code>{
+  "reply": "A push to user/repo was received.",
+  "eventId": "evt_test_001"
+}</code></pre>
+
+      <h2>MCP Marketplace</h2>
+      <p>Endpoints for browsing and installing MCP servers from the official registry. See <a href="marketplace.html">MCP Marketplace</a> for full documentation.</p>
+
+      <h3>Browse Marketplace</h3>
+<pre><code>GET /api/mcp/marketplace?q=filesystem&amp;category=utilities&amp;limit=50</code></pre>
+      <p>Search and browse the MCP server registry. Supports filtering by search query, category, and pagination.</p>
+<pre><code>{
+  "servers": [
+    {
+      "name": "@modelcontextprotocol/server-filesystem",
+      "description": "MCP server providing file system operations",
+      "author": "Anthropic",
+      "category": "utilities",
+      "toolCount": 11,
+      "installed": false,
+      "version": "0.6.2"
+    }
+  ],
+  "total": 1
+}</code></pre>
+
+      <h3>Get Marketplace Server Details</h3>
+<pre><code>GET /api/mcp/marketplace/:name</code></pre>
+      <p>Get detailed information about a specific server, including available tools, required environment variables, and installation status.</p>
+
+      <h3>Install Marketplace Server</h3>
+<pre><code>POST /api/mcp/marketplace/:name/install
+Content-Type: application/json
+
+{
+  "env": { "GITHUB_TOKEN": "ghp_abc123..." }
+}</code></pre>
+      <p>Install an MCP server from the marketplace. The <code>env</code> field provides environment variables the server requires. The server is started immediately and its tools are registered.</p>
+<pre><code>{
+  "success": true,
+  "name": "@modelcontextprotocol/server-github",
+  "tools": ["github__create_issue", "github__list_repos"],
+  "toolCount": 2,
+  "status": "connected"
+}</code></pre>
+
+      <h3>Uninstall MCP Server</h3>
+<pre><code>POST /api/mcp/servers/:name/uninstall</code></pre>
+      <p>Uninstall an MCP server, stop its process, deregister its tools, and remove the configuration. Returns <code>204 No Content</code>.</p>
+
+      <h2>Visual Workflows</h2>
+      <p>Endpoints for managing visual workflows built with the dashboard builder. See <a href="workflows.html">Visual Workflows</a> for full documentation including step types, triggers, and template variables.</p>
+
+      <h3>List Visual Workflows</h3>
+<pre><code>GET /api/workflows/visual</code></pre>
+      <p>Returns all visual workflows with metadata, step count, trigger type, and execution status.</p>
+<pre><code>{
+  "workflows": [
+    {
+      "id": "vw_abc123",
+      "name": "Daily Report",
+      "trigger": { "type": "cron", "schedule": "0 9 * * 1-5" },
+      "stepCount": 4,
+      "enabled": true,
+      "lastRunAt": "2026-02-15T09:00:00Z",
+      "lastRunStatus": "completed"
+    }
+  ]
+}</code></pre>
+
+      <h3>Get Visual Workflow</h3>
+<pre><code>GET /api/workflows/visual/:id</code></pre>
+      <p>Returns the full workflow definition including all steps, connections, and trigger configuration.</p>
+
+      <h3>Create Visual Workflow</h3>
+<pre><code>POST /api/workflows/visual
+Content-Type: application/json
+
+{
+  "name": "Daily Report",
+  "trigger": { "type": "cron", "schedule": "0 9 * * 1-5" },
+  "steps": [
+    { "id": "fetch", "type": "tool", "tool": "web_search", "input": { "query": "tech news" } },
+    { "id": "summarize", "type": "agent", "prompt": "Summarize: {{steps.fetch.result}}" },
+    { "id": "send", "type": "message", "channel": "telegram", "content": "{{steps.summarize.result}}" }
+  ],
+  "connections": [
+    { "from": "fetch", "to": "summarize" },
+    { "from": "summarize", "to": "send" }
+  ]
+}</code></pre>
+      <p>Create a new visual workflow. Returns the created workflow with its generated ID.</p>
+
+      <h3>Update Visual Workflow</h3>
+<pre><code>PUT /api/workflows/visual/:id
+Content-Type: application/json
+
+{
+  "name": "Updated Report",
+  "steps": [...],
+  "connections": [...]
+}</code></pre>
+      <p>Update a workflow's name, trigger, steps, or connections. All fields are optional.</p>
+
+      <h3>Delete Visual Workflow</h3>
+<pre><code>DELETE /api/workflows/visual/:id</code></pre>
+      <p>Delete a workflow and all its execution history. Returns <code>204 No Content</code>.</p>
+
+      <h3>Run Visual Workflow</h3>
+<pre><code>POST /api/workflows/visual/:id/run
+Content-Type: application/json
+
+{
+  "payload": { "topic": "AI research" }
+}</code></pre>
+      <p>Execute a workflow immediately with an optional payload available as <code>{{trigger.payload}}</code>. Returns the run ID.</p>
+<pre><code>{
+  "runId": "run_xyz789",
+  "status": "started",
+  "workflowId": "vw_abc123"
+}</code></pre>
+
+      <h3>Get Workflow Runs</h3>
+<pre><code>GET /api/workflows/visual/:id/runs?limit=20</code></pre>
+      <p>Returns the execution history for a workflow, including per-step status and duration.</p>
+<pre><code>{
+  "runs": [
+    {
+      "runId": "run_xyz789",
+      "status": "completed",
+      "trigger": "manual",
+      "startedAt": "2026-02-15T14:00:00Z",
+      "completedAt": "2026-02-15T14:00:12Z",
+      "durationMs": 12340,
+      "steps": [
+        { "id": "fetch", "status": "completed", "durationMs": 3200 },
+        { "id": "summarize", "status": "completed", "durationMs": 8100 }
+      ]
+    }
+  ]
+}</code></pre>
+
+      <h3>Toggle Visual Workflow</h3>
+<pre><code>PUT /api/workflows/visual/:id/toggle
+Content-Type: application/json
+
+{
+  "enabled": false
+}</code></pre>
+      <p>Enable or disable a workflow. Disabled workflows do not execute on cron or webhook triggers but can still be run manually.</p>
 
       <h2>Rate Limits</h2>
       <p>Rate limiting is applied per IP address. When a client exceeds the limit, the endpoint returns <code>429 Too Many Requests</code> with a <code>Retry-After</code> header indicating how many seconds to wait before retrying.</p>
