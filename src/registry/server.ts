@@ -43,29 +43,27 @@ function initDb(): Database {
       const applied = db.query<{ name: string }, []>("SELECT name FROM _migrations WHERE name = '023_skill_registry.sql'").get();
       if (!applied) {
         const sql = readFileSync(migrationPath, "utf-8");
-        // Split SQL respecting trigger BEGIN...END blocks (which contain semicolons)
+        // Parse SQL into individual statements, respecting trigger BEGIN...END blocks
         const statements: string[] = [];
-        let current = "";
-        let inTrigger = false;
+        let buffer = "";
+        let depth = 0;
         for (const line of sql.split("\n")) {
-          const trimmed = line.trim().toUpperCase();
-          if (trimmed.startsWith("CREATE TRIGGER")) inTrigger = true;
-          current += line + "\n";
-          if (inTrigger && trimmed === "END;") {
-            statements.push(current.trim());
-            current = "";
-            inTrigger = false;
-          } else if (!inTrigger && line.includes(";")) {
-            statements.push(current.trim());
-            current = "";
+          const upper = line.trim().toUpperCase();
+          // Skip empty lines and comments
+          if (!upper || upper.startsWith("--")) continue;
+          buffer += line + "\n";
+          // Track BEGIN/END depth for triggers
+          if (upper.includes("BEGIN")) depth++;
+          if (upper.startsWith("END;")) depth = Math.max(depth - 1, 0);
+          // Statement complete when we see a semicolon at depth 0
+          if (depth === 0 && line.trim().endsWith(";")) {
+            statements.push(buffer.trim());
+            buffer = "";
           }
         }
-        if (current.trim()) statements.push(current.trim());
-
         db.transaction(() => {
           for (const stmt of statements) {
-            const cleaned = stmt.replace(/;$/, "").trim();
-            if (cleaned.length > 0) db.run(cleaned);
+            db.run(stmt);
           }
           db.prepare("INSERT INTO _migrations (name) VALUES (?)").run("023_skill_registry.sql");
         })();
