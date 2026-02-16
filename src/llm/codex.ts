@@ -2,6 +2,35 @@ import { randomUUID } from "crypto";
 import type { LlmProvider, LlmRequest, LlmResponse, LlmContentBlock } from "./provider";
 import { logger } from "../util/logger";
 
+/** Try to extract a tool_use JSON from the response, handling markdown fences and surrounding text. */
+function extractToolUse(text: string): { name: string; input: Record<string, unknown> } | null {
+  // 1. Try exact parse
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed.tool_use?.name) return parsed.tool_use;
+  } catch {}
+
+  // 2. Try extracting from markdown code fences: ```json ... ``` or ``` ... ```
+  const fenceMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+  if (fenceMatch) {
+    try {
+      const parsed = JSON.parse(fenceMatch[1].trim());
+      if (parsed.tool_use?.name) return parsed.tool_use;
+    } catch {}
+  }
+
+  // 3. Try finding a JSON object with "tool_use" anywhere in the text
+  const braceMatch = text.match(/\{[\s\S]*"tool_use"[\s\S]*\}/);
+  if (braceMatch) {
+    try {
+      const parsed = JSON.parse(braceMatch[0]);
+      if (parsed.tool_use?.name) return parsed.tool_use;
+    } catch {}
+  }
+
+  return null;
+}
+
 /**
  * LLM provider that uses OpenAI Codex CLI as the backend.
  * Spawns `codex -q <prompt>` for each request.
@@ -46,7 +75,21 @@ export class CodexProvider implements LlmProvider {
       const toolHint = request.tools.map(t =>
         `Tool: ${t.name} - ${t.description}\nParameters: ${JSON.stringify(t.input_schema)}`
       ).join("\n\n");
-      parts.push(`\nAvailable tools:\n${toolHint}\n\nTo use a tool, respond with JSON: {"tool_use": {"name": "tool_name", "input": {...}}}`);
+      parts.push([
+        `\n## TOOLS`,
+        `You have the following tools available. When the user's request can be fulfilled by a tool, you MUST use it.`,
+        `Do NOT say you can't do something if a matching tool exists — call it instead.\n`,
+        toolHint,
+        `\n## HOW TO CALL A TOOL`,
+        `Respond with ONLY this JSON (no markdown, no explanation, no wrapping):`,
+        `{"tool_use": {"name": "TOOL_NAME", "input": {PARAMETERS}}}`,
+        ``,
+        `Example — user says "add buy milk to my todos":`,
+        `{"tool_use": {"name": "todos", "input": {"action": "add", "title": "Buy milk"}}}`,
+        ``,
+        `CRITICAL: Output raw JSON only. No \`\`\`json blocks. No text before or after. Just the JSON object.`,
+        `If you don't need a tool, respond normally with text.`,
+      ].join("\n"));
     }
 
     const prompt = parts.join("\n\n");
@@ -83,23 +126,21 @@ export class CodexProvider implements LlmProvider {
 
       const content: LlmContentBlock[] = [];
 
-      // Check for tool_use response
-      try {
-        const maybeToolUse = JSON.parse(responseText);
-        if (maybeToolUse.tool_use) {
-          content.push({
-            type: "tool_use",
-            id: `cx_${randomUUID()}`,
-            name: maybeToolUse.tool_use.name,
-            input: maybeToolUse.tool_use.input ?? {},
-          });
-          return {
-            content,
-            stopReason: "tool_use",
-            usage: { inputTokens: 0, outputTokens: 0 },
-          };
-        }
-      } catch {}
+      // Check for tool_use response — try exact JSON first, then extract from text
+      const toolUse = extractToolUse(responseText);
+      if (toolUse) {
+        content.push({
+          type: "tool_use",
+          id: `cx_${randomUUID()}`,
+          name: toolUse.name,
+          input: toolUse.input ?? {},
+        });
+        return {
+          content,
+          stopReason: "tool_use",
+          usage: { inputTokens: 0, outputTokens: 0 },
+        };
+      }
 
       content.push({ type: "text", text: responseText });
 
