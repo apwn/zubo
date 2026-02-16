@@ -29,8 +29,20 @@ function initDb(): Database {
     Bun.spawnSync(["mkdir", "-p", dir]);
   }
 
-  const db = new Database(DB_PATH, { create: true });
-  db.run("PRAGMA journal_mode = WAL");
+  let db: Database;
+  try {
+    db = new Database(DB_PATH, { create: true });
+    db.run("PRAGMA journal_mode = WAL");
+  } catch (err: any) {
+    // If DB is corrupted, delete and recreate
+    console.warn("[registry] Database corrupted, recreating:", err.message);
+    const { unlinkSync } = require("fs");
+    for (const suffix of ["", "-wal", "-shm"]) {
+      try { unlinkSync(DB_PATH + suffix); } catch {}
+    }
+    db = new Database(DB_PATH, { create: true });
+    db.run("PRAGMA journal_mode = WAL");
+  }
   db.run("PRAGMA foreign_keys = ON");
   db.run("PRAGMA busy_timeout = 5000");
 
