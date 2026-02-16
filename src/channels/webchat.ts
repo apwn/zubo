@@ -245,7 +245,7 @@ function switchModelConfig(provider: string, model: string): { ok: boolean; erro
   }
 }
 
-function handleDashboardApi(url: URL, req: Request): Response | null {
+async function handleDashboardApi(url: URL, req: Request): Promise<Response | null> {
   const path = url.pathname.replace("/api/dashboard", "");
 
   // GET /api/dashboard/status
@@ -2781,7 +2781,7 @@ async function handleRequest(
 
           // Dashboard API
           if (url.pathname.startsWith("/api/dashboard")) {
-            const result = handleDashboardApi(url, req);
+            const result = await handleDashboardApi(url, req);
             if (result) return result;
           }
 
