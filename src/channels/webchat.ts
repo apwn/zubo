@@ -1262,9 +1262,9 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
   }
 
   // PUT /api/dashboard/threads/:id — rename thread
-  if (path.match(/^\/threads\/[a-f0-9-]+$/) && req.method === "PUT") {
+  if (path.match(/^\/threads\/[^/]+$/) && req.method === "PUT") {
     return (async () => {
-      const threadId = path.split("/").pop()!;
+      const threadId = decodeURIComponent(path.split("/").pop()!);
       const { title } = await req.json();
       const db = getDb();
       db.prepare(
@@ -1275,8 +1275,8 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
   }
 
   // DELETE /api/dashboard/threads/:id — delete thread and session file
-  if (path.match(/^\/threads\/[a-f0-9-]+$/) && req.method === "DELETE") {
-    const threadId = path.split("/").pop()!;
+  if (path.match(/^\/threads\/[^/]+$/) && req.method === "DELETE") {
+    const threadId = decodeURIComponent(path.split("/").pop()!);
     try {
       const db = getDb();
       db.prepare("DELETE FROM threads WHERE id = ?").run(threadId);
@@ -1289,9 +1289,9 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
   }
 
   // GET /api/dashboard/threads/:id/messages — get thread messages
-  if (path.match(/^\/threads\/[a-f0-9-]+\/messages$/) && req.method === "GET") {
+  if (path.match(/^\/threads\/[^/]+\/messages$/) && req.method === "GET") {
     return (async () => {
-      const threadId = path.split("/")[2];
+      const threadId = decodeURIComponent(path.split("/")[2]);
       const { loadSession } = await import("../agent/session");
       const messages = loadSession(threadId, 100);
       return Response.json({ messages });
@@ -1299,9 +1299,9 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
   }
 
   // GET /api/dashboard/threads/:id/export — export thread as markdown
-  if (path.match(/^\/threads\/[a-f0-9-]+\/export$/) && req.method === "GET") {
+  if (path.match(/^\/threads\/[^/]+\/export$/) && req.method === "GET") {
     return (async () => {
-      const threadId = path.split("/")[2];
+      const threadId = decodeURIComponent(path.split("/")[2]);
       const { loadSession } = await import("../agent/session");
       const messages = loadSession(threadId, 1000);
       const db = getDb();

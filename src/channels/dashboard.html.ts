@@ -4477,7 +4477,7 @@ function createThread() {
 function switchThread(id, title) {
   activeThreadId = id;
   loadThreads();
-  api('/threads/' + id + '/messages').then(function(data) {
+  api('/threads/' + encodeURIComponent(id) + '/messages').then(function(data) {
     var msgs = data.messages || [];
     clearChatMessages();
     if (msgs.length === 0) return;
@@ -4491,7 +4491,7 @@ function switchThread(id, title) {
 }
 
 function deleteThread(id) {
-  api('/threads/' + id, { method: 'DELETE' }).then(function() {
+  api('/threads/' + encodeURIComponent(id), { method: 'DELETE' }).then(function() {
     if (activeThreadId === id) {
       activeThreadId = null;
       clearChatMessages();
