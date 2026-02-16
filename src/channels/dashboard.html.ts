@@ -659,7 +659,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
   /* ===== TAB BAR ===== */
   .tab-bar {
     display: flex; gap: 2px; padding: 0 0 16px; border-bottom: 1px solid var(--border);
-    margin-bottom: 20px; overflow-x: auto; flex-shrink: 0;
+    margin-bottom: 20px; overflow-x: auto; flex-shrink: 0; flex-wrap: wrap; row-gap: 6px;
   }
   .tab {
     padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted);
@@ -3679,7 +3679,7 @@ function loadChannelStatus() {
     var badge = document.getElementById('channel-count-badge');
     if (badge) badge.textContent = connCount + ' active';
     var sidebarBadge = document.getElementById('sidebar-conn-badge');
-    if (sidebarBadge) sidebarBadge.textContent = connCount + ' channels';
+    if (sidebarBadge) sidebarBadge.textContent = connCount + (connCount === 1 ? ' channel' : ' channels');
   }).catch(function(err) { console.warn('Channel config load failed', err); });
 }
 
@@ -5706,7 +5706,7 @@ function deleteTodo(id) {
 function renderTodos(todos) {
   var c = document.getElementById('todos-list');
   c.replaceChildren();
-  if (!todos.length) { c.textContent = ''; var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No todos yet'; p.appendChild(t); c.appendChild(p); return; }
+  if (!todos.length) { c.textContent = ''; var p = document.createElement('div'); p.className='empty-state-card'; p.style.textAlign='center'; var t=document.createElement('p'); t.style.cssText='color:var(--text-muted);margin-bottom:4px;'; t.textContent='No todos yet'; p.appendChild(t); var h=document.createElement('p'); h.style.cssText='color:var(--text-faint);font-size:12px;'; h.textContent='Click + Add above, or ask Zubo in chat to create one.'; p.appendChild(h); c.appendChild(p); return; }
   todos.forEach(function(t) {
     var item = document.createElement('div');
     item.className = 'memory-item';
@@ -5730,12 +5730,13 @@ function renderTodos(todos) {
 
     var meta = document.createElement('div');
     meta.style.cssText = 'font-size:11px;color:var(--text-faint);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;';
-    var prColors = { urgent:'var(--red)', high:'var(--yellow)', medium:'var(--text-muted)', low:'var(--text-faint)' };
+    var prBg = { urgent:'rgba(239,68,68,0.15)', high:'rgba(245,158,11,0.15)', medium:'rgba(139,92,246,0.15)', low:'rgba(100,116,139,0.1)' };
+    var prFg = { urgent:'#ef4444', high:'#f59e0b', medium:'#8b5cf6', low:'var(--text-faint)' };
     var prSpan = document.createElement('span');
-    prSpan.style.color = prColors[t.priority] || 'var(--text-faint)';
+    prSpan.style.cssText = 'color:' + (prFg[t.priority]||'var(--text-faint)') + ';background:' + (prBg[t.priority]||'transparent') + ';padding:1px 8px;border-radius:10px;font-size:10px;font-weight:500;';
     prSpan.textContent = t.priority;
     meta.appendChild(prSpan);
-    if (t.due_date) { var ds = document.createElement('span'); ds.textContent = t.due_date; meta.appendChild(ds); }
+    if (t.due_date) { var ds = document.createElement('span'); ds.style.cssText = 'display:inline-flex;align-items:center;gap:3px;'; ds.textContent = '\u{1F4C5} ' + t.due_date; meta.appendChild(ds); }
     if (t.tags && t.tags !== '[]') {
       try { var tags = JSON.parse(t.tags); if (tags.length) { var ts = document.createElement('span'); ts.textContent = tags.join(', '); meta.appendChild(ts); } } catch(e){}
     }
@@ -5794,7 +5795,7 @@ function deleteNote(id) {
 function renderNotes(notes) {
   var c = document.getElementById('notes-list');
   c.replaceChildren();
-  if (!notes.length) { var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No notes yet'; p.appendChild(t); c.appendChild(p); return; }
+  if (!notes.length) { var p = document.createElement('div'); p.className='empty-state-card'; p.style.textAlign='center'; var t=document.createElement('p'); t.style.cssText='color:var(--text-muted);margin-bottom:4px;'; t.textContent='No notes yet'; p.appendChild(t); var h=document.createElement('p'); h.style.cssText='color:var(--text-faint);font-size:12px;'; h.textContent='Save notes here or tell Zubo to remember something in chat.'; p.appendChild(h); c.appendChild(p); return; }
   notes.forEach(function(n) {
     var item = document.createElement('div');
     item.className = 'memory-item';
@@ -5870,7 +5871,7 @@ function deletePref(id) {
 function renderPrefs(prefs) {
   var c = document.getElementById('prefs-list');
   c.replaceChildren();
-  if (!prefs.length) { var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No preferences yet'; p.appendChild(t); c.appendChild(p); return; }
+  if (!prefs.length) { var p = document.createElement('div'); p.className='empty-state-card'; p.style.textAlign='center'; var t=document.createElement('p'); t.style.cssText='color:var(--text-muted);margin-bottom:4px;'; t.textContent='No preferences yet'; p.appendChild(t); var h=document.createElement('p'); h.style.cssText='color:var(--text-faint);font-size:12px;'; h.textContent='Tell Zubo your preferences in chat, e.g. "I prefer TypeScript" or add them here.'; p.appendChild(h); c.appendChild(p); return; }
 
   // Group by category
   var groups = {};
@@ -5947,7 +5948,7 @@ function deleteTopic(id) {
 function renderTopics(topics) {
   var c = document.getElementById('topics-list');
   c.replaceChildren();
-  if (!topics.length) { var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No topics yet'; p.appendChild(t); c.appendChild(p); return; }
+  if (!topics.length) { var p = document.createElement('div'); p.className='empty-state-card'; p.style.textAlign='center'; var t=document.createElement('p'); t.style.cssText='color:var(--text-muted);margin-bottom:4px;'; t.textContent='No topics yet'; p.appendChild(t); var h=document.createElement('p'); h.style.cssText='color:var(--text-faint);font-size:12px;'; h.textContent='Topics organize conversations into threads. Create one to keep context separate.'; p.appendChild(h); c.appendChild(p); return; }
   topics.forEach(function(t) {
     var item = document.createElement('div');
     item.className = 'memory-item';
@@ -6033,7 +6034,7 @@ function deleteFollowup(id) {
 function renderFollowups(followups) {
   var c = document.getElementById('followups-list');
   c.replaceChildren();
-  if (!followups.length) { var p = document.createElement('div'); p.className='empty-state-card'; var t=document.createElement('p'); t.style.color='var(--text-muted)'; t.textContent='No follow-ups scheduled'; p.appendChild(t); c.appendChild(p); return; }
+  if (!followups.length) { var p = document.createElement('div'); p.className='empty-state-card'; p.style.textAlign='center'; var t=document.createElement('p'); t.style.cssText='color:var(--text-muted);margin-bottom:4px;'; t.textContent='No follow-ups scheduled'; p.appendChild(t); var h=document.createElement('p'); h.style.cssText='color:var(--text-faint);font-size:12px;'; h.textContent='Zubo will proactively remind you when a follow-up is due.'; p.appendChild(h); c.appendChild(p); return; }
   followups.forEach(function(f) {
     var item = document.createElement('div');
     item.className = 'memory-item';
