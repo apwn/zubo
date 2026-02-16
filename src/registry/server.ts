@@ -79,6 +79,156 @@ function initDb(): Database {
 
 const db = initDb();
 
+// ─── Seed Built-in Skills ───────────────────────────────────────────
+
+function seedBuiltinSkills(db: Database): void {
+  // Check if already seeded
+  const count = db.query<{ c: number }, []>("SELECT COUNT(*) as c FROM registry_skills").get();
+  if (count && count.c > 0) return;
+
+  // Create the official Zubo profile
+  db.prepare(
+    `INSERT OR IGNORE INTO registry_profiles (github_id, username, display_name, bio, website, github_url, avatar_url)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    1, "zubo", "Zubo", "Official built-in skills", "https://zubo.bot",
+    "https://github.com/apwn/zubo", "https://github.com/apwn.png"
+  );
+
+  const profile = db.query<{ id: number }, [string]>(
+    "SELECT id FROM registry_profiles WHERE username = ?"
+  ).get("zubo");
+  if (!profile) return;
+
+  const SKILLS_DIR = resolve(join(import.meta.dir, "../tools/builtin-skills"));
+
+  const skills: Array<{
+    dir: string;
+    name: string;
+    description: string;
+    tags: string[];
+    version: string;
+  }> = [
+    {
+      dir: "web-search",
+      name: "web-search",
+      description: "Search the web using DuckDuckGo and return relevant results with titles, URLs, and snippets.",
+      tags: ["search", "web", "utility"],
+      version: "1.0.0",
+    },
+    {
+      dir: "url-fetch",
+      name: "url-fetch",
+      description: "Fetch the content of any URL and return the text body with automatic HTML tag stripping.",
+      tags: ["web", "utility", "fetch"],
+      version: "1.0.0",
+    },
+    {
+      dir: "http-request",
+      name: "http-request",
+      description: "Make HTTP requests to any URL with full control over method, headers, and body. Supports GET, POST, PUT, DELETE, PATCH with SSRF protection.",
+      tags: ["web", "api", "utility"],
+      version: "1.0.0",
+    },
+    {
+      dir: "code-interpreter",
+      name: "code-interpreter",
+      description: "Execute Python, JavaScript, or TypeScript code in a sandboxed subprocess and return the output. Great for calculations, data processing, and text manipulation.",
+      tags: ["code", "sandbox", "python", "javascript"],
+      version: "1.0.0",
+    },
+    {
+      dir: "shell",
+      name: "shell",
+      description: "Execute shell commands and return their output. Includes security guards against destructive operations and sensitive environment variable leakage.",
+      tags: ["shell", "system", "utility"],
+      version: "1.0.0",
+    },
+    {
+      dir: "file-read",
+      name: "file-read",
+      description: "Read the contents of files from the local filesystem with path validation and sensitive file blocking.",
+      tags: ["filesystem", "utility"],
+      version: "1.0.0",
+    },
+    {
+      dir: "file-write",
+      name: "file-write",
+      description: "Write or append content to files on the local filesystem with path validation and sensitive file blocking.",
+      tags: ["filesystem", "utility"],
+      version: "1.0.0",
+    },
+    {
+      dir: "image-generate",
+      name: "image-generate",
+      description: "Generate images using AI models including DALL-E 3, Flux, and Together AI. Returns file paths of generated images.",
+      tags: ["ai", "image", "creative"],
+      version: "1.0.0",
+    },
+    {
+      dir: "kg-query",
+      name: "kg-query",
+      description: "Query the knowledge graph to find entities, their relationships, and structured information. Recall people, projects, concepts, and how they connect.",
+      tags: ["memory", "knowledge-graph", "search"],
+      version: "1.0.0",
+    },
+    {
+      dir: "kg-update",
+      name: "kg-update",
+      description: "Update the knowledge graph by adding or removing entities and relationships. Build structured memory about people, projects, and concepts.",
+      tags: ["memory", "knowledge-graph"],
+      version: "1.0.0",
+    },
+    {
+      dir: "webhook-manage",
+      name: "webhook-manage",
+      description: "Manage webhook endpoints for external services like GitHub, Stripe, and CI/CD. Create, list, delete, and toggle webhooks with optional HMAC verification.",
+      tags: ["webhooks", "integrations", "api"],
+      version: "1.0.0",
+    },
+    {
+      dir: "oauth-manage",
+      name: "oauth-manage",
+      description: "Manage OAuth connections for third-party integrations including Google, GitHub, Notion, Linear, and Slack.",
+      tags: ["oauth", "integrations", "auth"],
+      version: "1.0.0",
+    },
+  ];
+
+  let seeded = 0;
+  for (const skill of skills) {
+    const handlerPath = join(SKILLS_DIR, skill.dir, "handler.ts");
+    if (!existsSync(handlerPath)) continue;
+
+    const handlerCode = readFileSync(handlerPath, "utf-8");
+
+    try {
+      db.prepare(
+        `INSERT INTO registry_skills
+          (name, description, author_id, version, tags, secrets, handler_code, status, review_notes, risk_level)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', '[]', 'low')`
+      ).run(
+        skill.name,
+        skill.description,
+        profile.id,
+        skill.version,
+        JSON.stringify(skill.tags),
+        "[]",
+        handlerCode
+      );
+      seeded++;
+    } catch (err: any) {
+      console.error(`[registry] Failed to seed skill "${skill.name}":`, err.message);
+    }
+  }
+
+  if (seeded > 0) {
+    console.log(`[registry] Seeded ${seeded} built-in skills`);
+  }
+}
+
+seedBuiltinSkills(db);
+
 // ─── Rate Limiter ────────────────────────────────────────────────────
 
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
