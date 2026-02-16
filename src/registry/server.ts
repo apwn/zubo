@@ -481,7 +481,10 @@ async function handleRequest(req: Request): Promise<Response> {
     }
     if (!GITHUB_CLIENT_ID) return error("GitHub OAuth not configured", 500);
     const state = crypto.randomUUID();
-    const redirectUri = `${url.origin}/api/registry/auth/github/callback`;
+    // Use x-forwarded-proto to build correct origin behind reverse proxy
+    const proto = req.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
+    const host = req.headers.get("host") || url.host;
+    const redirectUri = `${proto}://${host}/api/registry/auth/github/callback`;
     const ghUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user%20user:email&state=${state}`;
     return new Response(null, {
       status: 302,
