@@ -1293,7 +1293,19 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
     return (async () => {
       const threadId = decodeURIComponent(path.split("/")[2]);
       const { loadSession } = await import("../agent/session");
-      const messages = loadSession(threadId, 100);
+      let messages = loadSession(threadId, 100);
+
+      // Fallback: if no session file, load from conversation_messages DB
+      if (messages.length === 0) {
+        try {
+          const db = getDb();
+          const rows = db.query(
+            "SELECT role, content FROM conversation_messages WHERE thread_id = ? ORDER BY timestamp ASC LIMIT 100"
+          ).all(threadId) as Array<{ role: string; content: string }>;
+          messages = rows.map(r => ({ role: r.role as "user" | "assistant", content: r.content }));
+        } catch {}
+      }
+
       return Response.json({ messages });
     })() as any;
   }
@@ -1303,7 +1315,19 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
     return (async () => {
       const threadId = decodeURIComponent(path.split("/")[2]);
       const { loadSession } = await import("../agent/session");
-      const messages = loadSession(threadId, 1000);
+      let messages = loadSession(threadId, 1000);
+
+      // Fallback: if no session file, load from conversation_messages DB
+      if (messages.length === 0) {
+        try {
+          const db2 = getDb();
+          const rows = db2.query(
+            "SELECT role, content FROM conversation_messages WHERE thread_id = ? ORDER BY timestamp ASC LIMIT 1000"
+          ).all(threadId) as Array<{ role: string; content: string }>;
+          messages = rows.map(r => ({ role: r.role as "user" | "assistant", content: r.content }));
+        } catch {}
+      }
+
       const db = getDb();
       const thread = db.query(
         "SELECT title FROM threads WHERE id = ?"
@@ -2925,7 +2949,7 @@ async function handleRequest(
               }
 
               // Validate threadId format to prevent path traversal
-              if (body.threadId && !/^[a-f0-9-]{36}$/.test(body.threadId)) {
+              if (body.threadId && (/[\/\\\0]/.test(body.threadId) || body.threadId.includes(".."))) {
                 return Response.json({ error: "Invalid thread ID" }, { status: 400 });
               }
 
