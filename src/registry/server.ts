@@ -22,6 +22,7 @@ const DB_PATH = process.env.REGISTRY_DB_PATH ?? join(homedir(), ".zubo", "regist
 const SITE_DIR = resolve(join(import.meta.dir, "../../site"));
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY ?? "";
 const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN ?? "";
+const USERMAVEN_KEY = process.env.USERMAVEN_KEY ?? "";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "";
 const FROM_EMAIL = process.env.FROM_EMAIL ?? "noreply@zubo.bot";
 
@@ -399,6 +400,28 @@ const MIME_TYPES: Record<string, string> = {
   ".webp": "image/webp",
 };
 
+// Usermaven analytics snippet — injected into all HTML pages server-side
+const USERMAVEN_SNIPPET = USERMAVEN_KEY
+  ? `<script type="text/javascript">
+(function(){window.usermaven=window.usermaven||function(){(window.usermavenQ=window.usermavenQ||[]).push(arguments)};var t=document.createElement('script'),s=document.getElementsByTagName('script')[0];t.defer=true;t.id='um-tracker';t.setAttribute('data-tracking-host','https://events.usermaven.com');t.setAttribute('data-key','${USERMAVEN_KEY}');t.setAttribute('data-autocapture','true');t.setAttribute('data-form-tracking','all');t.src='https://t.usermaven.com/lib.js';s.parentNode.insertBefore(t,s)})();
+</script>`
+  : "";
+
+function serveHtml(content: string): Response {
+  // Inject analytics before </head>
+  let html = content;
+  if (USERMAVEN_SNIPPET) {
+    html = html.replace("</head>", USERMAVEN_SNIPPET + "\n</head>");
+  }
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache",
+      ...SECURITY_HEADERS,
+    },
+  });
+}
+
 function serveStatic(filePath: string): Response | null {
   const fullPath = resolve(join(SITE_DIR, filePath));
   // Security: ensure path stays within site dir
@@ -407,23 +430,26 @@ function serveStatic(filePath: string): Response | null {
   if (!existsSync(fullPath)) return null;
   const stat = statSync(fullPath);
   if (stat.isDirectory()) {
-    // Try index.html
     const indexPath = join(fullPath, "index.html");
     if (existsSync(indexPath)) {
-      return new Response(readFileSync(indexPath), {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
-      });
+      return serveHtml(readFileSync(indexPath, "utf-8"));
     }
     return null;
   }
 
   const ext = extname(fullPath).toLowerCase();
+
+  // Inject analytics into HTML pages
+  if (ext === ".html") {
+    return serveHtml(readFileSync(fullPath, "utf-8"));
+  }
+
   const contentType = MIME_TYPES[ext] ?? "application/octet-stream";
 
   return new Response(readFileSync(fullPath), {
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": ext === ".html" ? "no-cache" : "public, max-age=3600",
+      "Cache-Control": "public, max-age=3600",
       ...SECURITY_HEADERS,
     },
   });
@@ -832,3 +858,4 @@ console.log(`[registry] Site directory: ${SITE_DIR}`);
 console.log(`[registry] GitHub OAuth: ${GITHUB_CLIENT_ID ? "configured" : "not configured"}`);
 console.log(`[registry] Admin key: ${ADMIN_KEY ? "configured" : "not configured"}`);
 console.log(`[registry] Mailgun: ${MAILGUN_API_KEY ? "configured" : "not configured"}${ADMIN_EMAIL ? ` (→ ${ADMIN_EMAIL})` : ""}`);
+console.log(`[registry] Usermaven: ${USERMAVEN_KEY ? "configured" : "not configured"}`);
