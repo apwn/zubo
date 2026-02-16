@@ -1,0 +1,29 @@
+# Tests
+tests/
+
+# Site & docs
+site/
+docs/
+desktop/
+.github/
+
+# Docker
+Dockerfile*
+docker-compose.yml
+
+# Screenshots & artifacts
+*.png
+*.jpg
+*.jpeg
+.playwright-mcp/
+
+# Dev files
+.env
+.env.*
+*.db
+*.db-wal
+*.db-shm
+.DS_Store
+.zubo/
+bun.lock
+CONTRIBUTING.md
