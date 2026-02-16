@@ -38,6 +38,14 @@ function resolveOptions(memoriesOrOptions: string | AgentLoopOptions): AgentLoop
     : memoriesOrOptions;
 }
 
+/** Detect simple greetings/chat that don't need tool definitions in context. */
+function looksConversational(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  if (t.split(/\s+/).length > 8) return false; // longer messages likely need tools
+  const greetings = /^(h(ello|i|ey|owdy|ola)|yo|sup|good\s*(morning|afternoon|evening|night)|what'?s\s*up|gm|thanks|thank\s*you|ok(ay)?|bye|see\s*ya|cool|nice|wow|lol|haha)\b/;
+  return greetings.test(t);
+}
+
 async function prepareLoop(
   llm: LlmProvider,
   sessionId: string,
@@ -74,11 +82,14 @@ async function prepareLoop(
 
   const messages = compactMessages(ctx.messages, llm.contextWindow);
 
-  // Filter tools
+  // Filter tools — skip for simple conversational messages to reduce context
+  // for small models. Tools are still available on subsequent rounds.
   let tools = getAllToolDefs();
   if (options.allowedTools) {
     const allowed = new Set(options.allowedTools);
     tools = tools.filter((t) => allowed.has(t.name));
+  } else if (looksConversational(userMessage)) {
+    tools = [];
   }
 
   return { system: ctx.system, messages, tools };
