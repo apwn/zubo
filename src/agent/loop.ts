@@ -1,7 +1,7 @@
 import type { LlmProvider, LlmMessage, LlmContentBlock, LlmResponse } from "../llm/provider";
 import { getAllToolDefs } from "../tools/registry";
 import { executeTool } from "../tools/executor";
-import { appendMessage } from "./session";
+import { appendMessage, loadSession } from "./session";
 import { assembleContext } from "./context";
 import { compactMessages } from "./compaction";
 import { getDb } from "../db/connection";
@@ -67,15 +67,10 @@ async function prepareLoop(
     ? (memories ? `${memories}\n\nKnown context:\n${kgContext}` : `Known context:\n${kgContext}`)
     : memories;
 
-  // Assemble context
+  // Assemble context (uses static import — no dynamic import overhead)
   const ctx = options.systemPromptOverride
-    ? { system: options.systemPromptOverride, messages: [] as LlmMessage[] }
+    ? { system: options.systemPromptOverride, messages: loadSession(sessionId, 50) }
     : assembleContext(sessionId, 50, fullMemories);
-
-  if (options.systemPromptOverride) {
-    const { loadSession } = await import("./session");
-    ctx.messages = loadSession(sessionId, 50);
-  }
 
   const messages = compactMessages(ctx.messages, llm.contextWindow);
 
@@ -121,21 +116,25 @@ async function executeToolBlocks(
   onToolStart?: (name: string, id: string) => void,
   onToolEnd?: (name: string, id: string) => void
 ): Promise<{ results: LlmContentBlock[]; count: number }> {
-  const results: LlmContentBlock[] = [];
-  let count = 0;
+  // Signal all tool starts immediately
   for (const block of blocks) {
-    count++;
     onToolStart?.(block.name, block.id);
+  }
+
+  // Execute all tools in parallel
+  const resultPromises = blocks.map(async (block) => {
     const result = await executeTool(block.name, block.id, block.input, allowedTools);
-    results.push({
-      type: "tool_result",
+    onToolEnd?.(block.name, block.id);
+    return {
+      type: "tool_result" as const,
       tool_use_id: result.tool_use_id,
       content: result.content,
       is_error: result.is_error,
-    });
-    onToolEnd?.(block.name, block.id);
-  }
-  return { results, count };
+    };
+  });
+
+  const results: LlmContentBlock[] = await Promise.all(resultPromises);
+  return { results, count: blocks.length };
 }
 
 function persistToolRound(

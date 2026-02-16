@@ -326,7 +326,7 @@ export function getGraph(
 export function findMentionedEntities(db: Database, text: string, limit: number = 5): KgEntity[] {
   try {
     const allNames = db.query(
-      "SELECT DISTINCT name FROM kg_entities ORDER BY length(name) DESC"
+      "SELECT DISTINCT name FROM kg_entities ORDER BY length(name) DESC LIMIT 500"
     ).all() as { name: string }[];
 
     const lowerText = text.toLowerCase();
