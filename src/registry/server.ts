@@ -20,7 +20,8 @@ const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET ?? "";
 const ADMIN_KEY = process.env.REGISTRY_ADMIN_KEY ?? "";
 const DB_PATH = process.env.REGISTRY_DB_PATH ?? join(homedir(), ".zubo", "registry.db");
 const SITE_DIR = resolve(join(import.meta.dir, "../../site"));
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY ?? "";
+const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY ?? "";
+const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN ?? "";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "";
 const FROM_EMAIL = process.env.FROM_EMAIL ?? "noreply@zubo.bot";
 
@@ -295,22 +296,22 @@ function sanitizeText(text: string, maxLen: number): string {
 // ─── Email (SendGrid) ────────────────────────────────────────────────
 
 async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
-  if (!SENDGRID_API_KEY) return false;
+  if (!MAILGUN_API_KEY || !MAILGUN_DOMAIN) return false;
   try {
-    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    const form = new FormData();
+    form.append("from", `Zubo Skills <${FROM_EMAIL}>`);
+    form.append("to", to);
+    form.append("subject", subject);
+    form.append("html", html);
+
+    const res = await fetch(`https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${SENDGRID_API_KEY}`,
-        "Content-Type": "application/json",
+        Authorization: `Basic ${btoa(`api:${MAILGUN_API_KEY}`)}`,
       },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from: { email: FROM_EMAIL, name: "Zubo Skills" },
-        subject,
-        content: [{ type: "text/html", value: html }],
-      }),
+      body: form,
     });
-    return res.status === 202;
+    return res.ok;
   } catch {
     return false;
   }
@@ -830,4 +831,4 @@ console.log(`[registry] Database: ${DB_PATH}`);
 console.log(`[registry] Site directory: ${SITE_DIR}`);
 console.log(`[registry] GitHub OAuth: ${GITHUB_CLIENT_ID ? "configured" : "not configured"}`);
 console.log(`[registry] Admin key: ${ADMIN_KEY ? "configured" : "not configured"}`);
-console.log(`[registry] SendGrid: ${SENDGRID_API_KEY ? "configured" : "not configured"}${ADMIN_EMAIL ? ` (→ ${ADMIN_EMAIL})` : ""}`);
+console.log(`[registry] Mailgun: ${MAILGUN_API_KEY ? "configured" : "not configured"}${ADMIN_EMAIL ? ` (→ ${ADMIN_EMAIL})` : ""}`);
