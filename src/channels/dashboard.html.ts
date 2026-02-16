@@ -5678,7 +5678,7 @@ function toggleTodoForm() {
 
 function loadTodos() {
   var filter = document.getElementById('todo-filter').value;
-  api('/todos?filter=' + filter).then(function(data) { renderTodos(data.todos || []); });
+  api('/todos?filter=' + filter).then(function(data) { renderTodos(data.todos || []); }).catch(function(e) { toast('Failed to load todos'); });
 }
 
 function addTodo() {
@@ -5686,21 +5686,22 @@ function addTodo() {
   if (!title) return;
   var body = { title: title, priority: document.getElementById('todo-priority').value, due_date: document.getElementById('todo-due').value || null };
   api('/todos', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
-    .then(function() { document.getElementById('todo-title').value=''; toggleTodoForm(); loadTodos(); toast('Todo added'); });
+    .then(function() { document.getElementById('todo-title').value=''; toggleTodoForm(); loadTodos(); toast('Todo added'); })
+    .catch(function(e) { toast('Failed to add todo'); });
 }
 
 function completeTodo(id) {
   api('/todos/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'done'}) })
-    .then(function() { loadTodos(); });
+    .then(function() { loadTodos(); }).catch(function(e) { toast('Failed to update todo'); loadTodos(); });
 }
 
 function uncompleteTodo(id) {
   api('/todos/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'pending'}) })
-    .then(function() { loadTodos(); });
+    .then(function() { loadTodos(); }).catch(function(e) { toast('Failed to update todo'); loadTodos(); });
 }
 
 function deleteTodo(id) {
-  api('/todos/' + id, { method:'DELETE' }).then(function() { loadTodos(); toast('Todo removed'); });
+  api('/todos/' + id, { method:'DELETE' }).then(function() { loadTodos(); toast('Todo removed'); }).catch(function(e) { toast('Failed to delete todo'); });
 }
 
 function renderTodos(todos) {
@@ -5719,7 +5720,7 @@ function renderTodos(todos) {
     check.type = 'checkbox';
     check.checked = isDone;
     check.style.cssText = 'margin-top:3px;cursor:pointer;accent-color:var(--accent);';
-    check.onchange = function() { isDone ? uncompleteTodo(t.id) : completeTodo(t.id); };
+    check.onchange = function() { check.checked ? completeTodo(t.id) : uncompleteTodo(t.id); };
 
     var body = document.createElement('div');
     body.style.flex = '1';
@@ -5766,7 +5767,7 @@ function toggleNoteForm() {
 function loadNotes() {
   var q = document.getElementById('notes-search').value.trim();
   var url = '/notes' + (q ? '?q=' + encodeURIComponent(q) : '');
-  api(url).then(function(data) { renderNotes(data.notes || []); });
+  api(url).then(function(data) { renderNotes(data.notes || []); }).catch(function(e) { toast('Failed to load notes'); });
 }
 
 function addNote() {
@@ -5780,16 +5781,16 @@ function addNote() {
       document.getElementById('note-content').value='';
       document.getElementById('note-tags').value='';
       toggleNoteForm(); loadNotes(); toast('Note saved');
-    });
+    }).catch(function(e) { toast('Failed to save note'); });
 }
 
 function togglePin(id, pinned) {
   api('/notes/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({pinned:!pinned}) })
-    .then(function() { loadNotes(); });
+    .then(function() { loadNotes(); }).catch(function(e) { toast('Failed to update note'); });
 }
 
 function deleteNote(id) {
-  api('/notes/' + id, { method:'DELETE' }).then(function() { loadNotes(); toast('Note deleted'); });
+  api('/notes/' + id, { method:'DELETE' }).then(function() { loadNotes(); toast('Note deleted'); }).catch(function(e) { toast('Failed to delete note'); });
 }
 
 function renderNotes(notes) {
@@ -5848,7 +5849,7 @@ function togglePrefForm() {
 }
 
 function loadPrefs() {
-  api('/preferences').then(function(data) { renderPrefs(data.preferences || []); });
+  api('/preferences').then(function(data) { renderPrefs(data.preferences || []); }).catch(function(e) { toast('Failed to load preferences'); });
 }
 
 function addPref() {
@@ -5861,11 +5862,11 @@ function addPref() {
       document.getElementById('pref-key').value='';
       document.getElementById('pref-value').value='';
       togglePrefForm(); loadPrefs(); toast('Preference saved');
-    });
+    }).catch(function(e) { toast('Failed to save preference'); });
 }
 
 function deletePref(id) {
-  api('/preferences/' + id, { method:'DELETE' }).then(function() { loadPrefs(); toast('Preference removed'); });
+  api('/preferences/' + id, { method:'DELETE' }).then(function() { loadPrefs(); toast('Preference removed'); }).catch(function(e) { toast('Failed to delete preference'); });
 }
 
 function renderPrefs(prefs) {
@@ -5920,7 +5921,7 @@ function toggleTopicForm() {
 }
 
 function loadTopics() {
-  api('/topics').then(function(data) { renderTopics(data.topics || []); });
+  api('/topics').then(function(data) { renderTopics(data.topics || []); }).catch(function(e) { toast('Failed to load topics'); });
 }
 
 function addTopic() {
@@ -5932,17 +5933,17 @@ function addTopic() {
       document.getElementById('topic-name').value='';
       document.getElementById('topic-desc').value='';
       toggleTopicForm(); loadTopics(); toast('Topic created');
-    });
+    }).catch(function(e) { toast('Failed to create topic'); });
 }
 
 function toggleTopicStatus(id, currentStatus) {
   var newStatus = currentStatus === 'active' ? 'archived' : 'active';
   api('/topics/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:newStatus}) })
-    .then(function() { loadTopics(); });
+    .then(function() { loadTopics(); }).catch(function(e) { toast('Failed to update topic'); });
 }
 
 function deleteTopic(id) {
-  api('/topics/' + id, { method:'DELETE' }).then(function() { loadTopics(); toast('Topic deleted'); });
+  api('/topics/' + id, { method:'DELETE' }).then(function() { loadTopics(); toast('Topic deleted'); }).catch(function(e) { toast('Failed to delete topic'); });
 }
 
 function renderTopics(topics) {
@@ -6004,7 +6005,7 @@ function toggleFollowupForm() {
 }
 
 function loadFollowups() {
-  api('/followups').then(function(data) { renderFollowups(data.followups || []); });
+  api('/followups').then(function(data) { renderFollowups(data.followups || []); }).catch(function(e) { toast('Failed to load follow-ups'); });
 }
 
 function addFollowup() {
@@ -6019,16 +6020,16 @@ function addFollowup() {
       document.getElementById('followup-message').value='';
       document.getElementById('followup-at').value='';
       toggleFollowupForm(); loadFollowups(); toast('Follow-up scheduled');
-    });
+    }).catch(function(e) { toast('Failed to schedule follow-up'); });
 }
 
 function cancelFollowup(id) {
   api('/followups/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'cancelled'}) })
-    .then(function() { loadFollowups(); toast('Follow-up cancelled'); });
+    .then(function() { loadFollowups(); toast('Follow-up cancelled'); }).catch(function(e) { toast('Failed to cancel follow-up'); });
 }
 
 function deleteFollowup(id) {
-  api('/followups/' + id, { method:'DELETE' }).then(function() { loadFollowups(); toast('Follow-up removed'); });
+  api('/followups/' + id, { method:'DELETE' }).then(function() { loadFollowups(); toast('Follow-up removed'); }).catch(function(e) { toast('Failed to delete follow-up'); });
 }
 
 function renderFollowups(followups) {

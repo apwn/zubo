@@ -401,7 +401,18 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
     const q = url.searchParams.get("q");
     let rows;
     if (q) {
-      rows = db.prepare("SELECT n.* FROM notes n JOIN notes_fts f ON n.id = f.rowid WHERE notes_fts MATCH ? ORDER BY n.pinned DESC, rank").all(q);
+      try {
+        // Sanitize FTS5 special characters to prevent query syntax errors
+        const sanitized = q.replace(/["*(){}[\]:^~!@#$%&]/g, " ").trim();
+        if (sanitized) {
+          rows = db.prepare("SELECT n.* FROM notes n JOIN notes_fts f ON n.id = f.rowid WHERE notes_fts MATCH ? ORDER BY n.pinned DESC, rank").all(sanitized);
+        } else {
+          rows = db.query("SELECT * FROM notes ORDER BY pinned DESC, updated_at DESC").all();
+        }
+      } catch {
+        // Fall back to LIKE query if FTS fails
+        rows = db.prepare("SELECT * FROM notes WHERE title LIKE ? OR content LIKE ? ORDER BY pinned DESC, updated_at DESC").all(`%${q}%`, `%${q}%`);
+      }
     } else {
       rows = db.query("SELECT * FROM notes ORDER BY pinned DESC, updated_at DESC").all();
     }
@@ -507,9 +518,16 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
       const id = path.split("/").pop()!;
       const body = (await req.json()) as any;
       const db = getDb();
-      if (body.status) db.prepare("UPDATE conversation_topics SET status = ? WHERE id = ?").run(body.status, id);
-      if (body.name) db.prepare("UPDATE conversation_topics SET name = ? WHERE id = ?").run(body.name, id);
-      if (body.description !== undefined) db.prepare("UPDATE conversation_topics SET description = ? WHERE id = ?").run(body.description || null, id);
+      const sets: string[] = [];
+      const vals: any[] = [];
+      if (body.status) { sets.push("status = ?"); vals.push(body.status); }
+      if (body.name) { sets.push("name = ?"); vals.push(body.name); }
+      if (body.description !== undefined) { sets.push("description = ?"); vals.push(body.description || null); }
+      if (sets.length > 0) {
+        sets.push("updated_at = datetime('now')");
+        vals.push(id);
+        db.prepare(`UPDATE conversation_topics SET ${sets.join(", ")} WHERE id = ?`).run(...vals);
+      }
       return Response.json({ ok: true });
     })() as any;
   }
@@ -548,7 +566,13 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
       const id = path.split("/").pop()!;
       const body = (await req.json()) as any;
       const db = getDb();
-      if (body.status) db.prepare("UPDATE follow_ups SET status = ? WHERE id = ?").run(body.status, id);
+      const sets: string[] = [];
+      const vals: any[] = [];
+      if (body.status) { sets.push("status = ?"); vals.push(body.status); }
+      if (sets.length > 0) {
+        vals.push(id);
+        db.prepare(`UPDATE follow_ups SET ${sets.join(", ")} WHERE id = ?`).run(...vals);
+      }
       return Response.json({ ok: true });
     })() as any;
   }
