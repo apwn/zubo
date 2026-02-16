@@ -204,7 +204,7 @@ export default async function (input: Record&lt;string, unknown&gt;): Promise&lt
       </ul>
 
       <h2>Community Skill Registry</h2>
-      <p>The Zubo Skill Registry is a centralized community marketplace at <code>skills.zubo.bot</code> where you can discover, install, star, and publish skills. It features:</p>
+      <p>The Zubo Skill Registry is a centralized community marketplace at <code>zubo.bot/skills</code> where you can discover, install, star, and publish skills. It features:</p>
       <ul>
         <li><strong>GitHub Authentication</strong> &mdash; Sign in with your GitHub account to publish skills, star your favorites, and build a profile.</li>
         <li><strong>Auto-Review Scanner</strong> &mdash; Every submitted skill is automatically scanned for security risks:
@@ -225,9 +225,9 @@ export default async function (input: Record&lt;string, unknown&gt;): Promise&lt
       <p>To publish a skill to the community registry:</p>
       <ol>
         <li>Create your skill locally in <code>~/.zubo/workspace/skills/my-skill/handler.ts</code>.</li>
-        <li>Authenticate by visiting <code>skills.zubo.bot</code> and signing in with GitHub.</li>
+        <li>Authenticate by visiting <code>zubo.bot/skills</code> and signing in with GitHub.</li>
         <li>Publish via the CLI: <code>zubo publish my-skill</code>.</li>
-        <li>Or publish via the web form on the skills page at <code>skills.zubo.bot</code>.</li>
+        <li>Or publish via the web form on the skills page at <code>zubo.bot/skills</code>.</li>
         <li>The auto-review scanner runs automatically. Clean code is approved immediately. Medium-risk code is flagged for manual review. High-risk code is rejected with detailed findings.</li>
         <li>Both the CLI and web form display the auto-review results after submission.</li>
       </ol>

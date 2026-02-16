@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { paths } from "../config/paths";
 
-const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://skills.zubo.bot/api/registry";
+const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://zubo.bot/api/registry";
 
 export async function handleRegistrySearch(query: string): Promise<void> {
   console.log(`Searching registry for "${query}"...`);

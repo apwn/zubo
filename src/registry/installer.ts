@@ -4,7 +4,7 @@ import { paths } from "../config/paths";
 import { getRegistryEntry } from "./client";
 import { logger } from "../util/logger";
 
-const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://skills.zubo.bot/api/registry";
+const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://zubo.bot/api/registry";
 
 export interface InstallResult {
   success: boolean;

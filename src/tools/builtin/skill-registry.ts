@@ -7,7 +7,7 @@ import { logger } from "../../util/logger";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
-const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://skills.zubo.bot/api/registry";
+const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://zubo.bot/api/registry";
 
 export function registerSkillRegistryTool() {
   registerTool({

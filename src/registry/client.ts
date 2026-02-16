@@ -1,6 +1,6 @@
 import { logger } from "../util/logger";
 
-const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://skills.zubo.bot/api/registry";
+const REGISTRY_API = process.env.ZUBO_REGISTRY_URL || "https://zubo.bot/api/registry";
 const CACHE_TTL_MS = 5 * 60_000;
 
 export interface RegistryEntry {
