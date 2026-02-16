@@ -4,7 +4,15 @@ import type {
   LlmResponse,
   LlmStreamEvent,
 } from "./provider";
+import { compactMessages } from "../agent/compaction";
 import { logger } from "../util/logger";
+
+/** Re-compact messages if the target provider has a smaller context window. */
+function fitToProvider(request: LlmRequest, provider: LlmProvider): LlmRequest {
+  const compacted = compactMessages(request.messages, provider.contextWindow);
+  if (compacted === request.messages) return request;
+  return { ...request, messages: compacted };
+}
 
 const CODE_MARKERS = [
   "```",
@@ -163,16 +171,16 @@ export class SmartRouterProvider implements LlmProvider {
 
     if (provider === this.fast) {
       try {
-        return await provider.chat(request);
+        return await provider.chat(fitToProvider(request, provider));
       } catch (err: any) {
         logger.warn("Fast model failed, falling back to primary", {
           error: err.message,
         });
-        return this.primary.chat(request);
+        return this.primary.chat(fitToProvider(request, this.primary));
       }
     }
 
-    return provider.chat(request);
+    return provider.chat(fitToProvider(request, provider));
   }
 
   async *chatStream(request: LlmRequest): AsyncIterable<LlmStreamEvent> {
@@ -185,7 +193,7 @@ export class SmartRouterProvider implements LlmProvider {
         const events: LlmStreamEvent[] = [];
         let succeeded = false;
         try {
-          for await (const event of provider.chatStream(request)) {
+          for await (const event of provider.chatStream(fitToProvider(request, provider))) {
             if (events.length >= MAX_STREAM_EVENTS) {
               throw new Error(`Stream exceeded maximum event limit (${MAX_STREAM_EVENTS})`);
             }
@@ -214,9 +222,9 @@ export class SmartRouterProvider implements LlmProvider {
 
     // Use primary model (streaming or non-streaming fallback)
     if (this.primary.chatStream) {
-      yield* this.primary.chatStream(request);
+      yield* this.primary.chatStream(fitToProvider(request, this.primary));
     } else {
-      const response = await this.primary.chat(request);
+      const response = await this.primary.chat(fitToProvider(request, this.primary));
       for (const block of response.content) {
         if (block.type === "text" && block.text) {
           yield { type: "text_delta", text: block.text };

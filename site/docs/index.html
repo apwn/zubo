@@ -296,9 +296,11 @@ docker compose up -d</code></pre>
 
 <pre><code>zubo setup</code></pre>
 
-      <p>The interactive setup wizard walks you through 4 steps to get Zubo fully configured:</p>
+      <p>You'll be asked to choose between <strong>Terminal</strong> (classic prompts) or <strong>Dashboard</strong> (a browser-based wizard with visual provider cards, auto-detection, and connection testing). Both paths configure the same thing &mdash; pick whichever you prefer.</p>
+
+      <p>The wizard walks you through 4 steps:</p>
       <ul>
-        <li><strong>Step 1: LLM Provider</strong> &mdash; choose from 12 supported providers (Anthropic, OpenAI, Google Gemini, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, or any OpenAI-compatible endpoint) and enter your API key. Optionally configure a fallback provider for automatic failover.</li>
+        <li><strong>Step 1: LLM Provider</strong> &mdash; choose from 15 supported providers (Anthropic, OpenAI, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, MiniMax, Fireworks, Cerebras, LM Studio, Claude Code, Codex, or any OpenAI-compatible endpoint) and enter your API key. Optionally configure a fallback provider for automatic failover.</li>
         <li><strong>Step 2: Channels</strong> &mdash; enable any combination of Telegram, Discord, Slack, WhatsApp, Signal, and Email. Enter the required tokens and credentials for each. Web Chat is always on and requires no configuration.</li>
         <li><strong>Step 3: Personalization</strong> &mdash; set your agent's name and describe its personality. This shapes how Zubo talks to you across all channels.</li>
         <li><strong>Step 4: Smart Routing</strong> &mdash; optionally configure a fast model (e.g., Groq) for simple queries. Smart routing automatically detects low-complexity messages and routes them to the cheaper, faster model, saving 50&ndash;80% on costs without sacrificing quality for complex tasks.</li>

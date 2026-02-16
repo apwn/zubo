@@ -17,6 +17,24 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
+/** Convert raw error messages to user-friendly messages. Prevents leaking internal details. */
+function friendlyError(err: any): string {
+  const msg = err?.message ?? String(err);
+  if (msg.includes("401") || msg.includes("Unauthorized") || msg.includes("invalid"))
+    return "API authentication failed. Check your API key in the dashboard settings.";
+  if (msg.includes("429") || msg.includes("rate limit"))
+    return "Rate limit reached. Please wait a moment and try again.";
+  if (msg.includes("404") || msg.includes("not found"))
+    return "Model not found. Check your model name in settings.";
+  if (msg.includes("ECONNREFUSED") || msg.includes("fetch failed") || msg.includes("Connection refused"))
+    return "Cannot reach the AI provider. Make sure the server is running.";
+  if (msg.includes("timed out") || msg.includes("timeout"))
+    return "Request timed out. The AI provider may be overloaded — try again.";
+  if (msg.includes("context") || msg.includes("too long"))
+    return "Message too long for the model's context window. Try a shorter message.";
+  return "Something went wrong. Check the logs for details.";
+}
+
 /** Add security headers to all HTTP responses */
 function addSecurityHeaders(res: Response): Response {
   const headers = new Headers(res.headers);
@@ -509,7 +527,7 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
         const { loadConfig } = await import("../config/loader");
         const { createProvider } = await import("../llm/factory");
         const config = await loadConfig();
-        const llm = createProvider(config);
+        const llm = await createProvider(config);
         const res = await llm.chat({
           system: "You are a test.",
           messages: [{ role: "user", content: [{ type: "text", text: "Say OK" }] }],
@@ -1204,7 +1222,7 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
         const { loadConfig } = await import("../config/loader");
         const { createProvider } = await import("../llm/factory");
         const config = await loadConfig();
-        const webhookLlm = createProvider(config);
+        const webhookLlm = await createProvider(config);
         const { agentLoop } = await import("../agent/loop");
         const sessionKey = `webhook:${webhookName}`;
         const result = await agentLoop(webhookLlm, sessionKey, message);
@@ -1736,7 +1754,7 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
         const router = (globalThis as any).__zuboRouter;
         if (router) {
           const freshConfig = await loadConfig();
-          const newLlm = createProvider(freshConfig);
+          const newLlm = await createProvider(freshConfig);
           router.setLlm(newLlm);
         }
 
@@ -2891,7 +2909,7 @@ async function handleRequest(
               return Response.json({ reply });
             } catch (err: any) {
               return Response.json(
-                { error: err.message },
+                { error: friendlyError(err) },
                 { status: 500 }
               );
             }
@@ -2948,7 +2966,7 @@ async function handleRequest(
                       send("done", { reply });
                       close();
                     }).catch((err) => {
-                      send("error", { error: err.message });
+                      send("error", { error: friendlyError(err) });
                       close();
                     });
                     return;
@@ -2963,7 +2981,7 @@ async function handleRequest(
                     send("done", { reply });
                     close();
                   }).catch((err) => {
-                    send("error", { error: err.message });
+                    send("error", { error: friendlyError(err) });
                     close();
                   });
                 },

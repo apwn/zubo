@@ -68,8 +68,17 @@ export function createTelegramAdapter(
     });
   });
 
-  bot.catch((err) => {
+  bot.catch(async (err) => {
     logger.error("Telegram bot error", { error: err.message });
+    // Try to notify the user that something went wrong
+    try {
+      const ctx = err.ctx;
+      if (ctx?.chat?.id) {
+        await ctx.reply("Sorry, something went wrong. Please try again.").catch(() => {});
+      }
+    } catch {
+      // Can't reply — don't crash
+    }
   });
 
   return {

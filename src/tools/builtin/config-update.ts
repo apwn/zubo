@@ -118,7 +118,7 @@ export function registerConfigUpdateTool() {
           if (key === "activeProvider") {
             try {
               const { createProvider } = await import("../../llm/factory");
-              const newLlm = createProvider(validated);
+              const newLlm = await createProvider(validated);
               const router = (globalThis as any).__zuboRouter;
               if (router?.setLlm) {
                 router.setLlm(newLlm);

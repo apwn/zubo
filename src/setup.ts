@@ -1,9 +1,10 @@
 import { paths, ensureDirectories } from "./config/paths";
 import { saveConfig } from "./config/loader";
 import { configSchema } from "./config/schema";
-import type { ProviderConfig } from "./config/schema";
+import type { ProviderConfig, ZuboConfig } from "./config/schema";
 import { getDb } from "./db/connection";
 import { runMigrations } from "./db/migrations";
+import { createProvider, validateProvider } from "./llm/factory";
 import { logger } from "./util/logger";
 import { existsSync } from "fs";
 import { installBuiltinSkills } from "./tools/skill-installer";
@@ -144,7 +145,6 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
           baseUrl,
           apiKey: "ollama",
           model,
-          streaming: false,
         },
       };
     },
@@ -484,6 +484,27 @@ async function setupProvider(): Promise<{
   const isCliProvider = result.name === "claude-code" || result.name === "codex";
   ok(`${result.name} configured` + (isCliProvider ? "" : ` (${result.config.model})`));
 
+  // Quick validation — test if the provider actually works
+  if (!isCliProvider) {
+    info("Testing connection...");
+    try {
+      const testConfig = configSchema.parse({
+        providers: { [result.name]: result.config },
+        activeProvider: result.name,
+      }) as ZuboConfig;
+      const testLlm = await createProvider(testConfig);
+      const validationErr = await validateProvider(testLlm);
+      if (validationErr) {
+        warn(validationErr);
+        info("You can fix this later with: zubo config set providers." + result.name + ".apiKey <key>");
+      } else {
+        ok("Connection verified — API key works!");
+      }
+    } catch {
+      // Validation itself failed — not critical, move on
+    }
+  }
+
   // Offer fallback
   const addFallback = await prompt("\n  Add a fallback provider? (y/N): ");
   const failover: string[] = [];
@@ -703,6 +724,18 @@ export async function runSetup() {
   console.log("");
   console.log(`  ${DIM}This wizard will configure your agent in 4 steps.${RESET}`);
   console.log(`  ${DIM}Press Enter at any prompt to accept the default [in brackets].${RESET}`);
+  console.log("");
+
+  // ── Setup mode choice ──
+  console.log(`  ${BOLD}Setup mode:${RESET}`);
+  console.log(`    ${DIM}1.${RESET} Terminal`);
+  console.log(`    ${DIM}2.${RESET} Dashboard ${DIM}(opens in your browser)${RESET}`);
+  console.log("");
+  const mode = await prompt("  Choice [1]: ");
+  if (mode === "2" || mode.toLowerCase() === "d" || mode.toLowerCase() === "dashboard") {
+    const { runWebSetup } = await import("./setup-web");
+    return runWebSetup();
+  }
 
   // ── Step 1: LLM Provider ──
   step(1, 4, "LLM Provider");
@@ -721,6 +754,39 @@ export async function runSetup() {
   const smartRouting = await setupSmartRouting(providers, activeProvider);
 
   // ── Finalize ──────────────────────────────────────────────────
+  await finalizeSetup({
+    providers,
+    activeProvider,
+    failover,
+    anthropicApiKey,
+    telegramBotToken,
+    channels,
+    smartRouting,
+    agentName,
+    personality,
+  });
+}
+
+// ── Shared finalization (used by both terminal & web setup) ──
+
+export interface SetupResult {
+  providers: Record<string, ProviderConfig>;
+  activeProvider: string;
+  failover: string[];
+  anthropicApiKey?: string;
+  telegramBotToken?: string;
+  channels: Record<string, any>;
+  smartRouting: { enabled: boolean; fastProvider?: string; fastModel?: string };
+  agentName: string;
+  personality: string;
+}
+
+export async function finalizeSetup(result: SetupResult) {
+  const {
+    providers, activeProvider, failover, anthropicApiKey, telegramBotToken,
+    channels, smartRouting, agentName, personality,
+  } = result;
+
   console.log("");
   console.log(`  ${DIM}─────────────────────────────────────────${RESET}`);
   console.log(`  ${BOLD}Setting up...${RESET}`);
@@ -778,8 +844,6 @@ export async function runSetup() {
   ok("Memory file ready");
 
   // Create SYSTEM.md only if the user customized the name or personality.
-  // Otherwise, let the built-in DEFAULT_PERSONALITY in prompts.ts be used —
-  // it has the full capability set and stays up-to-date with new features.
   if (!existsSync(paths.systemPrompt)) {
     if (agentName !== "Zubo" || personality) {
       const nameLine = agentName !== "Zubo"
@@ -794,7 +858,6 @@ export async function runSetup() {
         `${nameLine}${personalityLine}\n`
       );
     }
-    // If no customization, no SYSTEM.md is created — the default personality is used.
   }
   ok("System prompt ready");
 

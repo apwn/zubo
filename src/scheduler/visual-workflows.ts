@@ -154,7 +154,7 @@ async function executeAgentStep(
   const { agentLoop } = await import("../agent/loop");
 
   const appConfig = await loadConfig();
-  const llm = createProvider(appConfig);
+  const llm = await createProvider(appConfig);
   const result = await agentLoop(llm, `workflow:${workflowId}`, resolvedPrompt);
 
   const output = result.reply;

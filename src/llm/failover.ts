@@ -1,10 +1,21 @@
 import type { LlmProvider, LlmRequest, LlmResponse, LlmStreamEvent } from "./provider";
+import { compactMessages } from "../agent/compaction";
 import { logger } from "../util/logger";
+
+/** Re-compact messages if the target provider has a smaller context window. */
+function fitToProvider(request: LlmRequest, provider: LlmProvider): LlmRequest {
+  const compacted = compactMessages(request.messages, provider.contextWindow);
+  if (compacted === request.messages) return request;
+  return { ...request, messages: compacted };
+}
+
+const PRIMARY_RETRY_INTERVAL_MS = 60_000; // Retry primary after 60 seconds
 
 export class FailoverProvider implements LlmProvider {
   providerName: string;
   model: string;
   contextWindow: number;
+  private failedOverAt: number = 0;
 
   constructor(
     private primary: LlmProvider,
@@ -15,9 +26,40 @@ export class FailoverProvider implements LlmProvider {
     this.contextWindow = primary.contextWindow;
   }
 
+  private get isOnPrimary(): boolean {
+    return this.providerName === this.primary.providerName &&
+      this.model === this.primary.model;
+  }
+
+  private restorePrimary(): void {
+    this.providerName = this.primary.providerName;
+    this.model = this.primary.model;
+    this.contextWindow = this.primary.contextWindow;
+    this.failedOverAt = 0;
+    logger.info(`Recovered to primary provider: ${this.primary.providerName}/${this.primary.model}`);
+  }
+
+  private shouldRetryPrimary(): boolean {
+    return !this.isOnPrimary &&
+      this.failedOverAt > 0 &&
+      Date.now() - this.failedOverAt >= PRIMARY_RETRY_INTERVAL_MS;
+  }
+
   async chat(request: LlmRequest): Promise<LlmResponse> {
+    // If we're on a fallback, periodically retry the primary
+    if (this.shouldRetryPrimary()) {
+      try {
+        const result = await this.primary.chat(fitToProvider(request, this.primary));
+        this.restorePrimary();
+        return result;
+      } catch {
+        // Primary still down, continue with fallbacks below
+        this.failedOverAt = Date.now();
+      }
+    }
+
     try {
-      return await this.primary.chat(request);
+      return await this.primary.chat(fitToProvider(request, this.primary));
     } catch (err: any) {
       logger.warn(`Primary provider (${this.primary.providerName}) failed`, {
         error: err.message,
@@ -26,9 +68,10 @@ export class FailoverProvider implements LlmProvider {
       for (const fb of this.fallbacks) {
         try {
           logger.info(`Trying fallback: ${fb.providerName}/${fb.model}`);
-          const result = await fb.chat(request);
+          const result = await fb.chat(fitToProvider(request, fb));
           this.providerName = fb.providerName;
           this.model = fb.model;
+          this.failedOverAt = Date.now();
           return result;
         } catch (fbErr: any) {
           logger.warn(`Fallback ${fb.providerName} also failed`, {
@@ -52,7 +95,7 @@ export class FailoverProvider implements LlmProvider {
       if (!provider.chatStream) return null;
       const events: LlmStreamEvent[] = [];
       try {
-        for await (const event of provider.chatStream(request)) {
+        for await (const event of provider.chatStream(fitToProvider(request, provider))) {
           if (events.length >= MAX_STREAM_EVENTS) {
             throw new Error(`Stream exceeded maximum event limit (${MAX_STREAM_EVENTS})`);
           }
@@ -65,6 +108,17 @@ export class FailoverProvider implements LlmProvider {
         });
         return null;
       }
+    }
+
+    // If we're on a fallback, periodically retry the primary
+    if (this.shouldRetryPrimary()) {
+      const retryEvents = await collectStream(this.primary);
+      if (retryEvents) {
+        this.restorePrimary();
+        for (const event of retryEvents) yield event;
+        return;
+      }
+      this.failedOverAt = Date.now();
     }
 
     // Try primary
@@ -80,12 +134,13 @@ export class FailoverProvider implements LlmProvider {
       if (fbEvents) {
         this.providerName = fb.providerName;
         this.model = fb.model;
+        this.failedOverAt = Date.now();
         for (const event of fbEvents) yield event;
         return;
       }
     }
 
-    // If no provider supports streaming, fall back to non-streaming
+    // If no provider supports streaming, fall back to non-streaming (chat() already handles fitToProvider)
     logger.info("No streaming providers available, falling back to non-streaming");
     const response = await this.chat(request);
     for (const block of response.content) {

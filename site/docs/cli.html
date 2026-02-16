@@ -88,9 +88,14 @@
       <h2>Core Commands</h2>
 
       <h3>zubo setup</h3>
-      <p>Interactive 4-step wizard for first-time configuration. Walks you through the full initial setup process:</p>
+      <p>Interactive 4-step wizard for first-time configuration. When you run it, you'll be asked to choose between two modes:</p>
+      <ul>
+        <li><strong>Terminal</strong> &mdash; Classic step-by-step prompts right in your terminal.</li>
+        <li><strong>Dashboard</strong> &mdash; Opens a beautiful browser-based wizard at <code>http://localhost:&lt;port&gt;</code> with the same steps, auto-detection of local providers (Ollama, LM Studio), and connection testing. Great for non-technical users or if you prefer a visual UI.</li>
+      </ul>
+      <p>Both modes walk you through 4 steps:</p>
       <ol>
-        <li><strong>LLM Provider</strong> &mdash; Choose from 12 supported providers (Anthropic, OpenAI, Google, Groq, Ollama, and more). Enter your API key and select a model. Optionally add a fallback provider for automatic failover.</li>
+        <li><strong>LLM Provider</strong> &mdash; Choose from 15 supported providers (Anthropic, OpenAI, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, MiniMax, Fireworks, Cerebras, LM Studio, Claude Code, Codex, or any OpenAI-compatible endpoint). Enter your API key and select a model. Optionally add a fallback provider for automatic failover.</li>
         <li><strong>Channels</strong> &mdash; Enable any of 7 messaging channels: Telegram, Discord, Slack, WhatsApp, Signal, and Email. WebChat is always enabled by default. Each channel prompts for its required credentials (bot tokens, webhook URLs, etc.).</li>
         <li><strong>Personalization</strong> &mdash; Name your agent and optionally describe its personality. The name and personality are used in the system prompt and across all channels.</li>
         <li><strong>Smart Routing</strong> &mdash; Optionally set up a fast provider for simple queries (e.g., greetings, factual lookups). Smart routing automatically directs simple messages to a cheaper, faster model while using the primary model for complex tasks &mdash; saving 50&ndash;80% on costs.</li>

@@ -35,19 +35,35 @@ export function compactMessages(
     contextWindow: maxTokens,
   });
 
+  // Check if first message is a summary (preserve it during truncation)
+  const hasSummary =
+    messages.length > 0 &&
+    messages[0].role === "user" &&
+    typeof messages[0].content !== "string" &&
+    Array.isArray(messages[0].content) &&
+    messages[0].content.some(
+      (b: any) =>
+        b.type === "text" &&
+        typeof b.text === "string" &&
+        b.text.includes("Previous conversation summary:")
+    );
+
   // Find the start index where cumulative remaining tokens fit under target
-  let startIdx = 0;
+  // Skip index 0 if it's a summary message — we want to keep it
+  let startIdx = hasSummary ? 1 : 0;
   while (startIdx < messages.length - 2 && tokens > target) {
     tokens -= costs[startIdx];
     startIdx++;
   }
 
-  // Ensure first message is from user (Claude API requirement)
+  // Ensure first kept message (after summary) is from user (Claude API requirement)
   while (startIdx < messages.length && messages[startIdx].role !== "user") {
     startIdx++;
   }
 
-  const compacted = messages.slice(startIdx);
-  logger.info("Compaction done", { remainingMessages: compacted.length });
+  const compacted = hasSummary
+    ? [messages[0], ...messages.slice(startIdx)]
+    : messages.slice(startIdx);
+  logger.info("Compaction done", { remainingMessages: compacted.length, preservedSummary: hasSummary });
   return compacted;
 }

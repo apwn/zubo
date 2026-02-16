@@ -56,7 +56,7 @@ npm i -g zubo      # also works
 Then:
 
 ```bash
-zubo setup         # interactive config wizard
+zubo setup         # interactive config wizard (terminal or browser)
 zubo start         # launch the agent
 ```
 
@@ -118,7 +118,7 @@ Set secrets through natural conversation: *"Set my github_token to ghp_..."*
 ## CLI
 
 ```
-zubo setup                 Interactive configuration wizard
+zubo setup                 Interactive configuration wizard (terminal or browser)
 zubo start [--daemon]      Start the agent
 zubo stop                  Stop the background daemon
 zubo status                Show runtime status

@@ -4,6 +4,7 @@ import { executeTool } from "../tools/executor";
 import { appendMessage, loadSession } from "./session";
 import { assembleContext } from "./context";
 import { compactMessages } from "./compaction";
+import { maybeCompactSession } from "./summarizer";
 import { getDb } from "../db/connection";
 import { logger } from "../util/logger";
 
@@ -179,6 +180,23 @@ function finishLoop(sessionId: string, reply: string): void {
 
 const MAX_ROUNDS_FALLBACK = "I've completed several tool operations. Let me know if you need anything else.";
 
+// --- Post-loop summarization ---
+
+const compactionInProgress = new Set<string>();
+
+function triggerPostLoopCompaction(llm: LlmProvider, sessionId: string): void {
+  if (compactionInProgress.has(sessionId)) return;
+  compactionInProgress.add(sessionId);
+
+  maybeCompactSession(llm, sessionId)
+    .catch((err) => {
+      logger.error("Post-loop compaction failed", { sessionId, error: String(err) });
+    })
+    .finally(() => {
+      compactionInProgress.delete(sessionId);
+    });
+}
+
 // --- Public API ---
 
 export async function agentLoop(
@@ -227,6 +245,7 @@ export async function agentLoop(
         .map((b) => b.text ?? "")
         .join("\n") || "";
       finishLoop(sessionId, reply);
+      triggerPostLoopCompaction(llm, sessionId);
       return { reply, toolCalls: totalToolCalls };
     }
 
@@ -237,6 +256,7 @@ export async function agentLoop(
   }
 
   finishLoop(sessionId, MAX_ROUNDS_FALLBACK);
+  triggerPostLoopCompaction(llm, sessionId);
   return { reply: MAX_ROUNDS_FALLBACK, toolCalls: totalToolCalls };
 }
 
@@ -319,6 +339,7 @@ export async function agentLoopStream(
           .join("\n") || roundText;
         fullReply += reply;
         finishLoop(sessionId, fullReply);
+        triggerPostLoopCompaction(llm, sessionId);
         callbacks.onDone({ reply: fullReply, toolCalls: totalToolCalls });
         return;
       }
@@ -335,6 +356,7 @@ export async function agentLoopStream(
     }
 
     finishLoop(sessionId, MAX_ROUNDS_FALLBACK);
+    triggerPostLoopCompaction(llm, sessionId);
     callbacks.onDone({ reply: MAX_ROUNDS_FALLBACK, toolCalls: totalToolCalls });
   } catch (err: any) {
     callbacks.onError(err);

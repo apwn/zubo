@@ -5,7 +5,7 @@ import { ensureDirectories, paths } from "./config/paths";
 import type { ZuboConfig } from "./config/schema";
 import { getDb, closeDb } from "./db/connection";
 import { runMigrations } from "./db/migrations";
-import { createProvider } from "./llm/factory";
+import { createProvider, validateProvider } from "./llm/factory";
 import { registerDatetimeTool } from "./tools/builtin/datetime";
 import { registerMemoryWriteTool } from "./tools/builtin/memory-write";
 import { registerMemorySearchTool } from "./tools/builtin/memory-search";
@@ -108,7 +108,17 @@ export async function startZubo(isDaemon = false) {
   await initMemory(db);
 
   // Init LLM
-  const llm = createProvider(config);
+  const llm = await createProvider(config);
+
+  // Validate LLM connectivity (non-blocking — warn but don't prevent startup)
+  validateProvider(llm).then((err) => {
+    if (err) {
+      logger.warn(`LLM validation: ${err}`);
+      console.log(`\n  ⚠  ${err}\n`);
+    } else {
+      logger.info("LLM connectivity verified");
+    }
+  }).catch(() => {});
 
   // Init voice (STT/TTS) if configured
   if (config.voice?.stt) {
