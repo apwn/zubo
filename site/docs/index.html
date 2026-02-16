@@ -69,7 +69,7 @@
           <a href="/docs/conversations">Conversation History</a>
           <a href="/docs/webhooks">Webhooks</a>
           <a href="/docs/workflows">Visual Workflows</a>
-          <a href="/docs/marketplace">MCP Marketplace</a>
+          <a href="/docs/marketplace">Extensions Marketplace</a>
         </div>
       </div>
       <div class="docs-sidebar-section">
@@ -300,10 +300,10 @@ docker compose up -d</code></pre>
 
       <p>The wizard walks you through 4 steps:</p>
       <ul>
-        <li><strong>Step 1: LLM Provider</strong> &mdash; choose from 15 supported providers (Anthropic, OpenAI, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, MiniMax, Fireworks, Cerebras, LM Studio, Claude Code, Codex, or any OpenAI-compatible endpoint) and enter your API key. Optionally configure a fallback provider for automatic failover.</li>
+        <li><strong>Step 1: AI Provider</strong> &mdash; choose from 15 supported providers (Anthropic, OpenAI, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, MiniMax, Fireworks, Cerebras, LM Studio, Claude Code, Codex, or any OpenAI-compatible endpoint) and enter your API key. Optionally configure a fallback provider for automatic failover.</li>
         <li><strong>Step 2: Channels</strong> &mdash; enable any combination of Telegram, Discord, Slack, WhatsApp, Signal, and Email. Enter the required tokens and credentials for each. Web Chat is always on and requires no configuration.</li>
         <li><strong>Step 3: Personalization</strong> &mdash; set your agent's name and describe its personality. This shapes how Zubo talks to you across all channels.</li>
-        <li><strong>Step 4: Smart Routing</strong> &mdash; optionally configure a fast model (e.g., Groq) for simple queries. Smart routing automatically detects low-complexity messages and routes them to the cheaper, faster model, saving 50&ndash;80% on costs without sacrificing quality for complex tasks.</li>
+        <li><strong>Step 4: Smart Cost Savings</strong> &mdash; optionally configure a fast model (e.g., Groq) for simple queries. Smart routing automatically detects low-complexity messages and routes them to the cheaper, faster model, saving 50&ndash;80% on costs without sacrificing quality for complex tasks.</li>
       </ul>
       <p>The wizard also creates the <code>~/.zubo</code> directory and all required subdirectories, generates your <code>~/.zubo/config.json</code> file, and downloads the all-MiniLM-L6-v2 embedding model (~80 MB) for local semantic memory.</p>
 
@@ -624,7 +624,7 @@ zubo start --daemon</code></pre>
         <li><strong>Use <code>zubo start --daemon</code></strong> for always-on operation. Zubo writes a PID file and rotates logs automatically.</li>
         <li><strong>Check <code>zubo status</code> and <code>zubo logs</code></strong> for troubleshooting. The status command shows uptime, memory usage, connected channels, and pending scheduled jobs.</li>
         <li><strong>Back up your data</strong> with <code>zubo export</code> for a full JSON export, or rely on the automatic daily SQLite backups in <code>~/.zubo/workspace/backups/</code>.</li>
-        <li><strong>Enable smart routing</strong> to automatically send simple queries to fast, cheap models. Set <code>smartRouting.enabled</code> to <code>true</code> and configure a <code>fastProvider</code> (e.g., Groq) alongside your primary. This can cut costs significantly.</li>
+        <li><strong>Enable smart cost savings</strong> to automatically send simple queries to fast, cheap models. Set <code>smartRouting.enabled</code> to <code>true</code> and configure a <code>fastProvider</code> (e.g., Groq) alongside your primary. This can cut costs significantly.</li>
         <li><strong>Set a budget</strong> to avoid surprise bills: <code>zubo config set budget.dailyLimit 5</code>. Cost tracking is always active in the dashboard under Analytics &rarr; Costs.</li>
         <li><strong>Configure failover providers</strong> so your agent stays available even if your primary LLM provider has an outage. For example, set Anthropic as primary and Ollama as failover for fully offline operation when the cloud is down.</li>
         <li><strong>Keep skills small and focused</strong> &mdash; one skill per task. This makes them easier to test, share, and debug.</li>
@@ -644,7 +644,7 @@ zubo start --daemon</code></pre>
         <li><a href="/docs/conversations"><strong>Conversation History</strong></a> &mdash; unified cross-channel history with FTS5 search, dashboard browsing, and API access for searching and analyzing past conversations across all channels.</li>
         <li><a href="/docs/webhooks"><strong>Webhooks</strong></a> &mdash; create webhook endpoints for GitHub, Stripe, CI/CD, and any external service. HMAC signature verification, prompt templates with <code>{{payload}}</code> substitution, and dashboard management.</li>
         <li><a href="/docs/workflows"><strong>Visual Workflows</strong></a> &mdash; build multi-step automations with the drag-and-drop workflow builder. Step types (tool, agent, condition, message, delay), triggers (manual, cron, webhook), and template variables.</li>
-        <li><a href="/docs/marketplace"><strong>MCP Marketplace</strong></a> &mdash; browse, install, and manage MCP servers from the official registry. One-click installation with automatic tool registration.</li>
+        <li><a href="/docs/marketplace"><strong>Extensions Marketplace</strong></a> &mdash; browse, install, and manage MCP servers from the official registry. One-click installation with automatic tool registration.</li>
         <li><a href="/docs/integrations"><strong>Integrations</strong></a> &mdash; connect Zubo to GitHub, Google Workspace, Notion, Linear, Jira, and more. <a href="/docs/integrations#oauth">OAuth 2.0 authentication</a> with automatic token refresh, API key setup, and usage examples.</li>
         <li><a href="/docs/security"><strong>Security &amp; Auth</strong></a> &mdash; harden your Zubo instance: API key management, tool permission levels, confirmation tokens, rate limiting, file access restrictions, and network security.</li>
         <li><a href="/docs/api"><strong>API Reference</strong></a> &mdash; complete HTTP API documentation for programmatic access: endpoints, request/response formats, authentication, and WebSocket streaming.</li>

@@ -29,7 +29,9 @@ ARCH="$(uname -m)"
 case "$OS" in
   Linux*)  PLATFORM="linux" ;;
   Darwin*) PLATFORM="darwin" ;;
-  *)       fail "Unsupported OS: $OS. Zubo supports macOS and Linux." ;;
+  MINGW*|MSYS*|CYGWIN*)
+           fail "Windows detected. Use WSL (Windows Subsystem for Linux) to run Zubo:\n\n  ${DIM}wsl --install${RESET}\n  Then run this installer inside WSL." ;;
+  *)       fail "Unsupported OS: $OS. Zubo supports macOS, Linux, and Windows (via WSL)." ;;
 esac
 
 case "$ARCH" in
@@ -45,7 +47,7 @@ if command -v bun &>/dev/null; then
   BUN_VERSION=$(bun --version 2>/dev/null || echo "unknown")
   ok "Bun already installed (v${BUN_VERSION})"
 else
-  info "Installing Bun runtime..."
+  info "Installing Bun (a fast JavaScript runtime Zubo needs)..."
   curl -fsSL https://bun.sh/install | bash
 
   # Source the updated profile so bun is on PATH
@@ -55,7 +57,7 @@ else
   if command -v bun &>/dev/null; then
     ok "Bun installed (v$(bun --version))"
   else
-    fail "Bun installation failed. Install manually: https://bun.sh"
+    fail "Bun installation failed. Visit https://bun.sh for manual install instructions."
   fi
 fi
 
@@ -78,9 +80,13 @@ else
   # Bun global bin might not be on PATH yet
   ZUBO_BIN="${HOME}/.bun/bin/zubo"
   if [ -f "$ZUBO_BIN" ]; then
-    warn "Zubo installed but not on PATH. Add this to your shell profile:"
+    warn "Zubo installed but your terminal can't find it yet."
     echo ""
-    echo -e "  ${DIM}export PATH=\"\$HOME/.bun/bin:\$PATH\"${RESET}"
+    echo -e "  Run this command, then restart your terminal:"
+    echo ""
+    echo -e "  ${BOLD}echo 'export PATH=\"\$HOME/.bun/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc${RESET}"
+    echo ""
+    echo -e "  ${DIM}(On macOS with zsh, use ~/.zshrc instead of ~/.bashrc)${RESET}"
     echo ""
   else
     fail "Zubo binary not found after install"

@@ -121,7 +121,7 @@ export async function executeTool(
     logger.warn(`Tool blocked by allowedTools: ${name}`);
     return {
       tool_use_id: toolUseId,
-      content: `Error: Tool '${name}' is not available in this agent context.`,
+      content: `Error: The '${name}' feature is not available right now.`,
       is_error: true,
     };
   }
@@ -141,7 +141,7 @@ export async function executeTool(
     logger.warn(`Tool denied: ${name}`);
     return {
       tool_use_id: toolUseId,
-      content: `Error: Tool '${name}' is not permitted.`,
+      content: `Error: The '${name}' feature is not permitted. You can change permissions in Settings.`,
       is_error: true,
     };
   }

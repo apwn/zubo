@@ -21,18 +21,18 @@ function escapeHtml(s: string): string {
 function friendlyError(err: any): string {
   const msg = err?.message ?? String(err);
   if (msg.includes("401") || msg.includes("Unauthorized") || msg.includes("invalid"))
-    return "API authentication failed. Check your API key in the dashboard settings.";
+    return "Authentication failed. Check your API key in Settings > API Keys.";
   if (msg.includes("429") || msg.includes("rate limit"))
-    return "Rate limit reached. Please wait a moment and try again.";
+    return "Too many messages too quickly. Wait a moment and try again.";
   if (msg.includes("404") || msg.includes("not found"))
-    return "Model not found. Check your model name in settings.";
+    return "The AI model wasn't found. Check your model name in Settings > AI Model.";
   if (msg.includes("ECONNREFUSED") || msg.includes("fetch failed") || msg.includes("Connection refused"))
-    return "Cannot reach the AI provider. Make sure the server is running.";
+    return "Can't reach the AI service. Check your internet connection or try again.";
   if (msg.includes("timed out") || msg.includes("timeout"))
-    return "Request timed out. The AI provider may be overloaded — try again.";
+    return "The request took too long. The AI service may be busy — try again in a moment.";
   if (msg.includes("context") || msg.includes("too long"))
-    return "Message too long for the model's context window. Try a shorter message.";
-  return "Something went wrong. Check the logs for details.";
+    return "Your message is too long. Try splitting it into shorter questions.";
+  return "Something went wrong. Try again, or check Settings if this keeps happening.";
 }
 
 /** Add security headers to all HTTP responses */

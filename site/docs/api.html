@@ -200,7 +200,7 @@ file: &lt;document&gt;</code></pre>
   "Status": "running"
 }</code></pre>
 
-      <h3>System Prompt</h3>
+      <h3>Personality</h3>
 <pre><code>GET /api/dashboard/system</code></pre>
       <p>Retrieve the current system prompt.</p>
 <pre><code>PUT /api/dashboard/system
@@ -583,7 +583,7 @@ Content-Type: application/json
 <pre><code>GET /api/dashboard/channel-status</code></pre>
       <p>Returns the configuration and connection status for each channel (webchat, Telegram, Discord, Slack, WhatsApp, Signal). Each channel reports whether it is configured and whether it is currently enabled.</p>
 
-      <h3>Secrets Management</h3>
+      <h3>API Keys Management</h3>
 <pre><code>GET /api/dashboard/secrets</code></pre>
       <p>List all stored secrets. Values are masked in the response for security.</p>
 <pre><code>GET /api/dashboard/secrets/:name</code></pre>

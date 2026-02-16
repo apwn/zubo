@@ -928,7 +928,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span> Dashboard
     </a>
     <a href="#memory" onclick="showPanel('memory')">
-      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 2 6 4.5 6 7c0 1.5.5 2.8 1.4 3.8C6.5 12 6 13.5 6 15c0 3.5 2.5 7 6 7s6-3.5 6-7c0-1.5-.5-3-1.4-4.2C17.5 9.8 18 8.5 18 7c0-2.5-2.5-5-6-5z"/><path d="M9 10h6"/><path d="M9 14h6"/></svg></span> Memory
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.5 2 6 4.5 6 7c0 1.5.5 2.8 1.4 3.8C6.5 12 6 13.5 6 15c0 3.5 2.5 7 6 7s6-3.5 6-7c0-1.5-.5-3-1.4-4.2C17.5 9.8 18 8.5 18 7c0-2.5-2.5-5-6-5z"/><path d="M9 10h6"/><path d="M9 14h6"/></svg></span> Knowledge
     </a>
     <a href="#skills" onclick="showPanel('skills')">
       <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span> Skills
@@ -940,7 +940,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
       <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16.98h1.67c2.49 0 4.5-2.01 4.5-4.49 0-2.48-2.01-4.49-4.5-4.49h-.16C19.17 5.35 16.68 3 13.67 3 11.23 3 9.14 4.56 8.34 6.78c-.3-.05-.6-.08-.91-.08-2.76 0-5 2.24-5 5s2.24 5 5 5h1.48"/><polyline points="12 13 12 21"/><polyline points="9 18 12 21 15 18"/></svg></span> Webhooks
     </a>
     <a href="#mcp" onclick="showPanel('mcp')">
-      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M14 12h4"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/></svg></span> MCP
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M14 12h4"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/></svg></span> Extensions
     </a>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">Settings</div>
@@ -989,11 +989,11 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
               <div class="suggestion-chips-group">
                 <div class="chip-row">
                   <button class="suggestion-chip" onclick="useSuggestion(this)">What can you do?</button>
-                  <button class="suggestion-chip" onclick="useSuggestion(this)">Check my schedule</button>
+                  <button class="suggestion-chip" onclick="useSuggestion(this)">Set a reminder for tomorrow</button>
                 </div>
                 <div class="chip-row">
-                  <button class="suggestion-chip" onclick="useSuggestion(this)">Summarize recent emails</button>
-                  <button class="suggestion-chip" onclick="useSuggestion(this)">Set a reminder</button>
+                  <button class="suggestion-chip" onclick="useSuggestion(this)">Help me write an email</button>
+                  <button class="suggestion-chip" onclick="useSuggestion(this)">Explain something to me</button>
                 </div>
               </div>
             </div>
@@ -1099,6 +1099,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <!-- MEMORY PANEL -->
     <div id="panel-memory" class="panel">
       <div class="panel-body">
+        <div style="margin-bottom:20px;">
+          <p class="settings-desc" style="margin-bottom:0;">Everything Zubo remembers about you and your conversations. Edit the persistent memory file directly, or search through individual memory chunks below.</p>
+        </div>
         <div class="editor-wrap">
           <div class="editor-toolbar">
             <button class="btn btn-primary" onclick="saveMemory()">Save MEMORY.md</button>
@@ -1122,6 +1125,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <!-- SKILLS PANEL (with Browse/Registry tab) -->
     <div id="panel-skills" class="panel">
       <div class="panel-body">
+        <div style="margin-bottom:16px;">
+          <p class="settings-desc" style="margin-bottom:0;">Skills are custom capabilities you can add to Zubo. Browse the community registry to install new ones, or build your own in TypeScript.</p>
+        </div>
         <div class="tab-bar" id="skills-tabs">
           <button class="tab active" onclick="switchTab('skills','installed')">Installed</button>
           <button class="tab" onclick="switchTab('skills','browse')">Browse Registry</button>
@@ -1206,6 +1212,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <!-- WORKFLOWS PANEL -->
     <div id="panel-workflows" class="panel">
       <div class="panel-body">
+        <div style="margin-bottom:16px;">
+          <p class="settings-desc" style="margin-bottom:0;">Automate multi-step tasks by chaining actions together. Use pre-built recipes, ask Zubo to create one in chat, or build visually with drag-and-drop.</p>
+        </div>
         <div class="tab-bar" id="workflows-tabs">
           <button class="tab active" onclick="switchTab('workflows','recipes')">Recipes</button>
           <button class="tab" onclick="switchTab('workflows','custom')">Custom Workflows</button>
@@ -1305,6 +1314,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <!-- MCP MARKETPLACE PANEL -->
     <div id="panel-mcp" class="panel">
       <div class="panel-body">
+        <div style="margin-bottom:16px;">
+          <p class="settings-desc" style="margin-bottom:0;">Extensions use the <strong>MCP (Model Context Protocol)</strong> standard to give Zubo new tools — like accessing files, databases, GitHub, and more. Browse the marketplace or add your own.</p>
+        </div>
         <div class="tab-bar" id="mcp-tabs">
           <button class="tab active" onclick="switchTab('mcp','installed')">Installed</button>
           <button class="tab" onclick="switchTab('mcp','marketplace')">Marketplace</button>
@@ -1314,22 +1326,22 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <div id="mcp-installed-list" style="display:flex;flex-direction:column;gap:12px;"></div>
           <div id="mcp-installed-empty" class="empty-state-card" style="display:none;">
             <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M14 12h4"/></svg></div>
-            <h4>No MCP servers installed</h4>
-            <p>Browse the marketplace to add powerful tool servers.</p>
+            <h4>No extensions installed</h4>
+            <p>Browse the marketplace to add powerful extensions.</p>
             <button class="btn btn-primary" onclick="switchTab('mcp','marketplace')">Browse Marketplace</button>
           </div>
         </div>
 
         <div class="tab-content" id="mcp-tab-marketplace">
           <div class="search-bar">
-            <input id="mcp-marketplace-search" type="text" placeholder="Search MCP servers (e.g. filesystem, github, database...)" onkeydown="if(event.key==='Enter')searchMcpMarketplace()">
+            <input id="mcp-marketplace-search" type="text" placeholder="Search extensions (e.g. filesystem, github, database...)" onkeydown="if(event.key==='Enter')searchMcpMarketplace()">
             <button class="btn btn-primary" onclick="searchMcpMarketplace()">Search</button>
           </div>
           <div class="mcp-marketplace-grid" id="mcp-marketplace-results"></div>
           <div id="mcp-marketplace-empty" class="empty-state-card">
             <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-            <h4>Discover MCP Servers</h4>
-            <p>Search the official MCP registry to find and install tool servers.</p>
+            <h4>Discover Extensions</h4>
+            <p>Search the marketplace to find and install extensions.</p>
           </div>
         </div>
       </div>
@@ -1398,12 +1410,12 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <button class="tab active" onclick="switchTab('settings','general')">General</button>
           <button class="tab" onclick="switchTab('settings','providers')">Providers</button>
           <button class="tab" onclick="switchTab('settings','channels')">Channels</button>
-          <button class="tab" onclick="switchTab('settings','mcp')">MCP</button>
-          <button class="tab" onclick="switchTab('settings','routing')">Routing</button>
+          <button class="tab" onclick="switchTab('settings','mcp')">Extensions</button>
+          <button class="tab" onclick="switchTab('settings','routing')">Cost Savings</button>
           <button class="tab" onclick="switchTab('settings','data')">Data</button>
-          <button class="tab" onclick="switchTab('settings','secrets')">Secrets</button>
-          <button class="tab" onclick="switchTab('settings','system')">System Prompt</button>
-          <button class="tab" onclick="switchTab('settings','cron')">Cron</button>
+          <button class="tab" onclick="switchTab('settings','secrets')">API Keys</button>
+          <button class="tab" onclick="switchTab('settings','system')">Personality</button>
+          <button class="tab" onclick="switchTab('settings','cron')">Scheduled Tasks</button>
           <button class="tab" onclick="switchTab('settings','logs')">Logs</button>
           <button class="tab" onclick="switchTab('settings','privacy')">Privacy</button>
           <button class="tab" onclick="switchTab('settings','budget')">Budget</button>
@@ -1413,11 +1425,11 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <!-- General Tab -->
         <div class="tab-content active" id="settings-tab-general">
           <div class="settings-section">
-            <h3 class="settings-title" data-tooltip="Select which AI model powers Zubo">LLM Provider</h3>
-            <p class="settings-desc">Select which provider and model Zubo uses.</p>
+            <h3 class="settings-title" data-tooltip="Choose which AI powers your agent">AI Model</h3>
+            <p class="settings-desc">Choose which AI service and model your agent uses for conversations.</p>
             <div class="settings-grid">
               <div class="settings-field">
-                <label class="settings-label" data-tooltip="Cloud AI service" for="settings-provider">Provider</label>
+                <label class="settings-label" data-tooltip="AI service (e.g. Anthropic, OpenAI)" for="settings-provider">Provider</label>
                 <select id="settings-provider" class="settings-select" onchange="onProviderChange()"></select>
               </div>
               <div class="settings-field">
@@ -1433,11 +1445,11 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           </div>
 
           <div class="settings-section">
-            <h3 class="settings-title" data-tooltip="Background task frequency">Heartbeat Interval</h3>
-            <p class="settings-desc">How often the background heartbeat runs. Default: 30 minutes.</p>
+            <h3 class="settings-title" data-tooltip="How often Zubo checks for tasks">Background Check Interval</h3>
+            <p class="settings-desc">How often Zubo checks for reminders, scheduled tasks, and updates. Default: every 30 minutes.</p>
             <div class="settings-grid">
               <div class="settings-field">
-                <label class="settings-label" data-tooltip="Minutes between heartbeats" for="settings-heartbeat">Interval (minutes)</label>
+                <label class="settings-label" data-tooltip="Minutes between checks" for="settings-heartbeat">Interval (minutes)</label>
                 <input id="settings-heartbeat" type="number" class="settings-input" min="1" max="1440" step="1" placeholder="30">
               </div>
             </div>
@@ -1456,8 +1468,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <!-- Providers Tab -->
         <div class="tab-content" id="settings-tab-providers">
           <div class="settings-section">
-            <h3 class="settings-title">LLM Providers</h3>
-            <p class="settings-desc">Configure AI model providers. Set one as active for immediate use.</p>
+            <h3 class="settings-title">AI Providers</h3>
+            <p class="settings-desc">Configure AI services. Set one as active for your agent to use.</p>
             <div id="providers-list" style="display:flex;flex-direction:column;gap:12px;"></div>
             <div style="margin-top:20px;">
               <button class="btn btn-primary" onclick="showAddProviderForm()">Add Provider</button>
@@ -1468,22 +1480,23 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
                 <div class="settings-field">
                   <label class="settings-label" for="new-provider-name">Provider</label>
                   <select id="new-provider-name" class="settings-select" onchange="onNewProviderSelect()">
-                    <option value="">-- Select --</option>
-                    <option value="anthropic">Anthropic</option>
-                    <option value="openai">OpenAI</option>
-                    <option value="groq">Groq</option>
-                    <option value="together">Together</option>
-                    <option value="openrouter">OpenRouter</option>
+                    <option value="">-- Select a provider --</option>
+                    <option value="anthropic">Anthropic (Claude)</option>
+                    <option value="openai">OpenAI (GPT)</option>
+                    <option value="groq">Groq (fast, free tier)</option>
+                    <option value="together">Together AI</option>
+                    <option value="openrouter">OpenRouter (many models)</option>
                     <option value="deepseek">DeepSeek</option>
                     <option value="xai">xAI (Grok)</option>
-                    <option value="ollama">Ollama (local)</option>
-                    <option value="lmstudio">LM Studio (local)</option>
-                    <option value="custom">Custom (OpenAI-compat)</option>
+                    <option value="ollama">Ollama (free, runs locally)</option>
+                    <option value="lmstudio">LM Studio (free, runs locally)</option>
+                    <option value="custom">Custom (advanced)</option>
                   </select>
                 </div>
                 <div class="settings-field">
                   <label class="settings-label" for="new-provider-key">API Key</label>
                   <input id="new-provider-key" type="password" class="settings-input" placeholder="sk-...">
+                  <span id="provider-key-help" class="settings-hint" style="font-size:11px;color:var(--text-faint);margin-top:4px;display:none;"></span>
                 </div>
                 <div class="settings-field">
                   <label class="settings-label" for="new-provider-model">Model</label>
@@ -1532,14 +1545,14 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <!-- MCP Tab -->
         <div class="tab-content" id="settings-tab-mcp">
           <div class="settings-section">
-            <h3 class="settings-title">MCP Servers</h3>
-            <p class="settings-desc">Model Context Protocol servers extend Zubo with additional tools. Changes apply immediately.</p>
+            <h3 class="settings-title">Extensions</h3>
+            <p class="settings-desc">Extensions give Zubo new abilities like accessing files, databases, and APIs. Install from the marketplace or add manually.</p>
             <div id="mcp-servers-list" style="display:flex;flex-direction:column;gap:12px;"></div>
             <div style="margin-top:20px;">
-              <button class="btn btn-primary" onclick="showAddMcpForm()">Add MCP Server</button>
+              <button class="btn btn-primary" onclick="showAddMcpForm()">Add Extension</button>
             </div>
             <div id="mcp-add-form" style="display:none;margin-top:16px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
-              <h4 style="margin-bottom:12px;font-family:var(--display);font-weight:600;">Add MCP Server</h4>
+              <h4 style="margin-bottom:12px;font-family:var(--display);font-weight:600;">Add Extension</h4>
               <div class="settings-grid">
                 <div class="settings-field">
                   <label class="settings-label" for="mcp-name">Name</label>
@@ -1570,8 +1583,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <!-- Routing Tab -->
         <div class="tab-content" id="settings-tab-routing">
           <div class="settings-section">
-            <h3 class="settings-title" data-tooltip="Route simple queries to a cheaper/faster model">Smart Routing</h3>
-            <p class="settings-desc">Automatically route simple queries to a fast, cheap model and complex ones to your primary model. Saves cost without sacrificing quality.</p>
+            <h3 class="settings-title" data-tooltip="Use a cheaper AI for simple questions">Smart Cost Savings</h3>
+            <p class="settings-desc">Use a cheaper, faster AI for simple questions and your main AI for complex ones. Saves money without sacrificing quality.</p>
             <div class="settings-grid">
               <div class="settings-field">
                 <label class="settings-label" for="sr-enabled">Enabled</label>
@@ -1615,8 +1628,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
         <!-- Secrets Tab -->
         <div class="tab-content" id="settings-tab-secrets">
           <div class="settings-section" style="max-width:700px;">
-            <h3 class="settings-title">Secrets &amp; API Keys</h3>
-            <p class="settings-desc">Manage API keys and credentials for integrations. Values are stored encrypted in your local database and never sent to external services by Zubo.</p>
+            <h3 class="settings-title">API Keys &amp; Credentials</h3>
+            <p class="settings-desc">Manage API keys for integrations. Your keys are encrypted and stored securely on your device — Zubo never sends them anywhere.</p>
             <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
               <button class="btn btn-primary" onclick="showAddSecretForm()">Add Secret</button>
               <button class="btn btn-ghost" onclick="loadSecrets()">Refresh</button>
@@ -1648,6 +1661,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
         <!-- System Prompt Tab -->
         <div class="tab-content" id="settings-tab-system">
+          <p class="settings-desc" style="margin-bottom:12px;">Customize your agent&#39;s personality and instructions. This controls how Zubo thinks and responds. Be careful — incorrect changes may cause errors.</p>
           <div class="editor-wrap" style="min-height:calc(100vh - 220px);">
             <div class="editor-toolbar">
               <button class="btn btn-primary" onclick="saveSystem()">Save</button>
@@ -1728,7 +1742,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           <div class="cards" id="budget-summary-cards"></div>
           <div class="settings-section" style="margin-top:24px;">
             <h3 class="settings-title">Budget Limits</h3>
-            <p class="settings-desc">Set spending limits to control costs. The agent will pause when limits are reached.</p>
+            <p class="settings-desc">Set spending limits to control costs. Zubo will stop responding when limits are reached — you can raise them anytime. Typical usage: ~100 messages/day costs $0.50–$2.00 depending on your AI model.</p>
             <div class="settings-grid">
               <div class="settings-field">
                 <label class="settings-label" for="budget-daily">Daily Limit (USD)</label>
@@ -1907,7 +1921,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 <script>
 // --- Panel routing ---
 var panelNames = ['agent','history','dashboard','memory','skills','workflows','webhooks','mcp','integrations','settings'];
-var panelTitles = { agent:'Chat', history:'History', dashboard:'Dashboard', memory:'Memory', skills:'Skills', workflows:'Workflows', webhooks:'Webhooks', mcp:'MCP', integrations:'Integrations', settings:'Settings' };
+var panelTitles = { agent:'Chat', history:'History', dashboard:'Dashboard', memory:'Knowledge', skills:'Skills', workflows:'Workflows', webhooks:'Webhooks', mcp:'Extensions', integrations:'Integrations', settings:'Settings' };
 
 // Legacy panel name mapping (old names -> new names + tab)
 var legacyPanelMap = {
@@ -3790,10 +3804,28 @@ function onNewProviderSelect() {
   document.getElementById('new-provider-url-field').style.display = showUrl ? '' : 'none';
   // Local providers don't need API key
   var keyInput = document.getElementById('new-provider-key');
+  var helpEl = document.getElementById('provider-key-help');
   if (name === 'ollama' || name === 'lmstudio') {
-    keyInput.placeholder = 'Optional for local providers';
+    keyInput.placeholder = 'Not needed for local models';
+    helpEl.style.display = 'none';
   } else {
     keyInput.placeholder = 'sk-...';
+    // Show where to get the API key
+    var keyLinks = {
+      anthropic: 'console.anthropic.com/settings/keys',
+      openai: 'platform.openai.com/api-keys',
+      groq: 'console.groq.com/keys',
+      together: 'api.together.xyz/settings/api-keys',
+      openrouter: 'openrouter.ai/keys',
+      deepseek: 'platform.deepseek.com/api_keys',
+      xai: 'console.x.ai'
+    };
+    if (keyLinks[name]) {
+      helpEl.textContent = 'Get your key at ' + keyLinks[name];
+      helpEl.style.display = 'block';
+    } else {
+      helpEl.style.display = 'none';
+    }
   }
 }
 
@@ -3857,7 +3889,7 @@ function loadMcpServers() {
     if (!servers.length) {
       var empty = document.createElement('div');
       empty.className = 'empty-state';
-      empty.textContent = 'No MCP servers configured. Add one to extend Zubo with new tools.';
+      empty.textContent = 'No extensions configured. Add one to extend Zubo with new tools.';
       list.appendChild(empty);
       return;
     }
@@ -3921,7 +3953,7 @@ function restartMcpServer(name) {
 }
 
 function removeMcpServer(name) {
-  if (!confirm('Remove MCP server "' + name + '"? This will disconnect it.')) return;
+  if (!confirm('Remove extension "' + name + '"? This will disconnect it.')) return;
   api('/mcp/servers/' + encodeURIComponent(name), { method: 'DELETE' }).then(function(data) {
     if (data.ok) {
       toast(name + ' removed');
@@ -4363,19 +4395,19 @@ function renderCmdResults(query) {
   var subTabs = [
     { title: 'Analytics', action: function() { showPanel('dashboard'); switchTab('dashboard','analytics'); } },
     { title: 'Performance', action: function() { showPanel('dashboard'); switchTab('dashboard','performance'); } },
-    { title: 'System Prompt', action: function() { showPanel('settings'); switchTab('settings','system'); } },
-    { title: 'Cron Jobs', action: function() { showPanel('settings'); switchTab('settings','cron'); } },
+    { title: 'Personality', action: function() { showPanel('settings'); switchTab('settings','system'); } },
+    { title: 'Scheduled Tasks', action: function() { showPanel('settings'); switchTab('settings','cron'); } },
     { title: 'Logs', action: function() { showPanel('settings'); switchTab('settings','logs'); } },
     { title: 'Privacy & Data', action: function() { showPanel('settings'); switchTab('settings','privacy'); } },
     { title: 'Budget', action: function() { showPanel('settings'); switchTab('settings','budget'); } },
-    { title: 'Secrets', action: function() { showPanel('settings'); switchTab('settings','secrets'); } },
+    { title: 'API Keys', action: function() { showPanel('settings'); switchTab('settings','secrets'); } },
     { title: 'Channels', action: function() { showPanel('settings'); switchTab('settings','channels'); } },
     { title: 'Providers', action: function() { showPanel('settings'); switchTab('settings','providers'); } },
-    { title: 'MCP Servers', action: function() { showPanel('settings'); switchTab('settings','mcp'); } },
-    { title: 'Smart Routing', action: function() { showPanel('settings'); switchTab('settings','routing'); } },
+    { title: 'Extensions', action: function() { showPanel('settings'); switchTab('settings','mcp'); } },
+    { title: 'Cost Savings', action: function() { showPanel('settings'); switchTab('settings','routing'); } },
     { title: 'Browse Registry', action: function() { showPanel('skills'); switchTab('skills','browse'); } },
     { title: 'Visual Builder', action: function() { showPanel('workflows'); switchTab('workflows','visual'); } },
-    { title: 'MCP Marketplace', action: function() { showPanel('mcp'); switchTab('mcp','marketplace'); } },
+    { title: 'Extensions Marketplace', action: function() { showPanel('mcp'); switchTab('mcp','marketplace'); } },
     { title: 'Email Digests', action: function() { showPanel('settings'); switchTab('settings','digests'); } },
   ];
   subTabs.forEach(function(st) { items.push({ name: st.title.toLowerCase(), title: st.title, action: st.action }); });
@@ -4516,7 +4548,7 @@ function clearChatMessages() {
   subtext.textContent = 'Ask me anything, or try a suggestion below';
   var chipsGroup = document.createElement('div');
   chipsGroup.className = 'suggestion-chips-group';
-  var rows = [['What can you do?','Check my schedule'],['Summarize recent emails','Set a reminder']];
+  var rows = [['What can you do?','Set a reminder for tomorrow'],['Help me write an email','Explain something to me']];
   rows.forEach(function(rowLabels) {
     var row = document.createElement('div');
     row.className = 'chip-row';

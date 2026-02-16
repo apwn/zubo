@@ -588,10 +588,10 @@ export const SETUP_WIZARD_HTML = `<!DOCTYPE html>
   </div>
 
   <div class="stepper" id="stepper">
-    <div class="stepper-item active" data-step="1"><div class="stepper-dot">1</div><span>Provider</span></div>
+    <div class="stepper-item active" data-step="1"><div class="stepper-dot">1</div><span>AI Provider</span></div>
     <div class="stepper-item" data-step="2"><div class="stepper-dot">2</div><span>Channels</span></div>
-    <div class="stepper-item" data-step="3"><div class="stepper-dot">3</div><span>Agent</span></div>
-    <div class="stepper-item" data-step="4"><div class="stepper-dot">4</div><span>Routing</span></div>
+    <div class="stepper-item" data-step="3"><div class="stepper-dot">3</div><span>Personalize</span></div>
+    <div class="stepper-item" data-step="4"><div class="stepper-dot">4</div><span>Cost Savings</span></div>
   </div>
 
   <div class="step-panel" id="stepPanel">
@@ -725,8 +725,8 @@ function prevStep() {
 
 // ── Step 1: Provider ──
 function renderProvider() {
-  var html = '<h3 class="step-title">LLM Provider</h3>';
-  html += '<p class="step-desc">Choose the AI provider that powers your agent.</p>';
+  var html = '<h3 class="step-title">AI Provider</h3>';
+  html += '<p class="step-desc">Choose the AI service that powers your agent.</p>';
   html += '<div class="provider-grid">';
   PROVIDERS.forEach(function(p) {
     html += '<div class="provider-card' + (state.activeProvider === p.id ? ' selected' : '') + '" data-pid="' + p.id + '">';
@@ -1149,9 +1149,9 @@ function collectAgentData() {
 
 // ── Step 4: Smart Routing ──
 function renderRouting() {
-  var html = '<h3 class="step-title">Smart Routing</h3>';
+  var html = '<h3 class="step-title">Smart Cost Savings</h3>';
   html += '<div class="routing-card">';
-  html += '<p>Smart routing sends simple queries (greetings, one-liners) to a fast, cheap model \\u{2014} and uses your main provider for complex tasks. This can save 50-80% on API costs.</p>';
+  html += '<p>Use a cheaper, faster AI for simple questions (greetings, one-liners) and your main AI for complex tasks. This can save 50-80% on costs.</p>';
 
   var hasSecondProvider = state.failover.length > 0;
 

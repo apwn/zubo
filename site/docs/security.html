@@ -169,18 +169,18 @@
 
       <h2 id="secret-management">Secret Management</h2>
       <p>Secrets (API keys, tokens, passwords) are stored securely in the local SQLite <code>secrets</code> table. The agent can use secrets by name but <strong>never sees their actual values</strong> in conversation context.</p>
-      <h3>Storing Secrets</h3>
+      <h3>Storing API Keys</h3>
       <p>There are three ways to store a secret:</p>
       <ul>
         <li><strong>Chat:</strong> Tell Zubo directly &mdash; <code>"Store my GitHub token: ghp_abc123xyz"</code></li>
         <li><strong>Tool:</strong> The <code>secret_set</code> tool can be called programmatically</li>
-        <li><strong>Dashboard:</strong> Navigate to Settings &rarr; Secrets and use the form</li>
+        <li><strong>Dashboard:</strong> Navigate to Settings &rarr; API Keys and use the form</li>
       </ul>
-      <h3>Accessing Secrets in Skills</h3>
+      <h3>Accessing API Keys in Skills</h3>
       <p>User-installed skills can access secrets via environment variables:</p>
 <pre><code>const token = process.env.ZUBO_SECRET_GITHUB_TOKEN;</code></pre>
       <p>Only secrets explicitly declared in the skill manifest are passed to the skill process.</p>
-      <h3>Managing Secrets</h3>
+      <h3>Managing API Keys</h3>
       <ul>
         <li><strong>Dashboard:</strong> View masked values (<code>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</code>), click &ldquo;Reveal&rdquo; to show the actual value, click &ldquo;Edit&rdquo; to update, or &ldquo;Delete&rdquo; to remove</li>
         <li><strong>Naming:</strong> Secret names must match the pattern <code>[a-z0-9_]+</code> (lowercase alphanumeric and underscores only)</li>

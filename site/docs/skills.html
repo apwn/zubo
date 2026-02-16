@@ -162,7 +162,7 @@ export default async function (input: Record&lt;string, unknown&gt;): Promise&lt
         <li><strong>Cannot import from Zubo internals</strong> &mdash; skills run in a sandboxed subprocess and have no access to Zubo's core modules, database, or session state</li>
       </ul>
 
-      <h2>Accessing Secrets</h2>
+      <h2>Accessing API Keys</h2>
       <p>Skills often need API keys or credentials to call external services. Zubo provides a secure way to pass secrets to skill handlers via environment variables:</p>
 <pre><code>export default async function (input: Record&lt;string, unknown&gt;): Promise&lt;string&gt; {
   const apiKey = process.env.ZUBO_SECRET_WEATHER_API_KEY;

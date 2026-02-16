@@ -101,7 +101,7 @@
       <p>There are three ways to connect a service:</p>
       <ol>
         <li><strong>Chat:</strong> Tell Zubo directly &mdash; for example, <code>"Connect GitHub with token ghp_abc123"</code>. Zubo will store the secret and install the skill pack automatically.</li>
-        <li><strong>Dashboard:</strong> Navigate to Settings &rarr; Secrets &rarr; Add Secret. Enter the secret name and value, then Zubo detects the associated integration and installs the skills.</li>
+        <li><strong>Dashboard:</strong> Navigate to Settings &rarr; API Keys. Enter the secret name and value, then Zubo detects the associated integration and installs the skills.</li>
         <li><strong>CLI:</strong> Run <code>zubo start</code>, then use the <code>connect_service</code> tool programmatically to provide the credentials.</li>
       </ol>
       <p>When you connect a service, Zubo performs the following steps:</p>
@@ -384,11 +384,11 @@ zubo mcp-serve</code></pre>
         </tbody>
       </table>
 
-      <h2 id="managing-secrets">Managing Secrets</h2>
+      <h2 id="managing-secrets">Managing API Keys</h2>
       <p>All integration secrets are managed through the same unified secret system.</p>
       <h3>Dashboard</h3>
       <ul>
-        <li>Navigate to Settings &rarr; Secrets &amp; API Keys</li>
+        <li>Navigate to Settings &rarr; API Keys</li>
         <li>Values are displayed as <code>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</code> by default</li>
         <li>Click <strong>&ldquo;Reveal&rdquo;</strong> to show the actual secret value</li>
         <li>Click <strong>&ldquo;Edit&rdquo;</strong> to update a secret with a new value</li>
