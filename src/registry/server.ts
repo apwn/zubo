@@ -246,26 +246,51 @@ seedBuiltinSkills(db);
 
 // ─── Rate Limiter ────────────────────────────────────────────────────
 
-const rateLimits = new Map<string, { count: number; resetAt: number }>();
+// Keyed rate limiter: allows separate buckets per action
+// e.g. "read:1.2.3.4", "report:1.2.3.4", "submit:1.2.3.4"
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
 
-function checkRateLimit(ip: string, maxPerMin: number): boolean {
+function checkRateLimit(key: string, max: number, windowMs: number = 60_000): boolean {
   const now = Date.now();
-  const entry = rateLimits.get(ip);
+  const entry = rateBuckets.get(key);
   if (!entry || now > entry.resetAt) {
-    rateLimits.set(ip, { count: 1, resetAt: now + 60_000 });
+    rateBuckets.set(key, { count: 1, resetAt: now + windowMs });
     return true;
   }
   entry.count++;
-  return entry.count <= maxPerMin;
+  return entry.count <= max;
 }
 
-// Clean up rate limit entries periodically
+// Clean up expired buckets every minute
 setInterval(() => {
   const now = Date.now();
-  for (const [ip, entry] of rateLimits) {
-    if (now > entry.resetAt) rateLimits.delete(ip);
+  for (const [key, entry] of rateBuckets) {
+    if (now > entry.resetAt) rateBuckets.delete(key);
   }
 }, 60_000);
+
+// ─── Anti-Spam ──────────────────────────────────────────────────────
+
+// Disposable email domain blocklist
+const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  "mailinator.com", "guerrillamail.com", "tempmail.com", "throwaway.email",
+  "10minutemail.com", "trashmail.com", "yopmail.com", "sharklasers.com",
+  "grr.la", "guerrillamailblock.com", "pokemail.net", "spam4.me",
+  "dispostable.com", "maildrop.cc", "mailnesia.com", "temp-mail.org",
+  "fakeinbox.com", "getnada.com", "mohmal.com", "tempail.com",
+]);
+
+function isDisposableEmail(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase();
+  return !domain || DISPOSABLE_EMAIL_DOMAINS.has(domain);
+}
+
+// Max request body size (500KB)
+const MAX_BODY_SIZE = 512_000;
+
+function sanitizeText(text: string, maxLen: number): string {
+  return text.replace(/<[^>]*>/g, "").trim().slice(0, maxLen);
+}
 
 // ─── Email (SendGrid) ────────────────────────────────────────────────
 
@@ -320,10 +345,18 @@ async function notifyAdminNewSkill(skillName: string, author: string, status: st
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
+const SECURITY_HEADERS: Record<string, string> = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+};
+
 function json(data: any, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...SECURITY_HEADERS },
   });
 }
 
@@ -389,6 +422,7 @@ function serveStatic(filePath: string): Response | null {
     headers: {
       "Content-Type": contentType,
       "Cache-Control": ext === ".html" ? "no-cache" : "public, max-age=3600",
+      ...SECURITY_HEADERS,
     },
   });
 }
@@ -404,6 +438,10 @@ async function handleRequest(req: Request): Promise<Response> {
   // ─── GitHub OAuth ────────────────────────────────────────────────
 
   if (path === "/api/registry/auth/github" && method === "GET") {
+    // 10 OAuth attempts per IP per hour
+    if (!checkRateLimit(`oauth:${ip}`, 10, 3600_000)) {
+      return error("Too many login attempts. Please try again later.", 429);
+    }
     if (!GITHUB_CLIENT_ID) return error("GitHub OAuth not configured", 500);
     const state = crypto.randomUUID();
     const redirectUri = `${url.origin}/api/registry/auth/github/callback`;
@@ -499,11 +537,18 @@ async function handleRequest(req: Request): Promise<Response> {
   // ─── Public API (rate-limited) ───────────────────────────────────
 
   if (path.startsWith("/api/registry/")) {
-    // Rate limit: 30/min for reads, 10/min for writes
+    // Global rate limit: 60/min reads, 15/min writes per IP
     const isWrite = method === "POST" || method === "PUT" || method === "DELETE";
-    const limit = isWrite ? 10 : 30;
-    if (!checkRateLimit(ip, limit)) {
+    if (!checkRateLimit(`global:${isWrite ? "w" : "r"}:${ip}`, isWrite ? 15 : 60)) {
       return error("Too many requests. Please try again later.", 429);
+    }
+
+    // Enforce max body size on POST/PUT
+    if (isWrite) {
+      const contentLength = parseInt(req.headers.get("content-length") ?? "0", 10);
+      if (contentLength > MAX_BODY_SIZE) {
+        return error("Request body too large", 413);
+      }
     }
   }
 
@@ -544,13 +589,23 @@ async function handleRequest(req: Request): Promise<Response> {
     });
   }
 
-  // Submit skill (authenticated)
+  // Submit skill (authenticated — rate limited per user)
   if (path === "/api/registry/skills" && method === "POST") {
     const profile = getSessionProfile(req);
     if (!profile) return error("Authentication required", 401);
 
+    // 5 submissions per user per day
+    if (!checkRateLimit(`submit:${profile.id}`, 5, 86400_000)) {
+      return error("Submission limit reached (5 per day). Please try again tomorrow.", 429);
+    }
+
     try {
       const body = (await req.json()) as registry.SubmitSkillInput;
+
+      // Sanitize text fields
+      if (body.description) body.description = sanitizeText(body.description, 500);
+      if (body.name) body.name = body.name.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 64);
+
       const result = registry.submitSkill(db, body, profile.id);
       notifyAdminNewSkill(result.skill.name, profile.username, result.review.status);
       return json(result, 201);
@@ -559,11 +614,17 @@ async function handleRequest(req: Request): Promise<Response> {
     }
   }
 
-  // Star skill (authenticated)
+  // Star skill (authenticated — rate limited)
   const starMatch = path.match(/^\/api\/registry\/skills\/(\d+)\/star$/);
   if (starMatch && method === "POST") {
     const profile = getSessionProfile(req);
     if (!profile) return error("Authentication required", 401);
+
+    // 30 star toggles per user per minute (prevent abuse)
+    if (!checkRateLimit(`star:${profile.id}`, 30)) {
+      return error("Too many requests. Slow down.", 429);
+    }
+
     const skillId = parseInt(starMatch[1], 10);
     const skill = registry.getSkillById(db, skillId);
     if (!skill) return error("Skill not found", 404);
@@ -572,27 +633,60 @@ async function handleRequest(req: Request): Promise<Response> {
     return json({ starred, stars_count: updated.stars_count });
   }
 
-  // Report skill (anonymous)
+  // Report skill (anonymous — strict rate limits)
   const reportMatch = path.match(/^\/api\/registry\/skills\/(\d+)\/report$/);
   if (reportMatch && method === "POST") {
+    // 3 reports per IP per hour
+    if (!checkRateLimit(`report:${ip}`, 3, 3600_000)) {
+      return error("Too many reports. Please try again later.", 429);
+    }
+
     const skillId = parseInt(reportMatch[1], 10);
     const skill = registry.getSkillById(db, skillId);
     if (!skill) return error("Skill not found", 404);
 
     try {
-      const body = (await req.json()) as { email: string; reason: string; details?: string };
-      registry.reportSkill(db, skillId, body.email, body.reason, body.details);
-      notifyAdminReport(skill.name, body.reason, body.email, body.details);
+      const body = (await req.json()) as { email: string; reason: string; details?: string; website?: string };
+
+      // Honeypot — bots fill hidden fields
+      if (body.website) return json({ ok: true });
+
+      // Validate email
+      if (!body.email || !body.email.includes("@") || body.email.length > 254) {
+        return error("A valid email address is required");
+      }
+      if (isDisposableEmail(body.email)) {
+        return error("Disposable email addresses are not allowed");
+      }
+
+      // 1 report per email per skill
+      const existing = db.query<{ id: number }, [number, string]>(
+        "SELECT id FROM registry_reports WHERE skill_id = ? AND reporter_email = ? AND status = 'open'"
+      ).get(skillId, body.email);
+      if (existing) {
+        return error("You have already reported this skill");
+      }
+
+      // Sanitize inputs
+      const reason = sanitizeText(body.reason || "", 100);
+      const details = body.details ? sanitizeText(body.details, 2000) : undefined;
+
+      registry.reportSkill(db, skillId, body.email, reason, details);
+      notifyAdminReport(skill.name, reason, body.email, details);
       return json({ ok: true });
     } catch (err: any) {
       return error(err.message);
     }
   }
 
-  // Search
+  // Search (stricter rate limit — 20/min per IP)
   if (path === "/api/registry/search" && method === "GET") {
+    if (!checkRateLimit(`search:${ip}`, 20)) {
+      return error("Too many search requests. Please try again later.", 429);
+    }
     const q = url.searchParams.get("q") ?? "";
-    const limit = parseInt(url.searchParams.get("limit") ?? "20", 10);
+    if (q.length > 200) return error("Search query too long");
+    const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "20", 10), 50);
     const skills = registry.searchSkills(db, q, limit);
     return json({ skills });
   }

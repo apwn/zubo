@@ -223,6 +223,10 @@ export default async function (input) {
       </div>
       <form id="report-form">
         <input type="hidden" id="report-skill-id">
+        <div style="position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
+          <label for="report-website">Website</label>
+          <input type="text" id="report-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
         <div class="form-group">
           <label for="report-reason">Reason</label>
           <select id="report-reason" required>
@@ -1006,6 +1010,7 @@ Please build me a skill that: [DESCRIBE WHAT YOU WANT]</pre>
         email: document.getElementById('report-email').value,
         reason: document.getElementById('report-reason').value,
         details: document.getElementById('report-details').value || undefined,
+        website: document.getElementById('report-website').value || undefined,
       };
 
       btn.disabled = true;
