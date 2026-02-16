@@ -351,6 +351,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   "X-XSS-Protection": "1; mode=block",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
 };
 
 function json(data: any, status = 200): Response {
@@ -434,6 +435,15 @@ async function handleRequest(req: Request): Promise<Response> {
   const path = url.pathname;
   const method = req.method;
   const ip = getClientIp(req);
+
+  // Force HTTPS in production (when behind reverse proxy)
+  const proto = req.headers.get("x-forwarded-proto");
+  if (proto === "http") {
+    return new Response(null, {
+      status: 301,
+      headers: { Location: `https://${req.headers.get("host")}${path}${url.search}` },
+    });
+  }
 
   // ─── GitHub OAuth ────────────────────────────────────────────────
 
