@@ -9,6 +9,7 @@ import { createProvider, validateProvider } from "./llm/factory";
 import { registerDatetimeTool } from "./tools/builtin/datetime";
 import { registerMemoryWriteTool } from "./tools/builtin/memory-write";
 import { registerMemorySearchTool } from "./tools/builtin/memory-search";
+import { registerMemoryPruneTool } from "./tools/builtin/memory-prune";
 import { registerManageSkillsTool } from "./tools/builtin/manage-skills";
 import { registerCronTools } from "./tools/builtin/cron";
 import { registerSecretTools } from "./tools/builtin/secrets";
@@ -138,6 +139,7 @@ export async function startZubo(isDaemon = false) {
   registerDatetimeTool();
   registerMemoryWriteTool();
   registerMemorySearchTool(db);
+  registerMemoryPruneTool();
   registerManageSkillsTool();
   registerSecretTools();
   // Expose OAuth helpers for built-in skill handlers (NOT getSecret — secrets

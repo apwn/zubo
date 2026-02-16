@@ -153,6 +153,8 @@ Query --&gt; Hybrid Search &lt;----------------+
           <tr><td>CSV</td><td><code>.csv</code></td><td>Parsed as text with rows preserved.</td></tr>
           <tr><td>PDF</td><td><code>.pdf</code></td><td>Requires <code>pdf-parse</code> (auto-installed on first PDF upload).</td></tr>
           <tr><td>Word</td><td><code>.docx</code></td><td>Requires <code>mammoth</code> (auto-installed on first DOCX upload).</td></tr>
+          <tr><td>Excel</td><td><code>.xlsx</code></td><td>Requires <code>xlsx</code> (SheetJS). Each sheet is converted to CSV.</td></tr>
+          <tr><td>PowerPoint</td><td><code>.pptx</code></td><td>Requires <code>jszip</code>. Text extracted from each slide.</td></tr>
           <tr><td>JSON</td><td><code>.json</code></td><td>Pretty-printed before indexing.</td></tr>
           <tr><td>XML</td><td><code>.xml</code></td><td>Tags stripped, text content extracted.</td></tr>
           <tr><td>YAML</td><td><code>.yaml</code>, <code>.yml</code></td><td>Direct indexing.</td></tr>
@@ -211,12 +213,13 @@ Zubo: "Based on my memory, I know that your favorite programming
       </ul>
 
       <h2>Memory Tools</h2>
-      <p>Zubo provides two built-in tools for memory operations. These are available to the main agent and to any sub-agent that lists them in its <code>## Tools</code> section:</p>
+      <p>Zubo provides three built-in tools for memory operations. These are available to the main agent and to any sub-agent that lists them in its <code>## Tools</code> section:</p>
       <table>
         <thead><tr><th>Tool</th><th>Description</th></tr></thead>
         <tbody>
           <tr><td><code>memory_write</code></td><td>Save a fact, note, or piece of content to persistent memory. The content is chunked, embedded, and indexed automatically.</td></tr>
           <tr><td><code>memory_search</code></td><td>Search memory for relevant information using hybrid search. Returns the top matching chunks with their source and relevance score.</td></tr>
+          <tr><td><code>memory_prune</code></td><td>Manage memory hygiene. Delete memories by ID, keyword, or age. Remove duplicates. View memory stats (total chunks, date range, storage size). Requires confirmation before deleting.</td></tr>
         </tbody>
       </table>
 

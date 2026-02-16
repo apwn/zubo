@@ -234,6 +234,11 @@ switch (command) {
     console.log(`Imported ${result.imported} rows (${result.skipped} skipped)`);
     break;
   }
+  case "voice": {
+    const { startVoiceMode } = await import("./voice/cli");
+    await startVoiceMode();
+    break;
+  }
   case "mcp-serve": {
     // Start Zubo as an MCP server (for Claude Code / Codex integration)
     // Minimal initialization: DB + tools (no channels, no LLM)
@@ -289,6 +294,7 @@ switch (command) {
     console.log("  export             Export database as JSON");
     console.log("  export --format sqlite  Backup as SQLite file");
     console.log("  import <path>      Import data from JSON export");
+    console.log("  voice              Start voice conversation mode");
     console.log("  mcp-serve          Start as MCP server (for Claude Code / Codex)");
     process.exit(1);
 }

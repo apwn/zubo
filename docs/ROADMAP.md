@@ -451,3 +451,9 @@ Most phases above are now implemented:
 - Phase 6 (Security) — Tool permissions (auto/confirm/deny), confirmation tokens, API key auth
 - Phase 7 (Interfaces) — Web dashboard with analytics, memory, skills, settings, and personal tools (todos, notes, preferences, topics, follow-ups)
 - Personal features — Todos, notes, preferences, topics, follow-ups with full CRUD in the dashboard
+- Brave Search — Primary web search via Brave API with DuckDuckGo fallback
+- Memory pruning — Delete by ID, keyword, age, or duplicates; stats command
+- Voice conversation mode — Continuous listen/respond loop with local whisper.cpp or cloud Whisper
+- DOCX/XLSX/PPTX parsing — Full document ingestion support via mammoth, xlsx, and jszip
+- Enhanced code interpreter — Persistent workspace, auto package install, chart/image detection
+- Ollama model manager — Dashboard panel to list, pull, delete, and switch Ollama models

@@ -2713,7 +2713,105 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
     }
   }
 
+  // ── Ollama Model Management ──
+
+  // GET /api/dashboard/ollama/status
+  if (path === "/ollama/status" && req.method === "GET") {
+    try {
+      const ollamaBase = getOllamaBase();
+      const res = await fetch(`${ollamaBase}/api/version`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        const data = (await res.json()) as { version?: string };
+        return Response.json({ running: true, version: data.version ?? "" });
+      }
+      return Response.json({ running: false });
+    } catch {
+      return Response.json({ running: false });
+    }
+  }
+
+  // GET /api/dashboard/ollama/models
+  if (path === "/ollama/models" && req.method === "GET") {
+    try {
+      const ollamaBase = getOllamaBase();
+      const res = await fetch(`${ollamaBase}/api/tags`, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) return Response.json({ models: [] });
+      const data = (await res.json()) as { models?: any[] };
+      const models = (data.models ?? []).map((m: any) => ({
+        name: m.name,
+        size: m.size,
+        modified_at: m.modified_at,
+        family: m.details?.family ?? "",
+        parameter_size: m.details?.parameter_size ?? "",
+        quantization: m.details?.quantization_level ?? "",
+      }));
+      return Response.json({ models });
+    } catch (err: any) {
+      return Response.json({ models: [], error: err.message });
+    }
+  }
+
+  // POST /api/dashboard/ollama/pull
+  if (path === "/ollama/pull" && req.method === "POST") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { name?: string };
+        if (!body.name || !/^[a-zA-Z0-9._:\/-]+$/.test(body.name)) return Response.json({ ok: false, error: "Invalid model name" }, { status: 400 });
+        const ollamaBase = getOllamaBase();
+        const res = await fetch(`${ollamaBase}/api/pull`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: body.name, stream: false }),
+          signal: AbortSignal.timeout(600_000), // 10 minute timeout for large models
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          return Response.json({ ok: false, error: text || `Ollama returned ${res.status}` });
+        }
+        const data = (await res.json()) as { status?: string; error?: string };
+        if (data.error) return Response.json({ ok: false, error: data.error });
+        return Response.json({ ok: true, status: data.status ?? "success" });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // DELETE /api/dashboard/ollama/delete
+  if (path === "/ollama/delete" && req.method === "DELETE") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { name?: string };
+        if (!body.name || !/^[a-zA-Z0-9._:\/-]+$/.test(body.name)) return Response.json({ ok: false, error: "Invalid model name" }, { status: 400 });
+        const ollamaBase = getOllamaBase();
+        const res = await fetch(`${ollamaBase}/api/delete`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: body.name }),
+          signal: AbortSignal.timeout(30_000),
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          return Response.json({ ok: false, error: text || `Ollama returned ${res.status}` });
+        }
+        return Response.json({ ok: true });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
   return null;
+}
+
+/** Get the Ollama API base URL from config or default */
+function getOllamaBase(): string {
+  try {
+    const config = JSON.parse(readFileSync(paths.config, "utf-8"));
+    const baseUrl = config.providers?.ollama?.baseUrl;
+    if (baseUrl) return baseUrl.replace(/\/v1\/?$/, "");
+  } catch {}
+  return "http://localhost:11434";
 }
 
 export interface WebChatAdapter extends ChannelAdapter {

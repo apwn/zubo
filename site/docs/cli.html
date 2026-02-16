@@ -158,6 +158,10 @@ zubo search &lt;query&gt;  # Search the registry
 zubo publish [name]  # Publish a skill</code></pre>
       <p><code>zubo install</code> downloads and installs the named skill from the community registry into <code>~/.zubo/skills/</code>. <code>zubo search</code> returns matching skills with their names and descriptions. <code>zubo publish</code> validates and submits the current skill directory (or the named skill) to the registry.</p>
 
+      <h2>Voice</h2>
+<pre><code>zubo voice           # Start continuous voice conversation mode</code></pre>
+      <p>Starts an interactive voice conversation loop. Zubo listens through your microphone, transcribes speech using Whisper (cloud or local whisper.cpp), processes it through the agent, and speaks the response back using text-to-speech. Requires <code>voice.stt</code> and <code>voice.tts</code> to be configured. Install <code>sox</code> for microphone recording.</p>
+
       <h2>Authentication</h2>
 <pre><code>zubo auth create-key [label]  # Create API key (shown once)
 zubo auth list-keys           # List all keys
@@ -228,6 +232,7 @@ zubo mcp-serve --port 9800  # Start MCP server over HTTP (SSE)</code></pre>
           <tr><td><code>zubo export</code></td><td>Export JSON</td></tr>
           <tr><td><code>zubo export --format sqlite</code></td><td>Backup SQLite</td></tr>
           <tr><td><code>zubo import &lt;path&gt;</code></td><td>Import JSON</td></tr>
+          <tr><td><code>zubo voice</code></td><td>Voice conversation mode</td></tr>
           <tr><td><code>zubo mcp-serve</code></td><td>Start MCP server (stdio)</td></tr>
           <tr><td><code>zubo mcp-serve --port &lt;n&gt;</code></td><td>Start MCP server (HTTP/SSE)</td></tr>
         </tbody>

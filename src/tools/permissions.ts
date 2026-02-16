@@ -5,6 +5,7 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   datetime: "auto",
   memory_write: "auto",
   memory_search: "auto",
+  memory_prune: "confirm",
   cron_list: "auto",
   reminder_set: "auto",
   diagnose: "auto",

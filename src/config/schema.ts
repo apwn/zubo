@@ -91,13 +91,22 @@ export const configSchema = z.object({
   voice: z.object({
     stt: z.object({
       provider: z.string().default("whisper"),
-      apiKey: z.string().min(1),
+      apiKey: z.string().optional(),
       model: z.string().optional(),
+      // Local whisper.cpp options
+      binaryPath: z.string().optional(),
+      modelPath: z.string().optional(),
+      language: z.string().optional(),
     }).optional(),
     tts: z.object({
       provider: z.string().default("openai"),
       apiKey: z.string().min(1),
       voice: z.string().optional(),
+    }).optional(),
+    // Voice conversation mode options
+    conversation: z.object({
+      silenceThreshold: z.number().min(500).max(5000).default(1500),
+      maxRecordingMs: z.number().min(5000).max(120000).default(30000),
     }).optional(),
   }).optional(),
 

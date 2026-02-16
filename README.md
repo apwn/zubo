@@ -29,15 +29,15 @@
 - **11+ LLM providers** — Anthropic, OpenAI, Google Gemini, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, and any OpenAI-compatible endpoint. Smart routing sends simple queries to fast models automatically.
 - **7 channels** — Telegram, Discord, Slack, WhatsApp, Signal, Email, Web Chat
 - **Persistent memory** — Vector + full-text hybrid search with ONNX embeddings and FTS5. Remembers every conversation, preference, and fact — forever.
-- **25+ built-in tools** — Web search, file ops, code execution, APIs, sub-agent delegation, knowledge graph, reminders, and automatic failover between providers.
+- **25+ built-in tools** — Web search (Brave + DuckDuckGo), file ops, code execution, APIs, sub-agent delegation, knowledge graph, memory pruning, reminders, and automatic failover between providers.
 - **Extensible skills** — Build custom skills in TypeScript. Share them on the registry. Install community skills with one command.
 - **9 integrations** — GitHub, Google (Gmail, Calendar, Docs, Drive, Sheets), Notion, Linear, Jira, Slack, Twitter + Claude Code and MCP
 - **Workflows** — Multi-agent pipelines with delegation
 - **Natural language scheduling** — "Every weekday at 9am" just works. Cron jobs, heartbeat, proactive tasks.
-- **Voice** — Speech-to-text (Whisper) and text-to-speech (OpenAI, ElevenLabs)
+- **Voice** — Speech-to-text (Whisper, local whisper.cpp), text-to-speech (OpenAI, ElevenLabs), and continuous voice conversation mode
 - **Personal tools** — Todos, notes, preferences, topics, and follow-ups — all manageable from the dashboard or via chat
-- **Dashboard** — Built-in web UI with analytics, memory management, personal tools, and settings
-- **Document ingestion** — Upload PDF, DOCX, TXT, CSV, JSON, and more
+- **Dashboard** — Built-in web UI with analytics, memory management, Ollama model manager, personal tools, and settings
+- **Document ingestion** — Upload PDF, DOCX, XLSX, PPTX, TXT, CSV, JSON, and more
 - **Budget controls** — Daily/monthly spending limits with per-model cost tracking
 - **100% local** — SQLite database, local vector store. Your data never leaves your machine.
 
@@ -128,6 +128,7 @@ zubo model [provider/model] Show or switch LLM
 zubo skills                Manage skills
 zubo install <name>        Install from registry
 zubo search <query>        Search the registry
+zubo voice                 Continuous voice conversation mode
 zubo auth create-key       Create an API key
 zubo export / import       Backup and restore
 ```

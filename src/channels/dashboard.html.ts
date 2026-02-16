@@ -942,6 +942,9 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
     <a href="#mcp" onclick="showPanel('mcp')">
       <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M14 12h4"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/></svg></span> Extensions
     </a>
+    <a href="#models" onclick="showPanel('models')">
+      <span class="nav-svg-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span> Models
+    </a>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">Personal</div>
     <a href="#todos" onclick="showPanel('todos')">
@@ -1359,6 +1362,67 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
             <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
             <h4>Discover Extensions</h4>
             <p>Search the marketplace to find and install extensions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODELS PANEL (Ollama / Local Model Manager) -->
+    <div id="panel-models" class="panel">
+      <div class="panel-body">
+        <div style="margin-bottom:16px;">
+          <p class="settings-desc" style="margin-bottom:0;">Manage local AI models via <strong>Ollama</strong>. Install, update, and remove models running on your machine.</p>
+        </div>
+
+        <div id="ollama-status-bar" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);">
+          <span class="status-dot" id="ollama-status-dot"></span>
+          <span id="ollama-status-text" style="font-size:13px;color:var(--text-secondary);">Checking Ollama...</span>
+          <span style="margin-left:auto;font-size:12px;color:var(--text-muted);" id="ollama-version"></span>
+        </div>
+
+        <div class="tab-bar" id="models-tabs">
+          <button class="tab active" onclick="switchTab('models','installed')">Installed</button>
+          <button class="tab" onclick="switchTab('models','available')">Pull New Model</button>
+        </div>
+
+        <div class="tab-content active" id="models-tab-installed">
+          <div id="ollama-models-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+          <div id="ollama-models-empty" class="empty-state-card" style="display:none;">
+            <div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+            <h4>No models installed</h4>
+            <p>Pull a model from the "Pull New Model" tab to get started.</p>
+            <button class="btn btn-primary" onclick="switchTab('models','available')">Pull a Model</button>
+          </div>
+        </div>
+
+        <div class="tab-content" id="models-tab-available">
+          <div style="margin-bottom:16px;">
+            <div class="search-bar">
+              <input id="ollama-pull-input" type="text" placeholder="Model name (e.g. llama3, mistral, codellama, qwen2.5-coder:32b)" style="flex:1;">
+              <button class="btn btn-primary" onclick="pullOllamaModel()" id="ollama-pull-btn">Pull</button>
+            </div>
+          </div>
+          <div id="ollama-pull-progress" style="display:none;padding:12px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+              <span id="ollama-pull-status" style="font-size:13px;font-weight:500;">Pulling...</span>
+              <span id="ollama-pull-pct" style="font-size:12px;color:var(--text-muted);"></span>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+              <div id="ollama-pull-bar" style="height:100%;background:var(--accent);border-radius:3px;transition:width 200ms;width:0%;"></div>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <p class="settings-desc" style="margin-bottom:8px;"><strong>Popular models:</strong></p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ollama-pull-input').value='llama3.3'">llama3.3</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ollama-pull-input').value='mistral'">mistral</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ollama-pull-input').value='qwen2.5-coder:32b'">qwen2.5-coder:32b</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ollama-pull-input').value='deepseek-r1:14b'">deepseek-r1:14b</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ollama-pull-input').value='codellama'">codellama</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ollama-pull-input').value='gemma2'">gemma2</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ollama-pull-input').value='phi3'">phi3</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ollama-pull-input').value='nomic-embed-text'">nomic-embed-text</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2050,8 +2114,8 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <script>
 // --- Panel routing ---
-var panelNames = ['agent','history','dashboard','memory','skills','workflows','webhooks','mcp','todos','notes','preferences','topics','followups','integrations','settings'];
-var panelTitles = { agent:'Chat', history:'History', dashboard:'Dashboard', memory:'Knowledge', skills:'Skills', workflows:'Workflows', webhooks:'Webhooks', mcp:'Extensions', todos:'Todos', notes:'Notes', preferences:'Preferences', topics:'Topics', followups:'Follow-ups', integrations:'Integrations', settings:'Settings' };
+var panelNames = ['agent','history','dashboard','memory','skills','workflows','webhooks','mcp','models','todos','notes','preferences','topics','followups','integrations','settings'];
+var panelTitles = { agent:'Chat', history:'History', dashboard:'Dashboard', memory:'Knowledge', skills:'Skills', workflows:'Workflows', webhooks:'Webhooks', mcp:'Extensions', models:'Models', todos:'Todos', notes:'Notes', preferences:'Preferences', topics:'Topics', followups:'Follow-ups', integrations:'Integrations', settings:'Settings' };
 
 // Legacy panel name mapping (old names -> new names + tab)
 var legacyPanelMap = {
@@ -2093,6 +2157,7 @@ function showPanel(name) {
   if (name === 'integrations') loadIntegrations();
   if (name === 'webhooks') loadWebhooks();
   if (name === 'mcp') loadMcpPanel();
+  if (name === 'models') loadModelsPanel();
   if (name === 'todos') loadTodos();
   if (name === 'notes') loadNotes();
   if (name === 'preferences') loadPrefs();
@@ -4543,6 +4608,8 @@ function renderCmdResults(query) {
     { title: 'Browse Registry', action: function() { showPanel('skills'); switchTab('skills','browse'); } },
     { title: 'Visual Builder', action: function() { showPanel('workflows'); switchTab('workflows','visual'); } },
     { title: 'Extensions Marketplace', action: function() { showPanel('mcp'); switchTab('mcp','marketplace'); } },
+    { title: 'Models', action: function() { showPanel('models'); } },
+    { title: 'Pull Model', action: function() { showPanel('models'); switchTab('models','available'); } },
     { title: 'Email Digests', action: function() { showPanel('settings'); switchTab('settings','digests'); } },
   ];
   subTabs.forEach(function(st) { items.push({ name: st.title.toLowerCase(), title: st.title, action: st.action }); });
@@ -5666,6 +5733,146 @@ function sendTestDigest() {
   api('/digests/send', { method: 'POST' })
     .then(function() { toast('Test digest sent'); loadDigestConfig(); })
     .catch(function(e) { toast('Send failed: ' + (e.message || '')); });
+}
+
+// ── MODELS (Ollama) ──
+
+function loadModelsPanel() {
+  // Check Ollama status
+  api('/ollama/status').then(function(data) {
+    var dot = document.getElementById('ollama-status-dot');
+    var text = document.getElementById('ollama-status-text');
+    var ver = document.getElementById('ollama-version');
+    if (data.running) {
+      dot.className = 'status-dot ok';
+      text.textContent = 'Ollama is running';
+      ver.textContent = data.version || '';
+      loadOllamaModels();
+    } else {
+      dot.className = 'status-dot error';
+      text.textContent = 'Ollama is not running. Start it with: ollama serve';
+      ver.textContent = '';
+      document.getElementById('ollama-models-list').replaceChildren();
+      document.getElementById('ollama-models-empty').style.display = 'flex';
+    }
+  }).catch(function() {
+    var dot = document.getElementById('ollama-status-dot');
+    var text = document.getElementById('ollama-status-text');
+    dot.className = 'status-dot error';
+    text.textContent = 'Cannot reach Ollama. Make sure it is installed and running.';
+  });
+}
+
+function loadOllamaModels() {
+  api('/ollama/models').then(function(data) {
+    var list = document.getElementById('ollama-models-list');
+    var empty = document.getElementById('ollama-models-empty');
+    list.replaceChildren();
+    var models = data.models || [];
+    empty.style.display = models.length ? 'none' : 'flex';
+    models.forEach(function(m) {
+      var card = document.createElement('div');
+      card.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);';
+      var info = document.createElement('div');
+      var nameEl = document.createElement('div');
+      nameEl.style.cssText = 'font-weight:600;font-size:14px;color:var(--text);';
+      nameEl.textContent = m.name;
+      info.appendChild(nameEl);
+      var meta = document.createElement('div');
+      meta.style.cssText = 'font-size:12px;color:var(--text-muted);margin-top:2px;display:flex;gap:12px;';
+      var sizeStr = m.size ? (m.size / 1e9).toFixed(1) + ' GB' : '';
+      var familyStr = m.family || '';
+      var paramStr = m.parameter_size || '';
+      var quantStr = m.quantization || '';
+      var parts = [paramStr, quantStr, familyStr, sizeStr].filter(Boolean);
+      meta.textContent = parts.join(' · ');
+      info.appendChild(meta);
+      card.appendChild(info);
+      var btns = document.createElement('div');
+      btns.style.cssText = 'display:flex;gap:8px;align-items:center;';
+      var useBtn = document.createElement('button');
+      useBtn.className = 'btn btn-ghost btn-sm';
+      useBtn.textContent = 'Use';
+      useBtn.title = 'Set as active model';
+      useBtn.onclick = (function(name) { return function() { useOllamaModel(name); }; })(m.name);
+      btns.appendChild(useBtn);
+      var delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-ghost btn-sm';
+      delBtn.style.color = 'var(--red)';
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = (function(name) { return function() { deleteOllamaModel(name); }; })(m.name);
+      btns.appendChild(delBtn);
+      card.appendChild(btns);
+      list.appendChild(card);
+    });
+  }).catch(function() {
+    toast('Failed to load models');
+  });
+}
+
+function pullOllamaModel() {
+  var input = document.getElementById('ollama-pull-input');
+  var name = input.value.trim();
+  if (!name) { toast('Enter a model name'); return; }
+  var btn = document.getElementById('ollama-pull-btn');
+  btn.disabled = true;
+  btn.textContent = 'Pulling...';
+  var progress = document.getElementById('ollama-pull-progress');
+  progress.style.display = 'block';
+  document.getElementById('ollama-pull-status').textContent = 'Starting pull for ' + name + '...';
+  document.getElementById('ollama-pull-pct').textContent = '';
+  document.getElementById('ollama-pull-bar').style.width = '0%';
+
+  // Use SSE-like polling since we proxy through our API
+  api('/ollama/pull', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name }) })
+    .then(function(data) {
+      btn.disabled = false;
+      btn.textContent = 'Pull';
+      if (data.ok) {
+        document.getElementById('ollama-pull-status').textContent = 'Done! ' + name + ' is ready.';
+        document.getElementById('ollama-pull-bar').style.width = '100%';
+        toast(name + ' pulled successfully');
+        input.value = '';
+        loadOllamaModels();
+        setTimeout(function() { progress.style.display = 'none'; }, 3000);
+      } else {
+        document.getElementById('ollama-pull-status').textContent = 'Error: ' + (data.error || 'Pull failed');
+        document.getElementById('ollama-pull-bar').style.width = '0%';
+        toast('Pull failed: ' + (data.error || ''));
+      }
+    })
+    .catch(function(e) {
+      btn.disabled = false;
+      btn.textContent = 'Pull';
+      document.getElementById('ollama-pull-status').textContent = 'Error: ' + (e.message || 'Pull failed');
+      toast('Pull failed');
+    });
+}
+
+function deleteOllamaModel(name) {
+  if (!confirm('Delete model "' + name + '"? This cannot be undone.')) return;
+  api('/ollama/delete', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name }) })
+    .then(function(data) {
+      if (data.ok) {
+        toast(name + ' deleted');
+        loadOllamaModels();
+      } else {
+        toast('Delete failed: ' + (data.error || ''));
+      }
+    })
+    .catch(function(e) { toast('Delete failed'); });
+}
+
+function useOllamaModel(name) {
+  api('/config/model', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'ollama', model: name }) })
+    .then(function(data) {
+      if (data.ok) {
+        toast('Switched to ollama/' + name);
+      } else {
+        toast('Failed: ' + (data.error || ''));
+      }
+    })
+    .catch(function(e) { toast('Failed to switch model'); });
 }
 
 // ── TODOS ──

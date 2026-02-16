@@ -75,6 +75,85 @@ export async function parseDocument(
       }
     }
 
+    case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+      try {
+        const XLSX = (await import("xlsx")).default ?? (await import("xlsx"));
+        const workbook = XLSX.read(readFileSync(filePath), { type: "buffer" });
+        const parts: string[] = [];
+        for (const sheetName of workbook.SheetNames) {
+          const sheet = workbook.Sheets[sheetName];
+          const csv = XLSX.utils.sheet_to_csv(sheet);
+          parts.push(`Sheet: ${sheetName}\n${csv}`);
+        }
+        const text = parts.join("\n\n");
+        return {
+          text,
+          metadata: { filename, mimeType, wordCount: countWords(text) },
+        };
+      } catch (err: any) {
+        logger.warn("XLSX parsing failed — install xlsx (SheetJS) for XLSX support", { error: err.message });
+        return {
+          text: `[XLSX file: ${filename} — install xlsx for content extraction]`,
+          metadata: { filename, mimeType, wordCount: 0 },
+        };
+      }
+    }
+
+    case "application/vnd.ms-excel": {
+      return {
+        text: `[XLS file: ${filename} — old .xls format is not supported, please convert to .xlsx]`,
+        metadata: { filename, mimeType, wordCount: 0 },
+      };
+    }
+
+    case "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
+      try {
+        const JSZip = (await import("jszip")).default ?? (await import("jszip"));
+        const buffer = readFileSync(filePath);
+        const zip = await JSZip.loadAsync(buffer);
+
+        // Collect slide files and sort by slide number
+        const slideFiles: { num: number; path: string }[] = [];
+        zip.forEach((relativePath: string) => {
+          const match = relativePath.match(/^ppt\/slides\/slide(\d+)\.xml$/);
+          if (match) {
+            slideFiles.push({ num: parseInt(match[1], 10), path: relativePath });
+          }
+        });
+        slideFiles.sort((a, b) => a.num - b.num);
+
+        const parts: string[] = [];
+        for (const slide of slideFiles) {
+          const xml = await zip.file(slide.path)!.async("text");
+          // Extract text content from XML — pull all <a:t> tag values
+          const textParts: string[] = [];
+          const regex = /<a:t>([\s\S]*?)<\/a:t>/g;
+          let m: RegExpExecArray | null;
+          while ((m = regex.exec(xml)) !== null) {
+            const content = m[1].trim();
+            if (content) textParts.push(content);
+          }
+          parts.push(`Slide ${slide.num}:\n${textParts.join(" ")}`);
+        }
+        const text = parts.join("\n\n");
+        return {
+          text,
+          metadata: {
+            filename,
+            mimeType,
+            pages: slideFiles.length,
+            wordCount: countWords(text),
+          },
+        };
+      } catch (err: any) {
+        logger.warn("PPTX parsing failed — install jszip for PPTX support", { error: err.message });
+        return {
+          text: `[PPTX file: ${filename} — install jszip for content extraction]`,
+          metadata: { filename, mimeType, wordCount: 0 },
+        };
+      }
+    }
+
     default: {
       // Try to read as text
       const ext = extname(filePath).toLowerCase();
@@ -103,6 +182,9 @@ const MIME_MAP: Record<string, string> = {
   ".csv": "text/csv",
   ".pdf": "application/pdf",
   ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ".xls": "application/vnd.ms-excel",
+  ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   ".json": "application/json",
   ".xml": "application/xml",
   ".yaml": "text/yaml",
