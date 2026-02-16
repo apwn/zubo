@@ -122,8 +122,13 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
         models.slice(0, 10).forEach((m, i) => console.log(`    ${DIM}${(i + 1).toString().padStart(2)}.${RESET} ${m}`));
         if (models.length > 10) console.log(`    ${DIM}   ... and ${models.length - 10} more${RESET}`);
         console.log("");
-        model = await prompt(`  Model [${models[0]}]: `);
-        model = model || models[0];
+        const modelInput = await prompt(`  Model [${models[0]}]: `);
+        const num = parseInt(modelInput, 10);
+        if (modelInput && !isNaN(num) && num >= 1 && num <= models.length) {
+          model = models[num - 1];
+        } else {
+          model = modelInput || models[0];
+        }
       } else {
         info("No models downloaded yet. Pull one with:");
         console.log(`    ${DIM}ollama pull llama3.3${RESET}`);
@@ -311,8 +316,13 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
         console.log(`\n    ${BOLD}Loaded models:${RESET}`);
         models.forEach((m, i) => console.log(`    ${DIM}${(i + 1).toString().padStart(2)}.${RESET} ${m}`));
         console.log("");
-        model = await prompt(`  Model [${models[0]}]: `);
-        model = model || models[0];
+        const lmsInput = await prompt(`  Model [${models[0]}]: `);
+        const lmsNum = parseInt(lmsInput, 10);
+        if (lmsInput && !isNaN(lmsNum) && lmsNum >= 1 && lmsNum <= models.length) {
+          model = models[lmsNum - 1];
+        } else {
+          model = lmsInput || models[0];
+        }
       } else {
         info("No models detected. Load a model in LM Studio first.");
         model = await prompt("  Model name: ");
@@ -394,11 +404,11 @@ const PROVIDER_OPTIONS: ProviderOption[] = [
       }
       ok("'codex' CLI found");
       info("Authenticating — this will open your browser if needed...");
-      const login = Bun.spawnSync(["codex", "auth", "login"], {
+      const login = Bun.spawnSync(["codex", "login"], {
         stdin: "inherit", stdout: "inherit", stderr: "inherit",
       });
       if (login.exitCode !== 0) {
-        warn("Login may not have completed. Run 'codex auth login' manually later.");
+        warn("Login may not have completed. Run 'codex login' manually later.");
       } else {
         ok("Codex ready");
       }

@@ -51,8 +51,9 @@ export class CodexProvider implements LlmProvider {
 
     const prompt = parts.join("\n\n");
 
-    const args = ["codex", "-q", prompt];
+    const args = ["codex", "exec"];
     if (this.model) args.push("--model", this.model);
+    args.push(prompt);
 
     try {
       const proc = Bun.spawn(args, {
