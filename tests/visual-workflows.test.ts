@@ -73,16 +73,10 @@ mock.module("../src/util/logger", () => ({
 // Track executeTool calls
 let executeToolCalls: { toolName: string; input: any }[] = [];
 
-mock.module("../src/tools/executor", () => ({
-  executeTool: async (toolName: string, toolUseId: string, input: any) => {
-    executeToolCalls.push({ toolName, input });
-    return {
-      tool_use_id: toolUseId,
-      content: `Result from ${toolName}`,
-      is_error: false,
-    };
-  },
-}));
+// NOTE: We intentionally do NOT mock.module("../src/tools/executor") because
+// Bun's mock.module is global and permanent — it would pollute executor.test.ts
+// and personal-features.test.ts. Instead we use the __setExecuteTool injection
+// hook provided by visual-workflows.ts (see below after import).
 
 // Mock croner to prevent actual cron scheduling
 const registeredCrons: { pattern: string; callback: Function }[] = [];
@@ -109,7 +103,18 @@ const {
   executeVisualWorkflow,
   registerWorkflowTriggers,
   unregisterWorkflowTriggers,
+  __setExecuteTool,
 } = await import("../src/scheduler/visual-workflows");
+
+// Inject the mock executeTool via dependency injection instead of mock.module
+__setExecuteTool(async (toolName: string, toolUseId: string, input: any) => {
+  executeToolCalls.push({ toolName, input });
+  return {
+    tool_use_id: toolUseId,
+    content: `Result from ${toolName}`,
+    is_error: false,
+  };
+});
 
 // ─── Helper: insert a workflow ──────────────────────────────────────────────
 

@@ -52,7 +52,22 @@ mock.module("../src/config/paths", () => ({
   },
 }));
 
-mock.module("../src/tools/mcp-client", () => ({
+// NOTE: We intentionally do NOT mock.module("../src/tools/mcp-client") because
+// Bun's mock.module is global and permanent — it would pollute mcp-client.test.ts
+// causing McpClient to become undefined. Instead we use the __setMcpClientFns
+// injection hook provided by mcp-registry.ts.
+
+const {
+  searchRegistry,
+  getServerDetail,
+  listRegistry,
+  installFromRegistry,
+  uninstallMcpServer,
+  __setMcpClientFns,
+} = await import("../src/tools/mcp-registry");
+
+// Inject mock MCP client functions via dependency injection
+__setMcpClientFns({
   connectMcpServer: async (config: any) => {
     connectedServers.push(config.name);
   },
@@ -61,15 +76,7 @@ mock.module("../src/tools/mcp-client", () => ({
   },
   getMcpStatus: () =>
     connectedServers.map((name) => ({ name, tools: 3, connected: true })),
-}));
-
-const {
-  searchRegistry,
-  getServerDetail,
-  listRegistry,
-  installFromRegistry,
-  uninstallMcpServer,
-} = await import("../src/tools/mcp-registry");
+});
 
 afterAll(() => {
   globalThis.fetch = originalFetch;

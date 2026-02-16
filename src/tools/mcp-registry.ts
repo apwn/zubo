@@ -2,11 +2,41 @@ import { readFileSync, writeFileSync } from "fs";
 import { logger } from "../util/logger";
 import { paths } from "../config/paths";
 import {
-  connectMcpServer,
-  disconnectMcpServer,
-  getMcpStatus,
+  connectMcpServer as realConnectMcpServer,
+  disconnectMcpServer as realDisconnectMcpServer,
+  getMcpStatus as realGetMcpStatus,
 } from "./mcp-client";
 import type { McpServerConfig } from "./mcp-client";
+
+// ---------------------------------------------------------------------------
+// Overridable MCP client functions (allows tests to inject mocks without
+// mock.module, which leaks globally in Bun and breaks mcp-client.test.ts)
+// ---------------------------------------------------------------------------
+
+interface McpClientFns {
+  connectMcpServer: typeof realConnectMcpServer;
+  disconnectMcpServer: typeof realDisconnectMcpServer;
+  getMcpStatus: typeof realGetMcpStatus;
+}
+
+let _mcpFns: McpClientFns = {
+  connectMcpServer: realConnectMcpServer,
+  disconnectMcpServer: realDisconnectMcpServer,
+  getMcpStatus: realGetMcpStatus,
+};
+
+/** @internal Test-only hook to override MCP client functions without mock.module pollution. */
+export function __setMcpClientFns(fns: Partial<McpClientFns> | null): void {
+  if (fns === null) {
+    _mcpFns = {
+      connectMcpServer: realConnectMcpServer,
+      disconnectMcpServer: realDisconnectMcpServer,
+      getMcpStatus: realGetMcpStatus,
+    };
+  } else {
+    _mcpFns = { ..._mcpFns, ...fns };
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Registry API base URL
@@ -194,9 +224,9 @@ export async function installFromRegistry(
   // Hot-connect the server
   let toolCount = 0;
   try {
-    await connectMcpServer(serverConfig);
+    await _mcpFns.connectMcpServer(serverConfig);
     // Retrieve tool count from the live status
-    const status = getMcpStatus();
+    const status = _mcpFns.getMcpStatus();
     const entry = status.find((s) => s.name === serverName);
     toolCount = entry?.tools ?? 0;
   } catch (err: any) {
@@ -218,7 +248,7 @@ export async function installFromRegistry(
  */
 export async function uninstallMcpServer(serverName: string): Promise<void> {
   // Disconnect the live server (no-op if not connected)
-  await disconnectMcpServer(serverName);
+  await _mcpFns.disconnectMcpServer(serverName);
 
   // Read current config.json and remove the server entry
   const raw = readFileSync(paths.config, "utf-8");

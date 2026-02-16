@@ -1,7 +1,8 @@
 import { Cron } from "croner";
 import { getDb } from "../db/connection";
 import { logger } from "../util/logger";
-import { executeTool } from "../tools/executor";
+import { executeTool as realExecuteTool } from "../tools/executor";
+import type { ToolResult } from "../tools/executor";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -12,6 +13,19 @@ interface WorkflowStep {
   type: "tool" | "condition" | "agent" | "message" | "delay";
   config: Record<string, any>;
   next?: string; // id of the next step (linear flow)
+}
+
+// ---------------------------------------------------------------------------
+// Overridable executeTool (allows tests to inject a mock without mock.module)
+// ---------------------------------------------------------------------------
+
+type ExecuteToolFn = (name: string, toolUseId: string, input: Record<string, unknown>) => Promise<ToolResult>;
+
+let _executeTool: ExecuteToolFn = realExecuteTool;
+
+/** @internal Test-only hook to override executeTool without mock.module pollution. */
+export function __setExecuteTool(fn: ExecuteToolFn | null): void {
+  _executeTool = fn ?? realExecuteTool;
 }
 
 interface VisualWorkflowRow {
@@ -96,7 +110,7 @@ async function executeToolStep(
   const rawInput: Record<string, any> = config.input ?? {};
   const resolvedInput = resolveConfigTemplates(rawInput, context);
 
-  const result = await executeTool(toolName, crypto.randomUUID(), resolvedInput);
+  const result = await _executeTool(toolName, crypto.randomUUID(), resolvedInput);
 
   const output = result.content;
   context.steps[stepId] = { result: output };
