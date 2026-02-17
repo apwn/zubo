@@ -18,6 +18,7 @@ export type ToolScope =
 const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   // Built-in tools — always safe
   datetime: "auto",
+  get_current_datetime: "auto",
   memory_write: "auto",
   memory_search: "auto",
   memory_prune: "confirm",
@@ -121,6 +122,7 @@ function getPermissionOverrides(): Record<string, ToolPermission> {
 
 const TOOL_SCOPES: Record<string, ToolScope[]> = {
   datetime: ["memory"],
+  get_current_datetime: ["memory"],
   memory_write: ["memory"],
   memory_search: ["memory"],
   memory_prune: ["memory"],
