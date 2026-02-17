@@ -33,3 +33,6 @@ jobs:
 
       - name: Run tests
         run: bun test
+
+      - name: Run reliability eval
+        run: bun run eval

@@ -85,15 +85,61 @@
       <h1>CLI Commands</h1>
       <p>The <code>zubo</code> CLI manages your agent. Here's every command.</p>
 
+      <h2>Copy-Paste Task Cards</h2>
+      <div class="docs-ux-grid">
+        <div class="docs-task-card">
+          <h3>Secure API Access</h3>
+          <p>Enable API auth and create a key before exposing ports beyond localhost.</p>
+<pre><code>zubo config set auth.enabled true
+zubo auth create-key my-app</code></pre>
+        </div>
+        <div class="docs-task-card">
+          <h3>Set Local Model Fallback</h3>
+          <p>Keep responses available during provider outages or API quota issues.</p>
+<pre><code>zubo config set failover '["openai","ollama"]'
+zubo config set providers.ollama.model llama3.3</code></pre>
+        </div>
+      </div>
+
+      <h2>Common Errors</h2>
+      <div class="docs-callout docs-callout-error">
+        <strong>401 Unauthorized / Missing Bearer token</strong>
+        <p>If <code>auth.enabled</code> is true, all <code>/api/*</code> calls require <code>Authorization: Bearer &lt;key&gt;</code>. Create a new key if needed.</p>
+<pre><code>curl -H "Authorization: Bearer YOUR_KEY" http://localhost:3000/api/dashboard/status</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-warn">
+        <strong>Provider Timeout / Upstream unavailable</strong>
+        <p>Use failover and switch temporarily to a responsive provider or smaller model. Check logs for repeated timeout patterns.</p>
+<pre><code>zubo model openai/gpt-4o-mini
+zubo logs --follow</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-info">
+        <strong>Missing local model (Ollama/LM Studio)</strong>
+        <p>If local providers fail, ensure the runtime is running and a model is installed.</p>
+<pre><code>ollama serve
+ollama pull llama3.3</code></pre>
+      </div>
+
+      <h2>Most-Used Commands</h2>
+<pre><code>zubo setup
+zubo start
+zubo status
+zubo logs --follow
+zubo model
+zubo config get
+zubo config set budget.dailyLimitUsd 5
+zubo eval</code></pre>
+      <p>Use CLI commands for automation, CI, and system management. Use slash commands in chat for fast runtime actions like <code>/model set</code> and <code>/permissions set</code>.</p>
+
       <h2>Core Commands</h2>
 
       <h3>zubo setup</h3>
-      <p>Interactive 4-step wizard for first-time configuration. When you run it, you'll be asked to choose between two modes:</p>
+      <p>Interactive setup wizard for first-time configuration. You can choose a <strong>Quickstart</strong> profile (~5 minutes) or the full setup flow. You can also choose two UI modes:</p>
       <ul>
         <li><strong>Terminal</strong> &mdash; Classic step-by-step prompts right in your terminal.</li>
         <li><strong>Dashboard</strong> &mdash; Opens a beautiful browser-based wizard at <code>http://localhost:&lt;port&gt;</code> with the same steps, auto-detection of local providers (Ollama, LM Studio), and connection testing. Great for non-technical users or if you prefer a visual UI.</li>
       </ul>
-      <p>Both modes walk you through 4 steps:</p>
+      <p>The full setup mode walks you through 4 steps:</p>
       <ol>
         <li><strong>LLM Provider</strong> &mdash; Choose from 15 supported providers (Anthropic, OpenAI, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, MiniMax, Fireworks, Cerebras, LM Studio, Claude Code, Codex, or any OpenAI-compatible endpoint). Enter your API key and select a model. Optionally add a fallback provider for automatic failover.</li>
         <li><strong>Channels</strong> &mdash; Enable any of 7 messaging channels: Telegram, Discord, Slack, WhatsApp, Signal, and Email. WebChat is always enabled by default. Each channel prompts for its required credentials (bot tokens, webhook URLs, etc.).</li>
@@ -128,6 +174,21 @@ zubo logs -f         # Short form</code></pre>
 zubo model --list    # List all configured providers
 zubo model ollama/llama3.3  # Switch to provider/model</code></pre>
       <p>The model argument uses the format <code>provider/model</code>. For example, <code>anthropic/claude-sonnet-4-5-20250929</code>, <code>openai/gpt-4o</code>, or <code>ollama/llama3.3</code>. The change takes effect immediately if the agent is running.</p>
+      <p>In chat channels, use slash commands for the same actions: <code>/model</code> and <code>/model set &lt;provider/model&gt;</code>.</p>
+
+      <h2>In-Chat Slash Commands</h2>
+<pre><code>/help
+/status
+/memory &lt;query&gt;
+/model
+/model set &lt;provider/model&gt;
+/tools [filter]
+/permissions &lt;tool&gt;
+/permissions set &lt;tool&gt; &lt;auto|confirm|deny&gt;
+/budget
+/budget pause
+/budget resume</code></pre>
+      <p>These commands work in WebChat and supported messaging channels. Use them for quick operations without leaving chat.</p>
 
       <h2>Configuration</h2>
 <pre><code>zubo config set &lt;key&gt; &lt;value&gt;    # Set a config value
@@ -161,6 +222,10 @@ zubo publish [name]  # Publish a skill</code></pre>
       <h2>Voice</h2>
 <pre><code>zubo voice           # Start continuous voice conversation mode</code></pre>
       <p>Starts an interactive voice conversation loop. Zubo listens through your microphone, transcribes speech using Whisper (cloud or local whisper.cpp), processes it through the agent, and speaks the response back using text-to-speech. Requires <code>voice.stt</code> and <code>voice.tts</code> to be configured. Install <code>sox</code> for microphone recording.</p>
+
+      <h2>Reliability Eval</h2>
+<pre><code>zubo eval            # Run reliability + safety checks</code></pre>
+      <p>Runs deterministic checks for slash command behavior, memory explainability metadata, and dry-run tool safety. Useful before deploying config changes or upgrading Zubo.</p>
 
       <h2>Authentication</h2>
 <pre><code>zubo auth create-key [label]  # Create API key (shown once)
@@ -216,6 +281,9 @@ zubo mcp-serve --port 9800  # Start MCP server over HTTP (SSE)</code></pre>
           <tr><td><code>zubo model</code></td><td>Show active model</td></tr>
           <tr><td><code>zubo model --list</code></td><td>List providers</td></tr>
           <tr><td><code>zubo model &lt;p/m&gt;</code></td><td>Switch provider/model</td></tr>
+          <tr><td><code>/model set &lt;p/m&gt;</code></td><td>Switch model from chat</td></tr>
+          <tr><td><code>/permissions set &lt;tool&gt; &lt;level&gt;</code></td><td>Set per-tool permission</td></tr>
+          <tr><td><code>/budget pause|resume</code></td><td>Pause or resume budget enforcement</td></tr>
           <tr><td><code>zubo config set &lt;k&gt; &lt;v&gt;</code></td><td>Set config value</td></tr>
           <tr><td><code>zubo config get [key]</code></td><td>Show config value(s)</td></tr>
           <tr><td><code>zubo skills</code></td><td>Interactive skill menu</td></tr>
@@ -233,6 +301,7 @@ zubo mcp-serve --port 9800  # Start MCP server over HTTP (SSE)</code></pre>
           <tr><td><code>zubo export --format sqlite</code></td><td>Backup SQLite</td></tr>
           <tr><td><code>zubo import &lt;path&gt;</code></td><td>Import JSON</td></tr>
           <tr><td><code>zubo voice</code></td><td>Voice conversation mode</td></tr>
+          <tr><td><code>zubo eval</code></td><td>Run reliability + safety checks</td></tr>
           <tr><td><code>zubo mcp-serve</code></td><td>Start MCP server (stdio)</td></tr>
           <tr><td><code>zubo mcp-serve --port &lt;n&gt;</code></td><td>Start MCP server (HTTP/SSE)</td></tr>
         </tbody>

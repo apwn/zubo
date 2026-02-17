@@ -21,6 +21,7 @@ export interface AgentLoopOptions {
   allowedTools?: string[];
   maxRounds?: number;
   memories?: string;
+  directUserRequest?: boolean;
 }
 
 export interface StreamCallbacks {
@@ -35,7 +36,7 @@ export interface StreamCallbacks {
 
 function resolveOptions(memoriesOrOptions: string | AgentLoopOptions): AgentLoopOptions {
   return typeof memoriesOrOptions === "string"
-    ? { memories: memoriesOrOptions }
+    ? { memories: memoriesOrOptions, directUserRequest: false }
     : memoriesOrOptions;
 }
 
@@ -125,6 +126,7 @@ function extractToolUseBlocks(content: LlmContentBlock[]): ToolUseBlock[] {
 async function executeToolBlocks(
   blocks: ToolUseBlock[],
   allowedTools: string[] | undefined,
+  directUserRequest: boolean,
   onToolStart?: (name: string, id: string) => void,
   onToolEnd?: (name: string, id: string) => void
 ): Promise<{ results: LlmContentBlock[]; count: number }> {
@@ -135,7 +137,13 @@ async function executeToolBlocks(
 
   // Execute all tools in parallel
   const resultPromises = blocks.map(async (block) => {
-    const result = await executeTool(block.name, block.id, block.input, allowedTools);
+    const result = await executeTool(
+      block.name,
+      block.id,
+      block.input,
+      allowedTools,
+      { directUserRequest }
+    );
     onToolEnd?.(block.name, block.id);
     return {
       type: "tool_result" as const,
@@ -250,7 +258,11 @@ export async function agentLoop(
     }
 
     // Execute tools
-    const { results, count } = await executeToolBlocks(toolUseBlocks, options.allowedTools);
+    const { results, count } = await executeToolBlocks(
+      toolUseBlocks,
+      options.allowedTools,
+      options.directUserRequest === true
+    );
     totalToolCalls += count;
     persistToolRound(sessionId, response.content, results, messages);
   }
@@ -292,6 +304,7 @@ export async function agentLoopStream(
       let roundText = "";
       let roundResponse: LlmResponse | null = null;
       const llmStartTime = Date.now();
+      const streamingToolNames = new Map<string, string>();
 
       let streamTimeoutHandle: ReturnType<typeof setTimeout>;
       await Promise.race([
@@ -308,10 +321,11 @@ export async function agentLoopStream(
                 callbacks.onTextDelta(event.text);
                 break;
               case "tool_use_start":
+                streamingToolNames.set(event.id, event.name);
                 callbacks.onToolStart?.(event.name, event.id);
                 break;
               case "tool_use_end":
-                callbacks.onToolEnd?.("", event.id);
+                callbacks.onToolEnd?.(streamingToolNames.get(event.id) ?? "", event.id);
                 break;
               case "message_done":
                 roundResponse = event.response;
@@ -346,7 +360,9 @@ export async function agentLoopStream(
 
       // Execute tools
       const { results, count } = await executeToolBlocks(
-        toolUseBlocks, options.allowedTools,
+        toolUseBlocks,
+        options.allowedTools,
+        options.directUserRequest === true,
         callbacks.onToolStart, callbacks.onToolEnd
       );
       totalToolCalls += count;

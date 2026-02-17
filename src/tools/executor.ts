@@ -1,8 +1,10 @@
 import { getTool } from "./registry";
-import { getToolPermission } from "./permissions";
+import { getToolPermission, getToolScopes, hasRiskyScope } from "./permissions";
 import { logger } from "../util/logger";
 import { recordError } from "../util/error-buffer";
 import { executeSandboxed } from "./sandbox";
+import { paths } from "../config/paths";
+import { readFileSync, statSync } from "fs";
 
 /** Built-in integration tool names — these run in-process, NOT sandboxed,
  *  because they need access to Zubo.getGoogleToken and the OAuth module. */
@@ -16,20 +18,71 @@ const BUILTIN_INTEGRATION_TOOLS = new Set([
   "claude_code_task", "codex_task",
 ]);
 
+interface ToolScopePolicy {
+  allowed?: string[];
+  dryRunByDefault: boolean;
+}
+
+const toolScopePolicyCache: {
+  mtimeMs: number;
+  value: ToolScopePolicy;
+} = {
+  mtimeMs: -1,
+  value: { dryRunByDefault: false },
+};
+
 export interface ToolResult {
   tool_use_id: string;
   content: string;
   is_error: boolean;
 }
 
+export interface ExecuteToolOptions {
+  directUserRequest?: boolean;
+}
+
 // Server-side confirmation tracking — prevents LLM from spoofing _confirmed
-const pendingConfirmations = new Map<string, { toolName: string; input: Record<string, unknown>; timestamp: number }>();
+const pendingConfirmations = new Map<
+  string,
+  { toolName: string; inputHash: string; timestamp: number }
+>();
 
 // Clean up stale confirmations older than 10 minutes
 function cleanStaleConfirmations() {
   const cutoff = Date.now() - 10 * 60 * 1000;
   for (const [token, entry] of pendingConfirmations) {
     if (entry.timestamp < cutoff) pendingConfirmations.delete(token);
+  }
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((v) => stableStringify(v)).join(",")}]`;
+  }
+  const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj).sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`).join(",")}}`;
+}
+
+function readToolScopePolicy(): ToolScopePolicy {
+  try {
+    const mtimeMs = statSync(paths.config).mtimeMs;
+    if (toolScopePolicyCache.mtimeMs === mtimeMs) {
+      return toolScopePolicyCache.value;
+    }
+    const cfg = JSON.parse(readFileSync(paths.config, "utf-8"));
+    const parsed = {
+      allowed: Array.isArray(cfg?.toolScopes?.allowed) ? cfg.toolScopes.allowed : undefined,
+      dryRunByDefault: Boolean(cfg?.toolScopes?.dryRunByDefault),
+    };
+    toolScopePolicyCache.mtimeMs = mtimeMs;
+    toolScopePolicyCache.value = parsed;
+    return parsed;
+  } catch {
+    return { dryRunByDefault: false };
   }
 }
 
@@ -113,7 +166,8 @@ export async function executeTool(
   name: string,
   toolUseId: string,
   input: Record<string, unknown>,
-  allowedTools?: string[]
+  allowedTools?: string[],
+  options: ExecuteToolOptions = {}
 ): Promise<ToolResult> {
   // Defense-in-depth: if an allowedTools set is provided (sub-agents),
   // reject any tool call not in the set, even if the LLM tries to call it.
@@ -136,6 +190,22 @@ export async function executeTool(
   }
 
   const permission = getToolPermission(name);
+  const scopes = getToolScopes(name);
+  const scopePolicy = readToolScopePolicy();
+
+  if (scopePolicy.allowed && scopePolicy.allowed.length > 0) {
+    const blocked = scopes.filter((scope) => !scopePolicy.allowed!.includes(scope));
+    if (blocked.length > 0) {
+      return {
+        tool_use_id: toolUseId,
+        content:
+          `Error: Tool '${name}' is blocked by tool scope policy. ` +
+          `Blocked scopes: ${blocked.join(", ")}. ` +
+          `Allowed scopes: ${scopePolicy.allowed.join(", ")}.`,
+        is_error: true,
+      };
+    }
+  }
 
   if (permission === "deny") {
     logger.warn(`Tool denied: ${name}`);
@@ -146,17 +216,41 @@ export async function executeTool(
     };
   }
 
+  const requestedDryRun = input._dryRun === true;
+  const defaultDryRun = scopePolicy.dryRunByDefault && permission === "confirm" && hasRiskyScope(scopes);
+  const dryRun = requestedDryRun || defaultDryRun;
+
+  if (dryRun) {
+    const { _confirmed, _confirmToken, _dryRun, ...previewInput } = input;
+    return {
+      tool_use_id: toolUseId,
+      content:
+        `DRY RUN ONLY — tool was NOT executed.\n\n` +
+        `Tool: ${name}\n` +
+        `Scopes: ${scopes.join(", ")}\n` +
+        `Input: ${JSON.stringify(previewInput, null, 2)}\n\n` +
+        `To execute for real, call again with _dryRun: false${permission === "confirm" ? " and include a valid _confirmToken after approval." : "."}`,
+      is_error: false,
+    };
+  }
+
   if (permission === "confirm") {
+    // For direct user requests, don't require a second explicit approval round.
+    if (options.directUserRequest) {
+      logger.info(`Bypassing confirmation for direct user request: ${name}`);
+    } else {
     cleanStaleConfirmations();
 
     // Check for a valid server-issued confirmation token
     const confirmToken = input._confirmToken as string | undefined;
     if (confirmToken) {
       const pending = pendingConfirmations.get(confirmToken);
-      if (!pending || pending.toolName !== name) {
+      const { _confirmed, _confirmToken: _, _dryRun: __, ...displayInput } = input;
+      const inputHash = stableStringify(displayInput);
+      if (!pending || pending.toolName !== name || pending.inputHash !== inputHash) {
         return {
           tool_use_id: toolUseId,
-          content: `Error: Invalid or expired confirmation token. The action was NOT executed. Please ask the user for approval again.`,
+          content: `Error: Invalid, mismatched, or expired confirmation token. The action was NOT executed. Please ask the user for approval again.`,
           is_error: true,
         };
       }
@@ -167,19 +261,24 @@ export async function executeTool(
       const { _confirmed, _confirmToken: _, ...displayInput } = input;
       const desc = JSON.stringify(displayInput, null, 2);
       const token = crypto.randomUUID();
-      pendingConfirmations.set(token, { toolName: name, input: displayInput, timestamp: Date.now() });
+      pendingConfirmations.set(token, {
+        toolName: name,
+        inputHash: stableStringify(displayInput),
+        timestamp: Date.now(),
+      });
       logger.info(`Tool requires confirmation: ${name}`);
       return {
         tool_use_id: toolUseId,
-        content: `CONFIRMATION REQUIRED — tool was NOT executed.\n\nTool: ${name}\nInput: ${desc}\nConfirmation Token: ${token}\n\nThis tool requires user approval before it can run. Describe this action to the user and ask for their permission. Once they approve, call this tool again with _confirmToken set to "${token}" in the input.`,
+        content: `CONFIRMATION REQUIRED — tool was NOT executed.\n\nTool: ${name}\nScopes: ${scopes.join(", ")}\nInput: ${desc}\nConfirmation Token: ${token}\n\nThis tool requires user approval before it can run. Describe this action to the user and ask for their permission. Once they approve, call this tool again with _confirmToken set to "${token}" in the input.`,
         is_error: false,
       };
+    }
     }
   }
 
   const startTime = Date.now();
   try {
-    const { _confirmed, _confirmToken, ...cleanInput } = input;
+    const { _confirmed, _confirmToken, _dryRun, ...cleanInput } = input;
     logger.info(`Executing tool: ${name}`);
 
     // Check if this is a user-installed skill that should be sandboxed

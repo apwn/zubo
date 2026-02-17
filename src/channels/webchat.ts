@@ -11,6 +11,7 @@ import { parseSkillMd, parseSkillExport } from "../tools/skill-loader";
 import { RateLimiter } from "../util/rate-limiter";
 import { initAuth, validateRequest, createApiKey, listApiKeys, deleteApiKey, generateSessionToken } from "../util/auth";
 import { exportDatabase, backupDatabase, importDatabase, getDbStats, getDbSizeBytes } from "../db/export";
+import { searchMemoryAsync } from "../memory/engine";
 
 /** Escape HTML to prevent XSS in OAuth error pages */
 function escapeHtml(s: string): string {
@@ -137,19 +138,20 @@ function getRecentMemoryChunks(): any[] {
   }
 }
 
-function searchMemoryChunks(query: string): any[] {
+async function searchMemoryChunksAsync(query: string): Promise<any[]> {
   try {
-    // Sanitize FTS5 input — strip special operators to prevent query injection
-    const sanitized = query.replace(/['"*()[\]{}:^~+\-!/\\]/g, " ").replace(/\b(AND|OR|NOT|NEAR)\b/gi, "").trim();
-    const terms = sanitized.split(/\s+/).filter(Boolean);
-    if (!terms.length) return [];
-    const ftsQuery = terms.join(" OR ");
+    const trimmed = query.trim();
+    if (!trimmed) return [];
     const db = getDb();
-    return db
-      .query(
-        "SELECT mc.source_file as source, mc.content FROM memory_fts f JOIN memory_chunks mc ON mc.id = f.rowid WHERE memory_fts MATCH ? ORDER BY rank LIMIT 20"
-      )
-      .all(ftsQuery) as any[];
+    const results = await searchMemoryAsync(db, trimmed, 20);
+    return results.map((r) => ({
+      source: r.sourceFile,
+      content: r.content,
+      confidence: r.confidence ?? null,
+      matchType: r.matchType ?? null,
+      reasons: r.reasons ?? [],
+      score: r.score ?? null,
+    }));
   } catch {
     return [];
   }
@@ -235,6 +237,18 @@ function getConfigInfo(): {
   } catch {
     return { activeProvider: "", model: "", providers: [] };
   }
+}
+
+function loadRawConfig(): any {
+  try {
+    return JSON.parse(readFileSync(paths.config, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveRawConfig(config: any) {
+  writeFileSync(paths.config, JSON.stringify(config, null, 2) + "\n");
 }
 
 function switchModelConfig(provider: string, model: string): { ok: boolean; error?: string } {
@@ -327,7 +341,7 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
   // GET /api/dashboard/memory/search?q=...
   if (path === "/memory/search" && req.method === "GET") {
     const q = url.searchParams.get("q") ?? "";
-    return Response.json({ results: searchMemoryChunks(q) });
+    return Response.json({ results: await searchMemoryChunksAsync(q) });
   }
 
   // GET /api/dashboard/cron
@@ -669,6 +683,63 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
     } catch {
       return Response.json({ enabled: false, fastProvider: "", fastModel: "" });
     }
+  }
+
+  // GET /api/dashboard/settings/memory-retrieval
+  if (path === "/settings/memory-retrieval" && req.method === "GET") {
+    const config = loadRawConfig();
+    return Response.json({
+      contextTopK: config.memoryRetrieval?.contextTopK ?? 3,
+      minConfidence: config.memoryRetrieval?.minConfidence ?? 0,
+    });
+  }
+
+  // PUT /api/dashboard/settings/memory-retrieval
+  if (path === "/settings/memory-retrieval" && req.method === "PUT") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { contextTopK?: number; minConfidence?: number };
+        const contextTopK = Math.max(1, Math.min(10, Math.trunc(Number(body.contextTopK ?? 3))));
+        const minConfidence = Math.max(0, Math.min(1, Number(body.minConfidence ?? 0)));
+        const config = loadRawConfig();
+        config.memoryRetrieval = { contextTopK, minConfidence };
+        saveRawConfig(config);
+        return Response.json({ ok: true, contextTopK, minConfidence });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
+  }
+
+  // GET /api/dashboard/settings/tool-scopes
+  if (path === "/settings/tool-scopes" && req.method === "GET") {
+    const config = loadRawConfig();
+    return Response.json({
+      allowed: config.toolScopes?.allowed ?? [],
+      dryRunByDefault: config.toolScopes?.dryRunByDefault ?? false,
+    });
+  }
+
+  // PUT /api/dashboard/settings/tool-scopes
+  if (path === "/settings/tool-scopes" && req.method === "PUT") {
+    return (async () => {
+      try {
+        const body = (await req.json()) as { allowed?: string[]; dryRunByDefault?: boolean };
+        const allowed = Array.isArray(body.allowed)
+          ? body.allowed.map((x) => String(x).trim()).filter(Boolean)
+          : [];
+        const config = loadRawConfig();
+        config.toolScopes = {
+          ...(config.toolScopes ?? {}),
+          allowed,
+          dryRunByDefault: Boolean(body.dryRunByDefault),
+        };
+        saveRawConfig(config);
+        return Response.json({ ok: true, allowed, dryRunByDefault: Boolean(body.dryRunByDefault) });
+      } catch (err: any) {
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+      }
+    })() as any;
   }
 
   // PUT /api/dashboard/smart-routing
@@ -1495,7 +1566,9 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
         const webhookLlm = await createProvider(config);
         const { agentLoop } = await import("../agent/loop");
         const sessionKey = `webhook:${webhookName}`;
-        const result = await agentLoop(webhookLlm, sessionKey, message);
+        const result = await agentLoop(webhookLlm, sessionKey, message, {
+          directUserRequest: false,
+        });
         return Response.json({ ok: true, reply: result.reply });
       } catch (err: any) {
         return Response.json({ error: err.message }, { status: 500 });

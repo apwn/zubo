@@ -122,7 +122,10 @@ export async function startVoiceMode(): Promise<void> {
       }
 
       // Run through the full agent loop (with tools)
-      const result = await agentLoop(llm, VOICE_SESSION, text, memories);
+      const result = await agentLoop(llm, VOICE_SESSION, text, {
+        memories,
+        directUserRequest: true,
+      });
       return result.reply;
     },
 

@@ -102,12 +102,56 @@
         Zubo is a self-hosted AI agent with persistent semantic memory, multi-channel presence across Telegram, Discord, Slack, WhatsApp, Signal, Email, and Web Chat, 25+ smart built-in tools, MCP compatibility, sub-agent delegation, and workflow automation. It runs entirely on your machine &mdash; your data never leaves your infrastructure. Whether you need a personal assistant that remembers everything, an automation hub that connects your services, or an AI copilot embedded in every chat platform you use, Zubo handles it from a single process with a single configuration file.
       </p>
 
+      <h2>Copy-Paste Task Cards</h2>
+      <div class="docs-ux-grid">
+        <div class="docs-task-card">
+          <h3>Secure API Access</h3>
+          <p>Enable API auth and create a key before exposing ports beyond localhost.</p>
+<pre><code>zubo config set auth.enabled true
+zubo auth create-key my-app</code></pre>
+        </div>
+        <div class="docs-task-card">
+          <h3>Set Local Model Fallback</h3>
+          <p>Keep responses available during provider outages or API quota issues.</p>
+<pre><code>zubo config set failover '["openai","ollama"]'
+zubo config set providers.ollama.model llama3.3</code></pre>
+        </div>
+      </div>
+
+      <h2>Common Errors</h2>
+      <div class="docs-callout docs-callout-error">
+        <strong>401 Unauthorized / Missing Bearer token</strong>
+        <p>If <code>auth.enabled</code> is true, all <code>/api/*</code> calls require <code>Authorization: Bearer &lt;key&gt;</code>. Create a new key if needed.</p>
+<pre><code>curl -H "Authorization: Bearer YOUR_KEY" http://localhost:3000/api/dashboard/status</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-warn">
+        <strong>Provider Timeout / Upstream unavailable</strong>
+        <p>Use failover and switch temporarily to a responsive provider or smaller model. Check logs for repeated timeout patterns.</p>
+<pre><code>zubo model openai/gpt-4o-mini
+zubo logs --follow</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-info">
+        <strong>Missing local model (Ollama/LM Studio)</strong>
+        <p>If local providers fail, ensure the runtime is running and a model is installed.</p>
+<pre><code>ollama serve
+ollama pull llama3.3</code></pre>
+      </div>
+
+      <h2 id="quick-start">Start Here (10 Minutes)</h2>
+      <ol>
+        <li>Run <code>zubo setup</code> and choose <strong>Quickstart</strong> for the fastest working config.</li>
+        <li>Start the agent with <code>zubo start</code>, then open the dashboard at <code>http://localhost:&lt;port&gt;</code>.</li>
+        <li>Set a budget guardrail early: <code>zubo config set budget.dailyLimitUsd 5</code>.</li>
+        <li>Enable auth if exposed beyond localhost: <code>zubo config set auth.enabled true</code> then <code>zubo auth create-key [label]</code>.</li>
+      </ol>
+      <p>Next: read <a href="/docs/config">Configuration</a> for defaults and safety settings, then <a href="/docs/cli">CLI Commands</a> for day-to-day operations.</p>
+
       <!-- ================================================================ -->
       <h2 id="features">Features</h2>
 
       <h3>AI Engine</h3>
       <ul>
-        <li><strong>Multi-provider LLM support</strong> &mdash; Claude (Anthropic), OpenAI (GPT-4o, GPT-4-turbo), Google Gemini, Ollama (local models), Groq (fast inference), Together (open models), OpenRouter (multi-model gateway), DeepSeek, xAI (Grok), Fireworks, LM Studio (local GUI), and any OpenAI-compatible endpoint. Switch providers with a single config change.</li>
+        <li><strong>Multi-provider LLM support</strong> &mdash; Claude (Anthropic), OpenAI (GPT-4o, GPT-4-turbo), Ollama (local models), Groq (fast inference), Together (open models), OpenRouter (multi-model gateway), DeepSeek, xAI (Grok), Fireworks, LM Studio (local GUI), and any OpenAI-compatible endpoint. Switch providers with a single config change.</li>
         <li><strong>Smart routing</strong> &mdash; automatically routes simple queries to fast, cheap models and complex queries to more capable ones. Saves cost without sacrificing quality, with full manual override when you need it.</li>
         <li><strong>Automatic failover</strong> &mdash; define an ordered list of backup providers. If the primary is down or rate-limited, Zubo seamlessly falls through to the next provider in the chain with no user-facing interruption.</li>
         <li><strong>Streaming responses</strong> &mdash; token-by-token streaming for all providers that support it. Messages appear in real time across every channel.</li>
@@ -629,13 +673,13 @@ zubo start --daemon</code></pre>
         <li><strong>You do not need a custom SYSTEM.md</strong> &mdash; Zubo's built-in personality is comprehensive and handles most use cases out of the box. Only customize <code>~/.zubo/workspace/SYSTEM.md</code> if you want to change the agent's name or personality.</li>
         <li><strong>Tell Zubo about yourself in conversation</strong> &mdash; it saves everything to memory automatically. Your name, your job, your preferences, your projects &mdash; the more you talk to it, the better it gets. No manual configuration needed.</li>
         <li><strong>Use the dashboard for day-to-day management</strong> (chatting, browsing memory, managing skills) and <strong>the CLI for automation</strong> (scripting, cron, CI/CD pipelines).</li>
-        <li><strong>Enable API authentication</strong> if you are exposing the web port beyond localhost: <code>zubo config set auth.enabled true</code>, then create an API key via the dashboard or <code>zubo auth create</code>.</li>
+        <li><strong>Enable API authentication</strong> if you are exposing the web port beyond localhost: <code>zubo config set auth.enabled true</code>, then create an API key via the dashboard or <code>zubo auth create-key [label]</code>.</li>
         <li><strong>Set rate limits for production</strong> to prevent abuse: <code>zubo config set rateLimit.chatPerMinute 30</code>.</li>
         <li><strong>Use <code>zubo start --daemon</code></strong> for always-on operation. Zubo writes a PID file and rotates logs automatically.</li>
         <li><strong>Check <code>zubo status</code> and <code>zubo logs</code></strong> for troubleshooting. The status command shows uptime, memory usage, connected channels, and pending scheduled jobs.</li>
         <li><strong>Back up your data</strong> with <code>zubo export</code> for a full JSON export, or rely on the automatic daily SQLite backups in <code>~/.zubo/workspace/backups/</code>.</li>
         <li><strong>Enable smart cost savings</strong> to automatically send simple queries to fast, cheap models. Set <code>smartRouting.enabled</code> to <code>true</code> and configure a <code>fastProvider</code> (e.g., Groq) alongside your primary. This can cut costs significantly.</li>
-        <li><strong>Set a budget</strong> to avoid surprise bills: <code>zubo config set budget.dailyLimit 5</code>. Cost tracking is always active in the dashboard under Analytics &rarr; Costs.</li>
+        <li><strong>Set a budget</strong> to avoid surprise bills: <code>zubo config set budget.dailyLimitUsd 5</code>. Cost tracking is always active in the dashboard under Analytics &rarr; Costs.</li>
         <li><strong>Configure failover providers</strong> so your agent stays available even if your primary LLM provider has an outage. For example, set Anthropic as primary and Ollama as failover for fully offline operation when the cloud is down.</li>
         <li><strong>Keep skills small and focused</strong> &mdash; one skill per task. This makes them easier to test, share, and debug.</li>
       </ul>

@@ -85,6 +85,49 @@
       <h1>Memory System</h1>
       <p>Zubo has a persistent semantic memory system that combines vector embeddings with full-text search. It automatically remembers conversations, ingested documents, and facts you teach it &mdash; and retrieves relevant context for every message. This means your agent gets smarter over time, building up a knowledge base that is always available.</p>
 
+      <h2>Copy-Paste Task Cards</h2>
+      <div class="docs-ux-grid">
+        <div class="docs-task-card">
+          <h3>Secure API Access</h3>
+          <p>Enable API auth and create a key before exposing ports beyond localhost.</p>
+<pre><code>zubo config set auth.enabled true
+zubo auth create-key my-app</code></pre>
+        </div>
+        <div class="docs-task-card">
+          <h3>Set Local Model Fallback</h3>
+          <p>Keep responses available during provider outages or API quota issues.</p>
+<pre><code>zubo config set failover '["openai","ollama"]'
+zubo config set providers.ollama.model llama3.3</code></pre>
+        </div>
+      </div>
+
+      <h2>Common Errors</h2>
+      <div class="docs-callout docs-callout-error">
+        <strong>401 Unauthorized / Missing Bearer token</strong>
+        <p>If <code>auth.enabled</code> is true, all <code>/api/*</code> calls require <code>Authorization: Bearer &lt;key&gt;</code>. Create a new key if needed.</p>
+<pre><code>curl -H "Authorization: Bearer YOUR_KEY" http://localhost:3000/api/dashboard/status</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-warn">
+        <strong>Provider Timeout / Upstream unavailable</strong>
+        <p>Use failover and switch temporarily to a responsive provider or smaller model. Check logs for repeated timeout patterns.</p>
+<pre><code>zubo model openai/gpt-4o-mini
+zubo logs --follow</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-info">
+        <strong>Missing local model (Ollama/LM Studio)</strong>
+        <p>If local providers fail, ensure the runtime is running and a model is installed.</p>
+<pre><code>ollama serve
+ollama pull llama3.3</code></pre>
+      </div>
+
+      <h2>Memory Quick Checks</h2>
+      <ul>
+        <li>If recall feels weak, tune <code>memoryRetrieval.contextTopK</code> and <code>memoryRetrieval.minConfidence</code>.</li>
+        <li>Use the dashboard Memory search to inspect match type, confidence, and reason tags for each result.</li>
+        <li>Keep long-lived identity/preferences in <code>MEMORY.md</code>; use normal conversation memory for evolving details.</li>
+        <li>When importing files, verify chunk count and source metadata so you can prune or re-index cleanly later.</li>
+      </ul>
+
       <h2>How Memory Works</h2>
       <p>Every piece of content that enters the memory system follows the same pipeline:</p>
       <ol>
@@ -139,9 +182,11 @@ Query --&gt; Hybrid Search &lt;----------------+
       <ul>
         <li>Combines both methods: <strong>60% vector score + 40% FTS score</strong>.</li>
         <li>Provides the best of both worlds &mdash; keyword precision for exact matches plus semantic understanding for conceptual queries.</li>
+        <li>Each match now includes <strong>explainability metadata</strong>: match type (<code>fts</code>, <code>vector</code>, <code>hybrid</code>), confidence score, and reason tags.</li>
         <li>Used for asynchronous operations such as dedicated memory search requests.</li>
         <li>Falls back to FTS-only mode if the embedder is unavailable (for example, if the model has not been downloaded yet).</li>
       </ul>
+      <p>You can tune retrieval behavior in <code>~/.zubo/config.json</code> via <code>memoryRetrieval.contextTopK</code> and <code>memoryRetrieval.minConfidence</code>, or from the dashboard under <strong>Settings &rarr; General &rarr; Memory Retrieval</strong>.</p>
 
       <h2>Document Ingestion</h2>
       <p>You can upload documents to populate Zubo's memory with external knowledge. The following file formats are supported:</p>
@@ -207,7 +252,7 @@ Zubo: "Based on my memory, I know that your favorite programming
 
       <h3>Via the Dashboard</h3>
       <ul>
-        <li>The <strong>Memory panel</strong> shows recent memory chunks with timestamps and source information.</li>
+        <li>The <strong>Memory panel</strong> shows recent memory chunks with source information and, for search results, confidence + match rationale.</li>
         <li>Use the <strong>search bar</strong> to search memory by keyword or phrase.</li>
         <li>Edit <strong>MEMORY.md</strong> directly in the dashboard to update always-loaded context.</li>
       </ul>

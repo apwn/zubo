@@ -150,14 +150,19 @@ async function createSkill(input: Record<string, unknown>): Promise<string> {
       });
     }
 
+    const safeHandler = async (rawInput: Record<string, unknown>): Promise<string> => {
+      const result = await handler(rawInput);
+      return typeof result === "string" ? result : JSON.stringify(result);
+    };
+
     registerTool({
       definition: {
         name,
         description,
         input_schema: resolvedSchema,
       },
-      execute: handler,
-    });
+      execute: safeHandler,
+    }, true);
 
     logger.info(`Skill "${name}" created and registered at runtime`);
     return JSON.stringify({

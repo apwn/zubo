@@ -11,6 +11,9 @@ export interface SearchResult {
   content: string;
   sourceFile: string;
   score: number;
+  confidence?: number;
+  matchType?: "fts" | "vector" | "hybrid";
+  reasons?: string[];
 }
 
 /**
@@ -24,7 +27,13 @@ export async function hybridSearch(
 ): Promise<SearchResult[]> {
   const scoreMap = new Map<
     number,
-    { content: string; sourceFile: string; score: number }
+    {
+      content: string;
+      sourceFile: string;
+      score: number;
+      ftsScore: number;
+      vectorScore: number;
+    }
   >();
 
   // FTS search (always available)
@@ -35,11 +44,14 @@ export async function hybridSearch(
     const score = r.score * ftsWeight;
     if (existing) {
       existing.score += score;
+      existing.ftsScore += r.score;
     } else {
       scoreMap.set(r.id, {
         content: r.content,
         sourceFile: r.sourceFile,
         score,
+        ftsScore: r.score,
+        vectorScore: 0,
       });
     }
   }
@@ -52,11 +64,14 @@ export async function hybridSearch(
       const score = r.score * VECTOR_WEIGHT;
       if (existing) {
         existing.score += score;
+        existing.vectorScore += r.score;
       } else {
         scoreMap.set(r.id, {
           content: r.content,
           sourceFile: r.sourceFile,
           score,
+          ftsScore: 0,
+          vectorScore: r.score,
         });
       }
     }
@@ -64,7 +79,18 @@ export async function hybridSearch(
 
   // Sort by combined score
   const results = Array.from(scoreMap.entries())
-    .map(([id, data]) => ({ id, ...data }))
+    .map(([id, data]) => {
+      const hasFts = data.ftsScore > 0;
+      const hasVector = data.vectorScore > 0;
+      const confidence = Math.max(0, Math.min(1, data.score));
+      const matchType: "fts" | "vector" | "hybrid" =
+        hasFts && hasVector ? "hybrid" : hasVector ? "vector" : "fts";
+      const reasons = [
+        hasFts ? "keyword match" : "",
+        hasVector ? "semantic match" : "",
+      ].filter(Boolean);
+      return { id, ...data, confidence, matchType, reasons };
+    })
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 

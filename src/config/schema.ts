@@ -133,6 +133,24 @@ export const configSchema = z.object({
     timeoutMs: z.number().default(30_000),
   }).optional(),
 
+  // Tool scope controls
+  toolScopes: z.object({
+    // If set, tools whose scopes are not included here are blocked.
+    allowed: z.array(z.string()).optional(),
+    // When true, confirm-gated tools default to simulation unless _dryRun is false.
+    dryRunByDefault: z.boolean().default(false),
+  }).optional(),
+
+  // Tool permission overrides
+  toolPermissions: z.record(z.string(), z.enum(["auto", "confirm", "deny"])).optional(),
+
+  // Memory retrieval tuning for router context injection
+  memoryRetrieval: z.object({
+    contextTopK: z.number().int().min(1).max(10).default(3),
+    minConfidence: z.number().min(0).max(1).default(0),
+    vectorCandidateLimit: z.number().int().min(100).max(50_000).default(2000),
+  }).optional(),
+
   // Smart model routing
   smartRouting: z.object({
     enabled: z.boolean().default(false),

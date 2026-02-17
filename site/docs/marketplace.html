@@ -97,6 +97,41 @@
         The Extensions Marketplace lets you browse, install, and manage MCP (Model Context Protocol) servers from the official registry directly through the Zubo dashboard or API. Instead of manually configuring MCP server commands and arguments, you can discover servers from the community, install them with one click, and have their tools automatically registered in Zubo.
       </p>
 
+      <h2>Copy-Paste Task Cards</h2>
+      <div class="docs-ux-grid">
+        <div class="docs-task-card">
+          <h3>Secure API Access</h3>
+          <p>Enable API auth and create a key before exposing ports beyond localhost.</p>
+<pre><code>zubo config set auth.enabled true
+zubo auth create-key my-app</code></pre>
+        </div>
+        <div class="docs-task-card">
+          <h3>Set Local Model Fallback</h3>
+          <p>Keep responses available during provider outages or API quota issues.</p>
+<pre><code>zubo config set failover '["openai","ollama"]'
+zubo config set providers.ollama.model llama3.3</code></pre>
+        </div>
+      </div>
+
+      <h2>Common Errors</h2>
+      <div class="docs-callout docs-callout-error">
+        <strong>401 Unauthorized / Missing Bearer token</strong>
+        <p>If <code>auth.enabled</code> is true, all <code>/api/*</code> calls require <code>Authorization: Bearer &lt;key&gt;</code>. Create a new key if needed.</p>
+<pre><code>curl -H "Authorization: Bearer YOUR_KEY" http://localhost:3000/api/dashboard/status</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-warn">
+        <strong>Provider Timeout / Upstream unavailable</strong>
+        <p>Use failover and switch temporarily to a responsive provider or smaller model. Check logs for repeated timeout patterns.</p>
+<pre><code>zubo model openai/gpt-4o-mini
+zubo logs --follow</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-info">
+        <strong>Missing local model (Ollama/LM Studio)</strong>
+        <p>If local providers fail, ensure the runtime is running and a model is installed.</p>
+<pre><code>ollama serve
+ollama pull llama3.3</code></pre>
+      </div>
+
       <!-- ================================================================ -->
       <h2 id="browsing">Browsing the Registry</h2>
 

@@ -85,6 +85,41 @@
       <h1>Agents &amp; Workflows</h1>
       <p>Zubo supports custom sub-agents, multi-agent delegation, structured workflows, and agent teams. This allows you to create specialized agents for specific tasks and orchestrate them together into powerful, composable pipelines that go far beyond what a single agent can accomplish on its own.</p>
 
+      <h2>Copy-Paste Task Cards</h2>
+      <div class="docs-ux-grid">
+        <div class="docs-task-card">
+          <h3>Secure API Access</h3>
+          <p>Enable API auth and create a key before exposing ports beyond localhost.</p>
+<pre><code>zubo config set auth.enabled true
+zubo auth create-key my-app</code></pre>
+        </div>
+        <div class="docs-task-card">
+          <h3>Set Local Model Fallback</h3>
+          <p>Keep responses available during provider outages or API quota issues.</p>
+<pre><code>zubo config set failover '["openai","ollama"]'
+zubo config set providers.ollama.model llama3.3</code></pre>
+        </div>
+      </div>
+
+      <h2>Common Errors</h2>
+      <div class="docs-callout docs-callout-error">
+        <strong>401 Unauthorized / Missing Bearer token</strong>
+        <p>If <code>auth.enabled</code> is true, all <code>/api/*</code> calls require <code>Authorization: Bearer &lt;key&gt;</code>. Create a new key if needed.</p>
+<pre><code>curl -H "Authorization: Bearer YOUR_KEY" http://localhost:3000/api/dashboard/status</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-warn">
+        <strong>Provider Timeout / Upstream unavailable</strong>
+        <p>Use failover and switch temporarily to a responsive provider or smaller model. Check logs for repeated timeout patterns.</p>
+<pre><code>zubo model openai/gpt-4o-mini
+zubo logs --follow</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-info">
+        <strong>Missing local model (Ollama/LM Studio)</strong>
+        <p>If local providers fail, ensure the runtime is running and a model is installed.</p>
+<pre><code>ollama serve
+ollama pull llama3.3</code></pre>
+      </div>
+
       <h2>The Default Agent</h2>
       <p>By default, Zubo operates as a single agent that handles all messages across every connected channel using a unified session identified as "owner." This default agent has access to all registered tools &mdash; both built-in tools and any user-installed skills &mdash; and its personality and behavior are defined by the system prompt stored at <code>~/.zubo/workspace/SYSTEM.md</code>.</p>
       <p>For many use cases, the default agent is all you need. It can search the web, manage your calendar, write code, read and write memory, and use any skill you install. Custom agents become valuable when you want to restrict tool access, provide specialized instructions, or build multi-step workflows.</p>
@@ -95,6 +130,7 @@
         <li><strong>Edit the file directly</strong> &mdash; Open <code>~/.zubo/workspace/SYSTEM.md</code> in any text editor and modify it.</li>
         <li><strong>Use the dashboard</strong> &mdash; Navigate to the Personality panel in the web dashboard and edit it there. Changes are saved to <code>SYSTEM.md</code> automatically.</li>
       </ul>
+      <p><strong>Replace mode:</strong> By default, <code>SYSTEM.md</code> is appended to Zubo's built-in system prompt. If you want your file to fully replace defaults, add the marker <code>zubo:replace-default</code> anywhere in <code>SYSTEM.md</code>.</p>
       <p>Here is an example <code>SYSTEM.md</code> that defines a personalized assistant:</p>
 <pre><code># System Prompt
 

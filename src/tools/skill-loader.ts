@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, existsSync, watch } from "fs";
+import { readdirSync, readFileSync, existsSync, watch, statSync } from "fs";
 import { join } from "path";
 import { paths } from "../config/paths";
 import { logger } from "../util/logger";
@@ -6,6 +6,14 @@ import { registerTool, getTool, unregisterTool } from "./registry";
 
 /** Tracks all skill names loaded via loadSkills so hot-reload can unregister them. */
 const loadedSkillNames = new Set<string>();
+
+function moduleSpecifier(path: string): string {
+  try {
+    return `${path}?v=${Math.floor(statSync(path).mtimeMs)}`;
+  } catch {
+    return path;
+  }
+}
 
 export interface SkillDef {
   name: string;
@@ -147,7 +155,7 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
         }
       } else {
         // Single-file: read metadata from handler.ts exports
-        const mod = await import(handlerPath + "?t=" + Date.now());
+        const mod = await import(moduleSpecifier(handlerPath));
         if (mod.skill && typeof mod.skill === "object") {
           skill = parseSkillExport(mod.skill, dirPath);
           handler = mod.default;
@@ -171,7 +179,7 @@ export async function loadSkills(skillsDir: string): Promise<string[]> {
 
       // Dynamically import handler (if not already loaded from single-file path)
       if (!handler) {
-        const mod = await import(handlerPath + "?t=" + Date.now());
+        const mod = await import(moduleSpecifier(handlerPath));
         handler = mod.default;
       }
       if (typeof handler !== "function") {

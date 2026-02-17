@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { createTestDb } from "./helpers/test-db";
+import { ftsSearch } from "../src/memory/fts-index";
 
 describe("Memory Engine", () => {
   it("should create memory_chunks table in test DB", () => {
@@ -29,6 +30,18 @@ describe("Memory Engine", () => {
 
     const results = db.query("SELECT * FROM memory_fts WHERE memory_fts MATCH 'TypeScript'").all() as any[];
     expect(results.length).toBe(1);
+    db.close();
+  });
+
+  it("should include explainability metadata for FTS results", () => {
+    const db = createTestDb();
+    db.prepare("INSERT INTO memory_chunks (source_file, chunk_index, content) VALUES (?, ?, ?)").run("a.md", 0, "alice prefers espresso");
+    const results = ftsSearch(db, "alice", 3);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].matchType).toBe("fts");
+    expect(results[0].confidence).toBeGreaterThanOrEqual(0);
+    expect(results[0].confidence).toBeLessThanOrEqual(1);
+    expect(results[0].reasons).toContain("keyword match");
     db.close();
   });
 

@@ -40,7 +40,7 @@ if (!resolvedHandler.startsWith(skillsDir + "/")) {
 
 try {
   const input = JSON.parse(inputJson);
-  const mod = await import(handlerPath);
+  const mod = await import(resolvedHandler);
   const handler = mod.default;
 
   if (typeof handler !== "function") {

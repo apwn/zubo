@@ -96,10 +96,15 @@ export function loadSession(
   const recent = readTailLines(path, maxTurns);
   if (recent.length === 0) return [];
 
-  const messages = recent.map((line) => {
-    const msg: SessionMessage = JSON.parse(line);
-    return { role: msg.role, content: msg.content };
-  });
+  const messages: LlmMessage[] = [];
+  for (const line of recent) {
+    try {
+      const msg: SessionMessage = JSON.parse(line);
+      messages.push({ role: msg.role, content: msg.content });
+    } catch {
+      // Skip malformed lines instead of failing the whole session load
+    }
+  }
 
   // If the tail-read missed a summary at line 0, prepend it.
   // After summarization the file starts with a summary message — we must

@@ -29,7 +29,12 @@ export function registerMemorySearchTool(db: Database) {
       }
 
       const formatted = results
-        .map((r, i) => `[${i + 1}] ${r.content}`)
+        .map((r, i) => {
+          const confidence = typeof r.confidence === "number" ? `${Math.round(r.confidence * 100)}%` : "n/a";
+          const matchType = r.matchType ?? "unknown";
+          const reasons = r.reasons?.length ? r.reasons.join(", ") : "unspecified";
+          return `[${i + 1}] (${matchType}, confidence ${confidence}, reason: ${reasons}) ${r.content}`;
+        })
         .join("\n\n");
 
       return `Found ${results.length} relevant memories:\n\n${formatted}`;

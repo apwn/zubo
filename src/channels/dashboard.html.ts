@@ -1541,6 +1541,53 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           </div>
 
           <div class="settings-section">
+            <h3 class="settings-title">Memory Retrieval</h3>
+            <p class="settings-desc">Control how many memory chunks are injected into chat context and the minimum confidence threshold.</p>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label class="settings-label" for="memory-context-topk">Context Top-K</label>
+                <input id="memory-context-topk" type="number" class="settings-input" min="1" max="10" step="1" placeholder="3">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="memory-min-confidence">Min Confidence (0-1)</label>
+                <input id="memory-min-confidence" type="number" class="settings-input" min="0" max="1" step="0.05" placeholder="0">
+              </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+              <button class="btn btn-primary" onclick="saveMemoryRetrievalSettings()">Save</button>
+              <button class="btn btn-ghost" onclick="applyMemoryPreset('balanced')">Balanced</button>
+              <button class="btn btn-ghost" onclick="applyMemoryPreset('strict')">Strict</button>
+              <span id="memory-retrieval-status" class="status-text"></span>
+            </div>
+            <p class="settings-desc" style="margin-top:10px;margin-bottom:0;">Recommended: <code>Top-K 3-5</code> and <code>min confidence 0.2-0.35</code>.</p>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-title">Tool Safety</h3>
+            <p class="settings-desc">Limit tool scopes and optionally force dry-run mode by default for risky tools.</p>
+            <div class="settings-grid">
+              <div class="settings-field">
+                <label class="settings-label" for="tool-scopes-allowed">Allowed Scopes (comma-separated)</label>
+                <input id="tool-scopes-allowed" type="text" class="settings-input" placeholder="memory,network_read,filesystem_read">
+              </div>
+              <div class="settings-field">
+                <label class="settings-label" for="tool-scopes-dry-run">Dry-Run By Default</label>
+                <select id="tool-scopes-dry-run" class="settings-select">
+                  <option value="false">No</option>
+                  <option value="true">Yes</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top: 16px; display: flex; gap: 10px; align-items: center;">
+              <button class="btn btn-primary" onclick="saveToolScopeSettings()">Save</button>
+              <button class="btn btn-ghost" onclick="applyToolScopePreset('safe')">Safe</button>
+              <button class="btn btn-ghost" onclick="applyToolScopePreset('balanced')">Balanced</button>
+              <span id="tool-scopes-status" class="status-text"></span>
+            </div>
+            <p class="settings-desc" style="margin-top:10px;margin-bottom:0;">Leave blank to allow all scopes. Use presets to start with least privilege.</p>
+          </div>
+
+          <div class="settings-section">
             <h3 class="settings-title">Configuration</h3>
             <p class="settings-desc">Manage your full config by editing <code>~/.zubo/config.json</code> directly, or re-run <code>zubo setup</code>.</p>
           </div>
@@ -2846,11 +2893,21 @@ function renderMemoryItems(results, container) {
     item.className = 'memory-item';
     var src = document.createElement('div');
     src.className = 'source';
-    src.textContent = r.source || '';
+    var sourceBits = [r.source || ''];
+    if (r.matchType) sourceBits.push(String(r.matchType));
+    if (typeof r.confidence === 'number') sourceBits.push('conf ' + Math.round(r.confidence * 100) + '%');
+    src.textContent = sourceBits.filter(Boolean).join(' • ');
     var cnt = document.createElement('div');
     cnt.className = 'content';
     cnt.textContent = r.content;
     item.appendChild(src);
+    if (r.reasons && r.reasons.length) {
+      var why = document.createElement('div');
+      why.className = 'source';
+      why.style.marginTop = '6px';
+      why.textContent = 'Reason: ' + r.reasons.join(', ');
+      item.appendChild(why);
+    }
     item.appendChild(cnt);
     container.appendChild(item);
   });
@@ -3524,6 +3581,8 @@ function loadSettings() {
   loadDbStats();
   loadSecrets();
   loadSmartRouting();
+  loadMemoryRetrievalSettings();
+  loadToolScopeSettings();
 }
 
 function onProviderChange() {
@@ -3590,6 +3649,89 @@ function saveHeartbeat() {
       document.getElementById('heartbeat-status').textContent = data.error || 'Error';
     }
   });
+}
+
+function loadMemoryRetrievalSettings() {
+  api('/settings/memory-retrieval').then(function(data) {
+    document.getElementById('memory-context-topk').value = data.contextTopK || 3;
+    document.getElementById('memory-min-confidence').value = data.minConfidence || 0;
+    document.getElementById('memory-retrieval-status').textContent = '';
+  });
+}
+
+function saveMemoryRetrievalSettings() {
+  var contextTopK = parseInt(document.getElementById('memory-context-topk').value, 10);
+  var minConfidence = parseFloat(document.getElementById('memory-min-confidence').value);
+  if (isNaN(contextTopK) || contextTopK < 1 || contextTopK > 10) {
+    document.getElementById('memory-retrieval-status').textContent = 'Top-K must be 1-10';
+    return;
+  }
+  if (isNaN(minConfidence) || minConfidence < 0 || minConfidence > 1) {
+    document.getElementById('memory-retrieval-status').textContent = 'Confidence must be 0-1';
+    return;
+  }
+  api('/settings/memory-retrieval', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ contextTopK: contextTopK, minConfidence: minConfidence })
+  }).then(function(data) {
+    if (data.ok) {
+      document.getElementById('memory-retrieval-status').textContent = 'Saved';
+      toast('Memory retrieval settings updated');
+    } else {
+      document.getElementById('memory-retrieval-status').textContent = data.error || 'Error';
+    }
+  });
+}
+
+function applyMemoryPreset(kind) {
+  if (kind === 'strict') {
+    document.getElementById('memory-context-topk').value = 2;
+    document.getElementById('memory-min-confidence').value = 0.35;
+  } else {
+    document.getElementById('memory-context-topk').value = 4;
+    document.getElementById('memory-min-confidence').value = 0.2;
+  }
+  document.getElementById('memory-retrieval-status').textContent = 'Preset applied';
+}
+
+function loadToolScopeSettings() {
+  api('/settings/tool-scopes').then(function(data) {
+    document.getElementById('tool-scopes-allowed').value = (data.allowed || []).join(',');
+    document.getElementById('tool-scopes-dry-run').value = data.dryRunByDefault ? 'true' : 'false';
+    document.getElementById('tool-scopes-status').textContent = '';
+  });
+}
+
+function saveToolScopeSettings() {
+  var allowed = document.getElementById('tool-scopes-allowed').value
+    .split(',')
+    .map(function(x) { return x.trim(); })
+    .filter(Boolean);
+  var dryRunByDefault = document.getElementById('tool-scopes-dry-run').value === 'true';
+  api('/settings/tool-scopes', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ allowed: allowed, dryRunByDefault: dryRunByDefault })
+  }).then(function(data) {
+    if (data.ok) {
+      document.getElementById('tool-scopes-status').textContent = 'Saved';
+      toast('Tool safety settings updated');
+    } else {
+      document.getElementById('tool-scopes-status').textContent = data.error || 'Error';
+    }
+  });
+}
+
+function applyToolScopePreset(kind) {
+  if (kind === 'safe') {
+    document.getElementById('tool-scopes-allowed').value = 'memory,network_read,filesystem_read,config,scheduling';
+    document.getElementById('tool-scopes-dry-run').value = 'true';
+  } else {
+    document.getElementById('tool-scopes-allowed').value = 'memory,network_read,filesystem_read,filesystem_write,config,scheduling,delegation';
+    document.getElementById('tool-scopes-dry-run').value = 'true';
+  }
+  document.getElementById('tool-scopes-status').textContent = 'Preset applied';
 }
 
 // --- Smart Routing ---

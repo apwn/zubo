@@ -1,12 +1,36 @@
 import { Database } from "bun:sqlite";
 import { embed, cosineSimilarity, isEmbedderReady } from "./embedder";
 import { logger } from "../util/logger";
+import { readFileSync, statSync } from "fs";
+import { paths } from "../config/paths";
 
 export interface VectorResult {
   id: number;
   content: string;
   sourceFile: string;
   score: number;
+}
+
+const vectorCandidateLimitCache: { mtimeMs: number; value: number } = {
+  mtimeMs: -1,
+  value: 2000,
+};
+
+function getVectorCandidateLimit(): number {
+  try {
+    const mtimeMs = statSync(paths.config).mtimeMs;
+    if (vectorCandidateLimitCache.mtimeMs === mtimeMs) {
+      return vectorCandidateLimitCache.value;
+    }
+    const cfg = JSON.parse(readFileSync(paths.config, "utf-8"));
+    const raw = Number(cfg?.memoryRetrieval?.vectorCandidateLimit ?? 2000);
+    const parsed = Math.max(100, Math.min(50_000, Number.isFinite(raw) ? raw : 2000));
+    vectorCandidateLimitCache.mtimeMs = mtimeMs;
+    vectorCandidateLimitCache.value = parsed;
+    return parsed;
+  } catch {
+    return vectorCandidateLimitCache.value;
+  }
 }
 
 /**
@@ -38,12 +62,13 @@ export async function vectorSearch(
 
   const queryEmbedding = await embed(query);
   if (!queryEmbedding) return [];
+  const candidateLimit = getVectorCandidateLimit();
 
   const rows = db
     .query(
-      "SELECT id, content, source_file, embedding FROM memory_chunks WHERE embedding IS NOT NULL ORDER BY id DESC LIMIT 500"
+      "SELECT id, content, source_file, embedding FROM memory_chunks WHERE embedding IS NOT NULL ORDER BY id DESC LIMIT ?"
     )
-    .all() as Array<{
+    .all(candidateLimit) as Array<{
     id: number;
     content: string;
     source_file: string;

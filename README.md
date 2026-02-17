@@ -26,9 +26,10 @@
 
 ## Features
 
-- **11+ LLM providers** — Anthropic, OpenAI, Google Gemini, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, and any OpenAI-compatible endpoint. Smart routing sends simple queries to fast models automatically.
+- **11+ LLM providers** — Anthropic, OpenAI, Ollama, Groq, Together, OpenRouter, DeepSeek, xAI, Fireworks, LM Studio, Cerebras, MiniMax, and any OpenAI-compatible endpoint. Smart routing sends simple queries to fast models automatically.
 - **7 channels** — Telegram, Discord, Slack, WhatsApp, Signal, Email, Web Chat
 - **Persistent memory** — Vector + full-text hybrid search with ONNX embeddings and FTS5. Remembers every conversation, preference, and fact — forever.
+- **Memory explainability** — Memory matches include confidence and why they were selected (keyword, semantic, or hybrid match).
 - **25+ built-in tools** — Web search (Brave + DuckDuckGo), file ops, code execution, APIs, sub-agent delegation, knowledge graph, memory pruning, reminders, and automatic failover between providers.
 - **Extensible skills** — Build custom skills in TypeScript. Share them on the registry. Install community skills with one command.
 - **9 integrations** — GitHub, Google (Gmail, Calendar, Docs, Drive, Sheets), Notion, Linear, Jira, Slack, Twitter + Claude Code and MCP
@@ -37,6 +38,7 @@
 - **Voice** — Speech-to-text (Whisper, local whisper.cpp), text-to-speech (OpenAI, ElevenLabs), and continuous voice conversation mode
 - **Personal tools** — Todos, notes, preferences, topics, and follow-ups — all manageable from the dashboard or via chat
 - **Dashboard** — Built-in web UI with analytics, memory management, Ollama model manager, personal tools, and settings
+- **Safety controls** — Tool scope allowlists and dry-run-by-default mode for risky tools, configurable in the dashboard
 - **Document ingestion** — Upload PDF, DOCX, XLSX, PPTX, TXT, CSV, JSON, and more
 - **Budget controls** — Daily/monthly spending limits with per-model cost tracking
 - **100% local** — SQLite database, local vector store. Your data never leaves your machine.
@@ -85,7 +87,7 @@ All config lives in `~/.zubo/config.json`. Run `zubo setup` for interactive conf
 ```bash
 zubo config set activeProvider anthropic
 zubo config set smartRouting.enabled true
-zubo config set budget.monthlyLimit 50
+zubo config set budget.monthlyLimitUsd 50
 ```
 
 See the full [configuration reference](https://zubo.bot/docs/config.html) for all options.
@@ -129,11 +131,27 @@ zubo skills                Manage skills
 zubo install <name>        Install from registry
 zubo search <query>        Search the registry
 zubo voice                 Continuous voice conversation mode
+zubo eval                  Run reliability + safety checks
 zubo auth create-key       Create an API key
 zubo export / import       Backup and restore
 ```
 
 Full reference at [zubo.bot/docs/cli.html](https://zubo.bot/docs/cli.html).
+
+## Unified Slash Commands
+
+Across WebChat, Telegram, Discord, Slack, and other channels:
+
+- `/help` — list available commands
+- `/status` — runtime status
+- `/memory <query>` — search saved memory with confidence metadata
+- `/model` — show current provider/model
+- `/model set <provider/model>` — switch active model at runtime
+- `/tools [filter]` — list available tools
+- `/permissions <tool>` — view tool permission + scopes
+- `/permissions set <tool> <auto|confirm|deny>` — override tool permission
+- `/budget` — view budget usage and limits
+- `/budget pause|resume` — pause/resume budget enforcement
 
 ## Contributing
 

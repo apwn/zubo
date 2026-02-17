@@ -1,6 +1,6 @@
 {
   "name": "zubo",
-  "version": "0.1.24",
+  "version": "0.1.26",
   "description": "Your AI agent that never forgets. Persistent memory, 25+ tools, 7 channels, 11+ LLM providers — runs entirely on your machine.",
   "license": "MIT",
   "author": "thomaskanze",
@@ -32,6 +32,7 @@
     "logs": "bun run src/index.ts logs",
     "logs:follow": "bun run src/index.ts logs --follow",
     "model": "bun run src/index.ts model",
+    "eval": "bun run src/index.ts eval",
     "skills": "bun run src/index.ts skills",
     "dev": "bun run --watch src/index.ts start",
     "desktop:dev": "cd desktop && npm run dev",

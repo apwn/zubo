@@ -5,6 +5,9 @@ export interface FtsResult {
   content: string;
   sourceFile: string;
   score: number;
+  confidence: number;
+  matchType: "fts";
+  reasons: string[];
 }
 
 /**
@@ -48,6 +51,9 @@ export function ftsSearch(
       content: row.content,
       sourceFile: row.source_file,
       score: maxScore > 0 ? Math.abs(row.score) / maxScore : 0,
+      confidence: maxScore > 0 ? Math.max(0, Math.min(1, Math.abs(row.score) / maxScore)) : 0,
+      matchType: "fts" as const,
+      reasons: ["keyword match"],
     }));
   } catch {
     return [];

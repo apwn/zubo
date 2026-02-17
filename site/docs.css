@@ -261,6 +261,67 @@
   color: var(--text);
 }
 
+/* --- Docs UX Blocks --- */
+.docs-ux-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 16px 0 24px;
+}
+
+.docs-task-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.docs-task-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 0.98rem;
+}
+
+.docs-task-card p {
+  margin-bottom: 10px;
+}
+
+.docs-task-card pre {
+  margin: 0;
+}
+
+.docs-callout {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.docs-callout p {
+  margin: 8px 0 0;
+}
+
+.docs-callout pre {
+  margin: 10px 0 0;
+}
+
+.docs-callout-error {
+  border-left-color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.docs-callout-warn {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.docs-callout-info {
+  border-left-color: #22c55e;
+  background: rgba(34, 197, 94, 0.08);
+}
+
 /* --- Horizontal rule --- */
 .docs-content hr {
   border: none;
@@ -380,6 +441,10 @@
 
   .docs-content h2 {
     font-size: 1.3rem;
+  }
+
+  .docs-ux-grid {
+    grid-template-columns: 1fr;
   }
 
   .docs-page-nav {

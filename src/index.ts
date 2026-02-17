@@ -239,6 +239,12 @@ switch (command) {
     await startVoiceMode();
     break;
   }
+  case "eval": {
+    const { runEvalCommand } = await import("./eval");
+    const code = await runEvalCommand();
+    process.exit(code);
+    break;
+  }
   case "mcp-serve": {
     // Start Zubo as an MCP server (for Claude Code / Codex integration)
     // Minimal initialization: DB + tools (no channels, no LLM)

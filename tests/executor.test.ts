@@ -151,7 +151,73 @@ describe("Tool Executor", () => {
     });
 
     const result = await executeTool("shell", "t9", { command: "ls", _confirmToken: "fake-token-12345" });
-    expect(result.content).toContain("Invalid or expired confirmation token");
+    expect(result.content).toContain("Invalid, mismatched, or expired confirmation token");
+
+    unregisterTool("shell");
+  });
+
+  it("should reject reused token when input changes", async () => {
+    registerTool({
+      definition: {
+        name: "shell",
+        description: "Run shell commands",
+        input_schema: { type: "object", properties: { command: { type: "string" } } },
+      },
+      async execute(input) {
+        return `ran: ${input.command}`;
+      },
+    });
+
+    const first = await executeTool("shell", "t9b", { command: "ls" });
+    const tokenMatch = first.content.match(/Confirmation Token: ([a-f0-9-]+)/);
+    expect(tokenMatch).toBeTruthy();
+
+    const second = await executeTool("shell", "t9c", { command: "rm -rf /tmp", _confirmToken: tokenMatch![1] });
+    expect(second.is_error).toBe(true);
+    expect(second.content).toContain("Invalid, mismatched, or expired confirmation token");
+
+    unregisterTool("shell");
+  });
+
+  it("should bypass confirmation for direct user requests", async () => {
+    registerTool({
+      definition: {
+        name: "shell",
+        description: "Run shell commands",
+        input_schema: { type: "object", properties: { command: { type: "string" } } },
+      },
+      async execute(input) {
+        return `ran: ${input.command}`;
+      },
+    });
+
+    const result = await executeTool("shell", "t9d", { command: "ls" }, undefined, {
+      directUserRequest: true,
+    });
+    expect(result.is_error).toBe(false);
+    expect(result.content).toBe("ran: ls");
+
+    unregisterTool("shell");
+  });
+
+  it("should support dry-run for risky tools", async () => {
+    let executed = false;
+    registerTool({
+      definition: {
+        name: "shell",
+        description: "Run shell commands",
+        input_schema: { type: "object", properties: { command: { type: "string" } } },
+      },
+      async execute() {
+        executed = true;
+        return "ran";
+      },
+    });
+
+    const result = await executeTool("shell", "t10", { command: "ls", _dryRun: true });
+    expect(result.is_error).toBe(false);
+    expect(result.content).toContain("DRY RUN ONLY");
+    expect(executed).toBe(false);
 
     unregisterTool("shell");
   });

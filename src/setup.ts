@@ -714,6 +714,46 @@ async function setupSmartRouting(
   return { enabled: true, fastProvider: "groq" };
 }
 
+async function runQuickstartSetup() {
+  console.log("");
+  console.log(`  ${BOLD}${MAGENTA}Quickstart${RESET}`);
+  console.log(`  ${DIM}Get to a working agent in ~5 minutes.${RESET}`);
+  console.log("");
+  console.log(`  ${DIM}Choose one provider:${RESET}`);
+  console.log(`    ${DIM}1.${RESET} OpenAI (recommended)`);
+  console.log(`    ${DIM}2.${RESET} Anthropic`);
+  console.log(`    ${DIM}3.${RESET} Ollama (local)`);
+  console.log("");
+
+  const pick = await prompt("  Provider [1]: ");
+  let providerChoice = pick || "1";
+  if (!["1", "2", "3"].includes(providerChoice)) providerChoice = "1";
+
+  const providerResult =
+    providerChoice === "2"
+      ? await PROVIDER_OPTIONS.find((o) => o.key === "1")!.setup()
+      : providerChoice === "3"
+        ? await PROVIDER_OPTIONS.find((o) => o.key === "3")!.setup()
+        : await PROVIDER_OPTIONS.find((o) => o.key === "2")!.setup();
+
+  const goal = await prompt("  What should Zubo help you with first? [daily work + reminders]: ");
+  const firstGoal = goal || "daily work + reminders";
+
+  const providers: Record<string, ProviderConfig> = { [providerResult.name]: providerResult.config };
+  const anthropicApiKey = providerResult.name === "anthropic" ? providerResult.config.apiKey : undefined;
+
+  await finalizeSetup({
+    providers,
+    activeProvider: providerResult.name,
+    failover: [],
+    anthropicApiKey,
+    channels: { webchat: { enabled: true, port: 0 } },
+    smartRouting: { enabled: false },
+    agentName: "Zubo",
+    personality: `You are proactive and practical. Focus on helping with: ${firstGoal}.`,
+  });
+}
+
 // ── Main Setup ──────────────────────────────────────────────────
 
 export async function runSetup() {
@@ -735,6 +775,15 @@ export async function runSetup() {
   if (mode === "2" || mode.toLowerCase() === "d" || mode.toLowerCase() === "dashboard") {
     const { runWebSetup } = await import("./setup-web");
     return runWebSetup();
+  }
+
+  console.log(`  ${BOLD}Setup profile:${RESET}`);
+  console.log(`    ${DIM}1.${RESET} Quickstart ${DIM}(recommended, 5 minutes)${RESET}`);
+  console.log(`    ${DIM}2.${RESET} Full setup ${DIM}(provider + channels + routing)${RESET}`);
+  console.log("");
+  const profile = await prompt("  Choice [1]: ");
+  if (profile !== "2") {
+    return runQuickstartSetup();
   }
 
   // ── Step 1: LLM Provider ──
@@ -855,7 +904,13 @@ export async function finalizeSetup(result: SetupResult) {
 
       await Bun.write(
         paths.systemPrompt,
-        `${nameLine}${personalityLine}\n`
+        `# Custom system prompt additions for Zubo
+# By default this file EXTENDS the built-in prompt.
+# To fully replace the built-in prompt, add this exact marker anywhere:
+# zubo:replace-default
+
+${nameLine}${personalityLine}
+`
       );
     }
   }

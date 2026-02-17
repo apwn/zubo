@@ -527,6 +527,33 @@ describe("Config Schema: sandbox", () => {
   });
 });
 
+describe("Config Schema: memory retrieval + tool scopes", () => {
+  test("validates memoryRetrieval tuning", () => {
+    const result = configSchema.safeParse({
+      memoryRetrieval: {
+        contextTopK: 4,
+        minConfidence: 0.25,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects out-of-range memoryRetrieval values", () => {
+    expect(configSchema.safeParse({ memoryRetrieval: { contextTopK: 0, minConfidence: 0.2 } }).success).toBe(false);
+    expect(configSchema.safeParse({ memoryRetrieval: { contextTopK: 2, minConfidence: 1.5 } }).success).toBe(false);
+  });
+
+  test("validates toolScopes config", () => {
+    const result = configSchema.safeParse({
+      toolScopes: {
+        allowed: ["memory", "network_read"],
+        dryRunByDefault: true,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
 // ── Full config ──────────────────────────────────────────────────────────────
 
 describe("Config Schema: full config", () => {

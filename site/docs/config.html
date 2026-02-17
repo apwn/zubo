@@ -100,6 +100,50 @@
         All Zubo configuration lives in a single file: <code>~/.zubo/config.json</code>. You can edit this file directly with any text editor, or use the <code>zubo config</code> CLI commands for quick changes without opening a file. Changes to the configuration file are picked up on the next restart, while CLI changes via <code>zubo config set</code> take effect immediately if Zubo is running.
       </p>
 
+      <h2>Copy-Paste Task Cards</h2>
+      <div class="docs-ux-grid">
+        <div class="docs-task-card">
+          <h3>Secure API Access</h3>
+          <p>Enable API auth and create a key before exposing ports beyond localhost.</p>
+<pre><code>zubo config set auth.enabled true
+zubo auth create-key my-app</code></pre>
+        </div>
+        <div class="docs-task-card">
+          <h3>Set Local Model Fallback</h3>
+          <p>Keep responses available during provider outages or API quota issues.</p>
+<pre><code>zubo config set failover '["openai","ollama"]'
+zubo config set providers.ollama.model llama3.3</code></pre>
+        </div>
+      </div>
+
+      <h2>Common Errors</h2>
+      <div class="docs-callout docs-callout-error">
+        <strong>401 Unauthorized / Missing Bearer token</strong>
+        <p>If <code>auth.enabled</code> is true, all <code>/api/*</code> calls require <code>Authorization: Bearer &lt;key&gt;</code>. Create a new key if needed.</p>
+<pre><code>curl -H "Authorization: Bearer YOUR_KEY" http://localhost:3000/api/dashboard/status</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-warn">
+        <strong>Provider Timeout / Upstream unavailable</strong>
+        <p>Use failover and switch temporarily to a responsive provider or smaller model. Check logs for repeated timeout patterns.</p>
+<pre><code>zubo model openai/gpt-4o-mini
+zubo logs --follow</code></pre>
+      </div>
+      <div class="docs-callout docs-callout-info">
+        <strong>Missing local model (Ollama/LM Studio)</strong>
+        <p>If local providers fail, ensure the runtime is running and a model is installed.</p>
+<pre><code>ollama serve
+ollama pull llama3.3</code></pre>
+      </div>
+
+      <h2>Safe Config Workflow</h2>
+      <ol>
+        <li>Inspect current values first: <code>zubo config get</code>.</li>
+        <li>Apply one change at a time with <code>zubo config set &lt;key&gt; &lt;value&gt;</code>.</li>
+        <li>Confirm behavior in the dashboard and with <code>zubo status</code>.</li>
+        <li>Run <code>zubo eval</code> after important changes to validate reliability + safety paths.</li>
+      </ol>
+      <p>For production usage, set <code>auth.enabled</code>, <code>rateLimit.chatPerMinute</code>, and budget limits before exposing any external channel.</p>
+
       <!-- ================================================================ -->
       <h2 id="quick-config-via-cli">Quick Config via CLI</h2>
 
@@ -125,7 +169,7 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
         <li>Supports <strong>dotted keys</strong> for nested values. <code>zubo config set channels.webchat.port 8080</code> writes to <code>{"channels": {"webchat": {"port": 8080}}}</code>.</li>
         <li>Types are <strong>auto-detected</strong>: <code>true</code> and <code>false</code> become booleans, strings of digits become numbers, everything else stays a string.</li>
         <li>To explicitly set a string that looks like a number, wrap it in quotes: <code>zubo config set someField '"12345"'</code>.</li>
-        <li>The <code>set</code> command writes the file atomically, so there is no risk of corruption from concurrent writes.</li>
+        <li>The <code>set</code> command writes directly to <code>~/.zubo/config.json</code>. Avoid editing the file concurrently from multiple processes.</li>
       </ul>
 
       <!-- ================================================================ -->
@@ -182,9 +226,9 @@ zubo config get rateLimit          # Show all rate limit settings</code></pre>
             <td>Local model GUI. Download and run models with a graphical interface. No API key required.</td>
           </tr>
           <tr>
-            <td><code>google</code></td>
-            <td><code>https://generativelanguage.googleapis.com/v1beta</code></td>
-            <td>Google Gemini models. Supports Gemini Pro, Gemini Flash, and other Google AI models.</td>
+            <td><code>custom</code></td>
+            <td><em>set explicitly</em></td>
+            <td>Any OpenAI-compatible provider endpoint. Configure <code>baseUrl</code>, <code>apiKey</code>, and <code>model</code>.</td>
           </tr>
           <tr>
             <td><code>deepseek</code></td>
@@ -335,7 +379,7 @@ ollama list</code></pre>
             <td><code>codex</code></td>
             <td><code>codex</code></td>
             <td><code>npm install -g @openai/codex</code></td>
-            <td>Run <code>codex auth login</code> to authenticate</td>
+            <td>Run <code>codex login</code> to authenticate</td>
           </tr>
         </tbody>
       </table>
@@ -414,6 +458,69 @@ ollama list</code></pre>
 }</code></pre>
 
       <p>When smart routing is enabled, Zubo classifies each incoming message and routes it accordingly. You can always override the routing for a specific message by prefixing it with the provider name (e.g., <code>@anthropic explain quantum computing</code>).</p>
+
+      <h3>Memory Retrieval Tuning</h3>
+      <p>These settings control how much memory context is injected into each conversation turn.</p>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>memoryRetrieval.contextTopK</code></td>
+            <td>number</td>
+            <td><code>3</code></td>
+            <td>Number of memory chunks considered for prompt context injection (1-10).</td>
+          </tr>
+          <tr>
+            <td><code>memoryRetrieval.minConfidence</code></td>
+            <td>number</td>
+            <td><code>0</code></td>
+            <td>Minimum confidence threshold for memory chunks to be injected (0-1).</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"memoryRetrieval": {
+  "contextTopK": 4,
+  "minConfidence": 0.25
+}</code></pre>
+
+      <h3>Tool Scope Safety</h3>
+      <p>Use tool scopes to enforce least-privilege behavior and safer default execution for risky tools.</p>
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>toolScopes.allowed</code></td>
+            <td>string[]</td>
+            <td><code>[]</code> (allow all)</td>
+            <td>If non-empty, blocks any tool whose scopes are not in this allowlist.</td>
+          </tr>
+          <tr>
+            <td><code>toolScopes.dryRunByDefault</code></td>
+            <td>boolean</td>
+            <td><code>false</code></td>
+            <td>When true, confirm-gated risky tools return a dry-run preview unless explicitly executed with <code>_dryRun: false</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code>"toolScopes": {
+  "allowed": ["memory", "network_read", "filesystem_read"],
+  "dryRunByDefault": true
+}</code></pre>
+
+      <h3>Tool Permission Overrides</h3>
+      <p>You can override per-tool permission levels without changing code.</p>
+<pre><code>"toolPermissions": {
+  "shell": "deny",
+  "file_write": "confirm",
+  "memory_search": "auto"
+}</code></pre>
+      <p>Valid values are <code>auto</code>, <code>confirm</code>, and <code>deny</code>. These overrides are used by both the dashboard and slash commands such as <code>/permissions set &lt;tool&gt; &lt;level&gt;</code>.</p>
 
       <!-- ================================================================ -->
       <h2 id="channel-configuration">Channel Configuration</h2>
@@ -1061,7 +1168,7 @@ ollama list</code></pre>
   "maxConversations": 10
 }</code></pre>
 
-      <p>Digests are delivered using the same SMTP credentials configured in the email channel. The email's &ldquo;From&rdquo; name uses the <code>email.fromName</code> field (or defaults to the agent name). You can test the digest configuration by sending a test digest from the dashboard or via <code>POST /api/dashboard/email-digest/test</code>. See the <a href="/docs/api#email-digests">Email Digest API endpoints</a> for programmatic management.</p>
+      <p>Digests are delivered using the same SMTP credentials configured in the email channel. The email's &ldquo;From&rdquo; name uses the <code>email.fromName</code> field (or defaults to the agent name). You can send a digest from the dashboard or via <code>POST /api/dashboard/digests/send</code>. See the <a href="/docs/api#email-digests">Email Digest API endpoints</a> for programmatic management.</p>
 
       <!-- ================================================================ -->
       <h2 id="authentication">Authentication</h2>
@@ -1094,14 +1201,14 @@ ollama list</code></pre>
       <p>API keys can be created and managed via the CLI or the web dashboard:</p>
 
 <pre><code># Create a new API key
-zubo auth create --name "my-app"
-# Output: API key created: zb_k1_a1b2c3d4e5f6...
+zubo auth create-key my-app
+# Output: API key created (id: N, label: my-app): ...
 
 # List all API keys
-zubo auth list
+zubo auth list-keys
 
-# Revoke an API key
-zubo auth revoke zb_k1_a1b2c3d4e5f6...</code></pre>
+# Delete an API key by numeric id
+zubo auth delete-key 3</code></pre>
 
       <h3>Using API Keys</h3>
 
