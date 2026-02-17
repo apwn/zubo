@@ -192,6 +192,22 @@ class SmtpClient {
 
   constructor(private config: EmailConfig["smtp"], private fromName?: string) {}
 
+  private encodeMimeHeader(value: string): string {
+    const sanitized = value.replace(/[\r\n]+/g, " ").trim();
+    if (!sanitized) return "";
+    // RFC 2047 encoded-word for non-ASCII header values (emoji, accents, etc.).
+    if (/^[\x00-\x7F]*$/.test(sanitized)) return sanitized;
+    return `=?UTF-8?B?${Buffer.from(sanitized, "utf8").toString("base64")}?=`;
+  }
+
+  private toCrlfBody(body: string): string {
+    const normalized = body.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    return normalized
+      .split("\n")
+      .map((line) => (line.startsWith(".") ? `.${line}` : line))
+      .join("\r\n");
+  }
+
   private async connectRaw(): Promise<Socket | tls.TLSSocket> {
     return new Promise((resolve, reject) => {
       if (this.config.tls && this.config.port === 465) {
@@ -283,15 +299,19 @@ class SmtpClient {
 
       // Message content — write directly to socket, not via sendCmd
       const displayName = this.fromName || "Zubo";
+      const encodedFromName = this.encodeMimeHeader(displayName);
+      const encodedSubject = this.encodeMimeHeader(subject);
+      const safeBody = this.toCrlfBody(body || "");
       const message = [
-        `From: ${displayName} <${fromAddr}>`,
+        `From: ${encodedFromName} <${fromAddr}>`,
         `To: ${to}`,
-        `Subject: ${subject}`,
+        `Subject: ${encodedSubject}`,
         `Date: ${new Date().toUTCString()}`,
+        `MIME-Version: 1.0`,
         `Content-Type: text/plain; charset=utf-8`,
         `Content-Transfer-Encoding: 8bit`,
         ``,
-        body,
+        safeBody,
       ].join("\r\n");
 
       // Send body then terminator, wait for 250 OK
@@ -312,6 +332,18 @@ class SmtpClient {
       socket.destroy();
     }
   }
+}
+
+export async function sendSmtpEmail(
+  config: EmailConfig["smtp"],
+  to: string,
+  subject: string,
+  body: string,
+  fromName?: string,
+  from?: string,
+): Promise<void> {
+  const smtp = new SmtpClient(config, fromName);
+  await smtp.sendEmail(to, subject, body, from);
 }
 
 // --- Email channel adapter ---

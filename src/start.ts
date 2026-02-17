@@ -31,6 +31,7 @@ import { registerTodosTool } from "./tools/builtin/todos";
 import { registerNotesTool } from "./tools/builtin/notes";
 import { registerPreferencesTool } from "./tools/builtin/preferences";
 import { registerTopicsTool } from "./tools/builtin/topics";
+import { registerEmailSendTool } from "./tools/builtin/email-send";
 import { logger, enableFileLogging } from "./util/logger";
 
 function openBrowser(url: string) {
@@ -238,6 +239,7 @@ export async function startZubo(isDaemon = false) {
   registerNotesTool();
   registerPreferencesTool();
   registerTopicsTool();
+  registerEmailSendTool();
   const { registerFollowUpsTool } = await import("./tools/builtin/follow-ups");
   registerFollowUpsTool(db, router, config, llm);
 

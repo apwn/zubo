@@ -55,6 +55,7 @@ const DEFAULT_PERMISSIONS: Record<string, ToolPermission> = {
   preferences: "auto",
   topics: "auto",
   follow_ups: "auto",
+  email_send: "confirm",
 
   // Built-in skills — safe (read-only or low risk)
   web_search: "auto",
@@ -145,6 +146,7 @@ const TOOL_SCOPES: Record<string, ToolScope[]> = {
   preferences: ["memory"],
   topics: ["memory"],
   follow_ups: ["memory"],
+  email_send: ["network_write"],
   web_search: ["network_read"],
   url_fetch: ["network_read"],
   file_read: ["filesystem_read"],
