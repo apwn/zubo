@@ -1541,15 +1541,15 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
           </div>
 
           <div class="settings-section">
-            <h3 class="settings-title">Memory Retrieval</h3>
-            <p class="settings-desc">Control how many memory chunks are injected into chat context and the minimum confidence threshold.</p>
+            <h3 class="settings-title">Memory in Replies</h3>
+            <p class="settings-desc">Choose how much past context Zubo pulls into each reply.</p>
             <div class="settings-grid">
               <div class="settings-field">
-                <label class="settings-label" for="memory-context-topk">Context Top-K</label>
+                <label class="settings-label" for="memory-context-topk">Memories per reply</label>
                 <input id="memory-context-topk" type="number" class="settings-input" min="1" max="10" step="1" placeholder="3">
               </div>
               <div class="settings-field">
-                <label class="settings-label" for="memory-min-confidence">Min Confidence (0-1)</label>
+                <label class="settings-label" for="memory-min-confidence">Minimum relevance (0-1)</label>
                 <input id="memory-min-confidence" type="number" class="settings-input" min="0" max="1" step="0.05" placeholder="0">
               </div>
             </div>
@@ -1559,19 +1559,19 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
               <button class="btn btn-ghost" onclick="applyMemoryPreset('strict')">Strict</button>
               <span id="memory-retrieval-status" class="status-text"></span>
             </div>
-            <p class="settings-desc" style="margin-top:10px;margin-bottom:0;">Recommended: <code>Top-K 3-5</code> and <code>min confidence 0.2-0.35</code>.</p>
+            <p class="settings-desc" style="margin-top:10px;margin-bottom:0;">Recommended for most users: <code>3-5</code> memories and <code>0.2-0.35</code> relevance.</p>
           </div>
 
           <div class="settings-section">
-            <h3 class="settings-title">Tool Safety</h3>
-            <p class="settings-desc">Limit tool scopes and optionally force dry-run mode by default for risky tools.</p>
+            <h3 class="settings-title">Action Safety</h3>
+            <p class="settings-desc">Control which kinds of actions Zubo can run, and whether risky actions should start in preview mode.</p>
             <div class="settings-grid">
               <div class="settings-field">
-                <label class="settings-label" for="tool-scopes-allowed">Allowed Scopes (comma-separated)</label>
+                <label class="settings-label" for="tool-scopes-allowed">Allowed actions (comma-separated)</label>
                 <input id="tool-scopes-allowed" type="text" class="settings-input" placeholder="memory,network_read,filesystem_read">
               </div>
               <div class="settings-field">
-                <label class="settings-label" for="tool-scopes-dry-run">Dry-Run By Default</label>
+                <label class="settings-label" for="tool-scopes-dry-run">Preview mode by default</label>
                 <select id="tool-scopes-dry-run" class="settings-select">
                   <option value="false">No</option>
                   <option value="true">Yes</option>
@@ -1584,7 +1584,7 @@ export const DASHBOARD_HTML = `<!DOCTYPE html>
               <button class="btn btn-ghost" onclick="applyToolScopePreset('balanced')">Balanced</button>
               <span id="tool-scopes-status" class="status-text"></span>
             </div>
-            <p class="settings-desc" style="margin-top:10px;margin-bottom:0;">Leave blank to allow all scopes. Use presets to start with least privilege.</p>
+            <p class="settings-desc" style="margin-top:10px;margin-bottom:0;">Leave blank to allow all actions. Use presets if you want safer defaults.</p>
           </div>
 
           <div class="settings-section">

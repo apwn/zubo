@@ -20,20 +20,24 @@ function escapeHtml(s: string): string {
 
 /** Convert raw error messages to user-friendly messages. Prevents leaking internal details. */
 function friendlyError(err: any): string {
-  const msg = err?.message ?? String(err);
-  if (msg.includes("401") || msg.includes("Unauthorized") || msg.includes("invalid"))
-    return "Authentication failed. Check your API key in Settings > API Keys.";
+  const msg = (err?.message ?? String(err)).toLowerCase();
+  if (msg.includes("401") || msg.includes("unauthorized") || msg.includes("invalid"))
+    return "Authentication failed. Next step: open Settings -> API Keys, update the key, then retry.";
   if (msg.includes("429") || msg.includes("rate limit"))
-    return "Too many messages too quickly. Wait a moment and try again.";
-  if (msg.includes("404") || msg.includes("not found"))
-    return "The AI model wasn't found. Check your model name in Settings > AI Model.";
-  if (msg.includes("ECONNREFUSED") || msg.includes("fetch failed") || msg.includes("Connection refused"))
-    return "Can't reach the AI service. Check your internet connection or try again.";
+    return "Too many messages too quickly. Next step: wait 15-30 seconds, then try again.";
+  if (msg.includes("404") || msg.includes("not found") || msg.includes("model") && msg.includes("not"))
+    return "The AI model wasn't found. Next step: open Settings -> AI Model and pick a model that exists.";
+  if (msg.includes("ollama") && (msg.includes("connect") || msg.includes("econnrefused") || msg.includes("11434")))
+    return "Local model service is not running. Next step: start Ollama, then retry (for example: `ollama serve`).";
+  if (msg.includes("ollama") && (msg.includes("no such model") || msg.includes("pull")))
+    return "Local model is missing. Next step: pull it first (for example: `ollama pull llama3.2`), then retry.";
+  if (msg.includes("econnrefused") || msg.includes("fetch failed") || msg.includes("connection refused"))
+    return "Can't reach the AI service. Next step: check internet/provider status, then retry.";
   if (msg.includes("timed out") || msg.includes("timeout"))
-    return "The request took too long. The AI service may be busy — try again in a moment.";
+    return "The request timed out. Next step: retry once, then switch to a faster model if it keeps happening.";
   if (msg.includes("context") || msg.includes("too long"))
-    return "Your message is too long. Try splitting it into shorter questions.";
-  return "Something went wrong. Try again, or check Settings if this keeps happening.";
+    return "Your message is too long. Next step: split it into smaller parts and send one at a time.";
+  return "Something went wrong. Next step: retry once, then check Settings if it keeps happening.";
 }
 
 /** Add security headers to all HTTP responses */

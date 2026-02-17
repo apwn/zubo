@@ -209,10 +209,111 @@ export function createRouter(
 ): MessageRouter {
   let currentLlm = llm;
   const adapters = new Map<string, ChannelAdapter>();
+  const basicHelpText =
+    "Quick commands:\n" +
+    "/help — this menu\n" +
+    "/status — check if Zubo is running\n" +
+    "/memory <query> — find something Zubo remembers\n" +
+    "/model — show current AI model\n" +
+    "/model set <provider/model> — switch model\n" +
+    "\n" +
+    "Advanced commands:\n" +
+    "/tools [filter]\n" +
+    "/permissions <tool>\n" +
+    "/permissions set <tool> <auto|confirm|deny>\n" +
+    "/budget\n" +
+    "/budget pause|resume\n" +
+    "\n" +
+    "Docs: https://zubo.bot/docs/";
 
   function getAdapterForSession(sessionKey: string): ChannelAdapter | null {
     const channel = sessionKey.split(":")[0];
     return adapters.get(channel) ?? null;
+  }
+
+  async function executeCommand(command: { name: string; args: string }): Promise<string | null> {
+    if (command.name === "help") {
+      return basicHelpText;
+    }
+    if (command.name === "status") {
+      const memoryCount = (db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as { c: number } | null)?.c ?? 0;
+      return `Status: running\nProvider: ${currentLlm.providerName}/${currentLlm.model}\nMemory chunks: ${memoryCount}`;
+    }
+    if (command.name === "memory") {
+      if (!command.args) {
+        return "Usage: /memory <query>";
+      }
+      const results = searchMemory(db, command.args, 3);
+      if (!results.length) {
+        return "No relevant memories found.";
+      }
+      return `Found ${results.length} memory matches:\n\n${formatMemoryMatches(results)}`;
+    }
+    if (command.name === "model") {
+      if (command.args.startsWith("set ")) {
+        const target = command.args.slice(4).trim();
+        const [provider, ...modelParts] = target.split("/");
+        const model = modelParts.join("/").trim();
+        const switched = await switchModelRuntime(provider, model);
+        if (switched.ok && switched.provider) {
+          currentLlm = switched.provider;
+        }
+        return switched.message;
+      }
+      return `Current model: ${currentLlm.providerName}/${currentLlm.model}`;
+    }
+    if (command.name === "tools") {
+      const filter = command.args.toLowerCase();
+      const names = Array.from(getAllTools().keys())
+        .filter((n) => !filter || n.includes(filter))
+        .sort()
+        .slice(0, 40);
+      return names.length ? `Available tools (${names.length} shown):\n${names.join(", ")}` : "No tools found.";
+    }
+    if (command.name === "permissions") {
+      if (command.args.startsWith("set ")) {
+        const parts = command.args.slice(4).trim().split(/\s+/);
+        const toolName = parts[0] ?? "";
+        const level = parts[1] ?? "";
+        const result = await setToolPermission(toolName, level);
+        return result.message;
+      }
+      const toolName = command.args.trim();
+      if (!toolName) {
+        return "Usage: /permissions <tool_name>";
+      }
+      return (
+        `Permissions for ${toolName}:\n` +
+        `level: ${getToolPermission(toolName)}\n` +
+        `scopes: ${getToolScopes(toolName).join(", ")}`
+      );
+    }
+    if (command.name === "budget") {
+      const arg = command.args.trim().toLowerCase();
+      if (arg === "pause" || arg === "resume") {
+        const result = setBudgetPaused(db, arg === "pause");
+        return result.message;
+      }
+      const row = db.query(
+        "SELECT daily_limit_usd, monthly_limit_usd, paused, alert_threshold FROM budget_config WHERE id = 1"
+      ).get() as { daily_limit_usd: number | null; monthly_limit_usd: number | null; paused: number; alert_threshold: number | null } | null;
+      if (!row) {
+        return "Budget: not configured.";
+      }
+      const daily = db.query(
+        "SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE created_at >= datetime('now', 'start of day') AND cost_usd IS NOT NULL"
+      ).get() as { total: number };
+      const monthly = db.query(
+        "SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE created_at >= datetime('now', 'start of month') AND cost_usd IS NOT NULL"
+      ).get() as { total: number };
+      return (
+        `Budget status:\n` +
+        `paused: ${row.paused ? "yes" : "no"}\n` +
+        `daily: $${daily.total.toFixed(4)} / ${row.daily_limit_usd ? `$${row.daily_limit_usd.toFixed(2)}` : "unlimited"}\n` +
+        `monthly: $${monthly.total.toFixed(4)} / ${row.monthly_limit_usd ? `$${row.monthly_limit_usd.toFixed(2)}` : "unlimited"}`
+      );
+    }
+    return null;
   }
 
   return {
@@ -265,114 +366,12 @@ export function createRouter(
       try {
         const command = parseCommand(text);
         if (command) {
-          if (command.name === "help") {
-            await reply(
-              "Commands:\n" +
-              "/help — show commands\n" +
-              "/status — runtime status\n" +
-              "/memory <query> — search saved memory\n" +
-              "/model — show current model\n" +
-              "/model set <provider/model> — switch model\n" +
-              "/tools [filter] — list tools\n" +
-              "/permissions <tool> — tool permissions\n" +
-              "/permissions set <tool> <auto|confirm|deny> — set permission\n" +
-              "/budget — budget status\n" +
-              "/budget pause|resume — control budget pause"
-            );
-            return;
+          const response = await executeCommand(command);
+          if (response) {
+            await reply(response);
+          } else {
+            await reply(`Unknown command: /${command.name}. Try /help.`);
           }
-          if (command.name === "status") {
-            const memoryCount = (db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as { c: number } | null)?.c ?? 0;
-            await reply(`Status: running\nProvider: ${currentLlm.providerName}/${currentLlm.model}\nMemory chunks: ${memoryCount}`);
-            return;
-          }
-          if (command.name === "memory") {
-            if (!command.args) {
-              await reply("Usage: /memory <query>");
-              return;
-            }
-            const results = searchMemory(db, command.args, 3);
-            if (!results.length) {
-              await reply("No relevant memories found.");
-              return;
-            }
-            await reply(`Found ${results.length} memory matches:\n\n${formatMemoryMatches(results)}`);
-            return;
-          }
-          if (command.name === "model") {
-            if (command.args.startsWith("set ")) {
-              const target = command.args.slice(4).trim();
-              const [provider, ...modelParts] = target.split("/");
-              const model = modelParts.join("/").trim();
-              const switched = await switchModelRuntime(provider, model);
-              if (switched.ok && switched.provider) {
-                currentLlm = switched.provider;
-              }
-              await reply(switched.message);
-              return;
-            }
-            await reply(`Current model: ${currentLlm.providerName}/${currentLlm.model}`);
-            return;
-          }
-          if (command.name === "tools") {
-            const filter = command.args.toLowerCase();
-            const names = Array.from(getAllTools().keys())
-              .filter((n) => !filter || n.includes(filter))
-              .sort()
-              .slice(0, 40);
-            await reply(names.length ? `Available tools (${names.length} shown):\n${names.join(", ")}` : "No tools found.");
-            return;
-          }
-          if (command.name === "permissions") {
-            if (command.args.startsWith("set ")) {
-              const parts = command.args.slice(4).trim().split(/\s+/);
-              const toolName = parts[0] ?? "";
-              const level = parts[1] ?? "";
-              const result = await setToolPermission(toolName, level);
-              await reply(result.message);
-              return;
-            }
-            const toolName = command.args.trim();
-            if (!toolName) {
-              await reply("Usage: /permissions <tool_name>");
-              return;
-            }
-            await reply(
-              `Permissions for ${toolName}:\n` +
-              `level: ${getToolPermission(toolName)}\n` +
-              `scopes: ${getToolScopes(toolName).join(", ")}`
-            );
-            return;
-          }
-          if (command.name === "budget") {
-            const arg = command.args.trim().toLowerCase();
-            if (arg === "pause" || arg === "resume") {
-              const result = setBudgetPaused(db, arg === "pause");
-              await reply(result.message);
-              return;
-            }
-            const row = db.query(
-              "SELECT daily_limit_usd, monthly_limit_usd, paused, alert_threshold FROM budget_config WHERE id = 1"
-            ).get() as { daily_limit_usd: number | null; monthly_limit_usd: number | null; paused: number; alert_threshold: number | null } | null;
-            if (!row) {
-              await reply("Budget: not configured.");
-              return;
-            }
-            const daily = db.query(
-              "SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE created_at >= datetime('now', 'start of day') AND cost_usd IS NOT NULL"
-            ).get() as { total: number };
-            const monthly = db.query(
-              "SELECT COALESCE(SUM(cost_usd), 0) as total FROM usage WHERE created_at >= datetime('now', 'start of month') AND cost_usd IS NOT NULL"
-            ).get() as { total: number };
-            await reply(
-              `Budget status:\n` +
-              `paused: ${row.paused ? "yes" : "no"}\n` +
-              `daily: $${daily.total.toFixed(4)} / ${row.daily_limit_usd ? `$${row.daily_limit_usd.toFixed(2)}` : "unlimited"}\n` +
-              `monthly: $${monthly.total.toFixed(4)} / ${row.monthly_limit_usd ? `$${row.monthly_limit_usd.toFixed(2)}` : "unlimited"}`
-            );
-            return;
-          }
-          await reply(`Unknown command: /${command.name}. Try /help.`);
           return;
         }
 
@@ -414,92 +413,8 @@ export function createRouter(
 
       const command = parseCommand(text);
       if (command) {
-        if (command.name === "help") {
-          const help =
-            "Commands:\n" +
-            "/help — show commands\n" +
-            "/status — runtime status\n" +
-            "/memory <query> — search saved memory\n" +
-            "/model — show current model\n" +
-            "/model set <provider/model> — switch model\n" +
-            "/tools [filter] — list tools\n" +
-            "/permissions <tool> — tool permissions\n" +
-            "/permissions set <tool> <auto|confirm|deny> — set permission\n" +
-            "/budget — budget status\n" +
-            "/budget pause|resume — control budget pause";
-          onDelta(help);
-          return help;
-        }
-        if (command.name === "status") {
-          const memoryCount = (db.query("SELECT COUNT(*) as c FROM memory_chunks").get() as { c: number } | null)?.c ?? 0;
-          const status = `Status: running\nProvider: ${currentLlm.providerName}/${currentLlm.model}\nMemory chunks: ${memoryCount}`;
-          onDelta(status);
-          return status;
-        }
-        if (command.name === "memory") {
-          if (!command.args) {
-            const usage = "Usage: /memory <query>";
-            onDelta(usage);
-            return usage;
-          }
-          const results = searchMemory(db, command.args, 3);
-          const textResult = results.length
-            ? `Found ${results.length} memory matches:\n\n${formatMemoryMatches(results)}`
-            : "No relevant memories found.";
-          onDelta(textResult);
-          return textResult;
-        }
-        if (command.name === "model") {
-          if (command.args.startsWith("set ")) {
-            const target = command.args.slice(4).trim();
-            const [provider, ...modelParts] = target.split("/");
-            const model = modelParts.join("/").trim();
-            const switched = await switchModelRuntime(provider, model);
-            if (switched.ok && switched.provider) currentLlm = switched.provider;
-            onDelta(switched.message);
-            return switched.message;
-          }
-          const response = `Current model: ${currentLlm.providerName}/${currentLlm.model}`;
-          onDelta(response);
-          return response;
-        }
-        if (command.name === "tools") {
-          const filter = command.args.toLowerCase();
-          const names = Array.from(getAllTools().keys())
-            .filter((n) => !filter || n.includes(filter))
-            .sort()
-            .slice(0, 40);
-          const response = names.length ? `Available tools (${names.length} shown):\n${names.join(", ")}` : "No tools found.";
-          onDelta(response);
-          return response;
-        }
-        if (command.name === "permissions") {
-          if (command.args.startsWith("set ")) {
-            const parts = command.args.slice(4).trim().split(/\s+/);
-            const result = await setToolPermission(parts[0] ?? "", parts[1] ?? "");
-            onDelta(result.message);
-            return result.message;
-          }
-          const toolName = command.args.trim();
-          const response = toolName
-            ? `Permissions for ${toolName}:\nlevel: ${getToolPermission(toolName)}\nscopes: ${getToolScopes(toolName).join(", ")}`
-            : "Usage: /permissions <tool_name>";
-          onDelta(response);
-          return response;
-        }
-        if (command.name === "budget") {
-          const arg = command.args.trim().toLowerCase();
-          if (arg === "pause" || arg === "resume") {
-            const result = setBudgetPaused(db, arg === "pause");
-            onDelta(result.message);
-            return result.message;
-          }
-          const row = db.query(
-            "SELECT daily_limit_usd, monthly_limit_usd, paused FROM budget_config WHERE id = 1"
-          ).get() as { daily_limit_usd: number | null; monthly_limit_usd: number | null; paused: number } | null;
-          const response = row
-            ? `Budget configured. paused: ${row.paused ? "yes" : "no"}`
-            : "Budget: not configured.";
+        const response = await executeCommand(command);
+        if (response) {
           onDelta(response);
           return response;
         }

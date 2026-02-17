@@ -65,6 +65,19 @@ zubo start         # launch the agent
 
 The web dashboard opens automatically at `http://localhost:<port>`.
 
+## First 10 Minutes
+
+1. Open Chat and type `/help`.
+2. Ask a real task: "Summarize my latest git changes" or "Plan my week."
+3. Open Settings:
+   - `AI Model` to choose provider/model
+   - `Action Safety` to control allowed actions
+   - `Memory in Replies` to tune how much context is reused
+4. If replies fail, check:
+   - `Settings > API Keys` for auth errors
+   - `Settings > AI Model` for missing model errors
+   - Local model users: run `ollama serve` and pull the model first
+
 ## Architecture
 
 ```
@@ -142,16 +155,18 @@ Full reference at [zubo.bot/docs/cli.html](https://zubo.bot/docs/cli.html).
 
 Across WebChat, Telegram, Discord, Slack, and other channels:
 
-- `/help` — list available commands
-- `/status` — runtime status
-- `/memory <query>` — search saved memory with confidence metadata
-- `/model` — show current provider/model
-- `/model set <provider/model>` — switch active model at runtime
-- `/tools [filter]` — list available tools
-- `/permissions <tool>` — view tool permission + scopes
-- `/permissions set <tool> <auto|confirm|deny>` — override tool permission
-- `/budget` — view budget usage and limits
-- `/budget pause|resume` — pause/resume budget enforcement
+- Basic:
+  - `/help` — quick command menu + docs link
+  - `/status` — runtime status
+  - `/memory <query>` — search saved memory
+  - `/model` — show current provider/model
+  - `/model set <provider/model>` — switch active model at runtime
+- Advanced:
+  - `/tools [filter]` — list available tools
+  - `/permissions <tool>` — view tool permission + scopes
+  - `/permissions set <tool> <auto|confirm|deny>` — override tool permission
+  - `/budget` — view budget usage and limits
+  - `/budget pause|resume` — pause/resume budget enforcement
 
 ## Contributing
 
