@@ -144,6 +144,12 @@ export const configSchema = z.object({
   // Tool permission overrides
   toolPermissions: z.record(z.string(), z.enum(["auto", "confirm", "deny"])).optional(),
 
+  // Approval behavior
+  approvals: z.object({
+    // If true, built-in first-party tools never require secondary confirmation prompts.
+    autoApproveFirstPartyTools: z.boolean().default(false),
+  }).optional(),
+
   // Memory retrieval tuning for router context injection
   memoryRetrieval: z.object({
     contextTopK: z.number().int().min(1).max(10).default(3),

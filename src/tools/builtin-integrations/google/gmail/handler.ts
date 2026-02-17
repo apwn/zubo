@@ -1,7 +1,18 @@
+import { logSentMessage } from "../../../../email/sent-log";
 const API = "https://gmail.googleapis.com/gmail/v1/users/me";
 
 function encodeMimeHeader(value: string): string {
-  const sanitized = String(value || "").replace(/[\r\n]+/g, " ").trim();
+  const raw = String(value || "");
+  let repaired = raw;
+  if (/[ÃÂ]/.test(raw)) {
+    try {
+      const candidate = Buffer.from(raw, "latin1").toString("utf8");
+      repaired = candidate.includes("�") ? raw : candidate;
+    } catch {
+      repaired = raw;
+    }
+  }
+  const sanitized = repaired.replace(/[\r\n]+/g, " ").trim();
   if (!sanitized) return "";
   if (/^[\x00-\x7F]*$/.test(sanitized)) return sanitized;
   return `=?UTF-8?B?${Buffer.from(sanitized, "utf8").toString("base64")}?=`;
@@ -99,8 +110,27 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           method: "POST", headers,
           body: JSON.stringify({ raw }),
         });
-        if (!res.ok) return await safeApiErr(res, "Gmail");
+        if (!res.ok) {
+          const error = await safeApiErr(res, "Gmail");
+          logSentMessage({
+            provider: "gmail",
+            recipient: to,
+            subject,
+            body: body || "",
+            status: "failed",
+            errorMessage: error,
+          });
+          return error;
+        }
         const data = (await res.json()) as any;
+        logSentMessage({
+          provider: "gmail",
+          recipient: to,
+          subject,
+          body: body || "",
+          status: "sent",
+          externalId: data.id,
+        });
         return JSON.stringify({ sent: true, id: data.id });
       }
       case "search": {
@@ -127,8 +157,27 @@ export default async function (input: Record<string, unknown>): Promise<string> 
           method: "POST", headers,
           body: JSON.stringify({ raw, threadId: origData.threadId }),
         });
-        if (!res.ok) return await safeApiErr(res, "Gmail");
+        if (!res.ok) {
+          const error = await safeApiErr(res, "Gmail");
+          logSentMessage({
+            provider: "gmail",
+            recipient: replyTo,
+            subject: subj,
+            body,
+            status: "failed",
+            errorMessage: error,
+          });
+          return error;
+        }
         const data = (await res.json()) as any;
+        logSentMessage({
+          provider: "gmail",
+          recipient: replyTo,
+          subject: subj,
+          body,
+          status: "sent",
+          externalId: data.id,
+        });
         return JSON.stringify({ replied: true, id: data.id });
       }
       default:
@@ -136,6 +185,16 @@ export default async function (input: Record<string, unknown>): Promise<string> 
     }
   } catch (err: any) {
     console.error(`[Gmail] Request failed: ${err.message}`);
+    if (action === "send" || action === "reply") {
+      logSentMessage({
+        provider: "gmail",
+        recipient: String(to || ""),
+        subject: String(subject || ""),
+        body: body || "",
+        status: "failed",
+        errorMessage: err?.message ?? String(err),
+      });
+    }
     return JSON.stringify({ error: "Gmail request failed. Check logs for details." });
   }
 }

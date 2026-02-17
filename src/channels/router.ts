@@ -223,6 +223,7 @@ export function createRouter(
     "/permissions set <tool> <auto|confirm|deny>\n" +
     "/budget\n" +
     "/budget pause|resume\n" +
+    "/sent [n]\n" +
     "\n" +
     "Docs: https://zubo.bot/docs/";
 
@@ -312,6 +313,31 @@ export function createRouter(
         `daily: $${daily.total.toFixed(4)} / ${row.daily_limit_usd ? `$${row.daily_limit_usd.toFixed(2)}` : "unlimited"}\n` +
         `monthly: $${monthly.total.toFixed(4)} / ${row.monthly_limit_usd ? `$${row.monthly_limit_usd.toFixed(2)}` : "unlimited"}`
       );
+    }
+    if (command.name === "sent") {
+      const limitRaw = Number(command.args.trim() || "10");
+      const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(50, Math.floor(limitRaw))) : 10;
+      try {
+        const rows = db.query(
+          "SELECT provider, recipient, subject, status, error_message, created_at FROM sent_messages ORDER BY id DESC LIMIT ?"
+        ).all(limit) as Array<{
+          provider: string;
+          recipient: string;
+          subject: string;
+          status: string;
+          error_message: string | null;
+          created_at: string;
+        }>;
+        if (!rows.length) return "No sent email records yet.";
+        return rows
+          .map((r, i) =>
+            `[${i + 1}] ${r.created_at} ${r.status.toUpperCase()} via ${r.provider} -> ${r.recipient}\n` +
+            `Subject: ${r.subject}${r.error_message ? `\nError: ${r.error_message}` : ""}`
+          )
+          .join("\n\n");
+      } catch {
+        return "Sent log is not available yet. Restart Zubo to apply latest DB migrations.";
+      }
     }
     return null;
   }

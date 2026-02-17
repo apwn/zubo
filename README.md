@@ -101,6 +101,7 @@ All config lives in `~/.zubo/config.json`. Run `zubo setup` for interactive conf
 zubo config set activeProvider anthropic
 zubo config set smartRouting.enabled true
 zubo config set budget.monthlyLimitUsd 50
+zubo config set approvals.autoApproveFirstPartyTools true
 ```
 
 See the full [configuration reference](https://zubo.bot/docs/config.html) for all options.
@@ -167,6 +168,7 @@ Across WebChat, Telegram, Discord, Slack, and other channels:
   - `/permissions set <tool> <auto|confirm|deny>` — override tool permission
   - `/budget` — view budget usage and limits
   - `/budget pause|resume` — pause/resume budget enforcement
+  - `/sent [n]` — show latest outbound email delivery records
 
 ## Contributing
 

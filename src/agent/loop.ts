@@ -48,6 +48,27 @@ function looksConversational(text: string): boolean {
   return standaloneGreetings.test(t);
 }
 
+export function hasEmailSendIntent(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  if (!t) return false;
+  if (/\bdraft\b/.test(t) && !/\bsend\b/.test(t)) return false;
+  if (/\b(send|email|mail)\b/.test(t) && /\b(to|recipient)\b/.test(t)) return true;
+  if (/\b(write|compose)\b.*\b(email|mail)\b/.test(t)) return true;
+  return false;
+}
+
+export function canSendEmailWithTools(tools: any[]): boolean {
+  const names = new Set(tools.map((t) => t.name));
+  return names.has("email_send") || names.has("gmail");
+}
+
+function hasEmailSendCapability(allowedTools?: string[]): boolean {
+  const defs = getAllToolDefs();
+  if (!allowedTools) return canSendEmailWithTools(defs);
+  const allowed = new Set(allowedTools);
+  return canSendEmailWithTools(defs.filter((d) => allowed.has(d.name)));
+}
+
 async function prepareLoop(
   llm: LlmProvider,
   sessionId: string,
@@ -216,6 +237,8 @@ export async function agentLoop(
   const options = resolveOptions(memoriesOrOptions);
   const maxRounds = options.maxRounds ?? MAX_TOOL_ROUNDS;
   const { system, messages, tools } = await prepareLoop(llm, sessionId, userMessage, options);
+  const emailIntentLock = hasEmailSendIntent(userMessage) && canSendEmailWithTools(tools);
+  let emailIntentRetries = 0;
 
   let totalToolCalls = 0;
 
@@ -252,6 +275,31 @@ export async function agentLoop(
         .filter((b) => b.type === "text")
         .map((b) => b.text ?? "")
         .join("\n") || "";
+
+      if (emailIntentLock && totalToolCalls === 0 && emailIntentRetries < 1) {
+        emailIntentRetries += 1;
+        messages.push({ role: "assistant", content: response.content });
+        messages.push({
+          role: "user",
+          content: [{
+            type: "text",
+            text:
+              "Policy guard: The user asked you to SEND an email. You must execute an email tool now (email_send or gmail action send/reply). " +
+              "Do not return a draft-only response.",
+          }],
+        });
+        continue;
+      }
+
+      if (emailIntentLock && totalToolCalls === 0 && emailIntentRetries >= 1) {
+        const lockedReply =
+          "I couldn't complete that because no email send tool was executed. " +
+          "Please try again and I'll send it directly.";
+        finishLoop(sessionId, lockedReply);
+        triggerPostLoopCompaction(llm, sessionId);
+        return { reply: lockedReply, toolCalls: totalToolCalls };
+      }
+
       finishLoop(sessionId, reply);
       triggerPostLoopCompaction(llm, sessionId);
       return { reply, toolCalls: totalToolCalls };
@@ -281,6 +329,18 @@ export async function agentLoopStream(
 ): Promise<void> {
   const options = resolveOptions(memoriesOrOptions);
   const maxRounds = options.maxRounds ?? MAX_TOOL_ROUNDS;
+  const emailIntentLock = hasEmailSendIntent(userMessage) && hasEmailSendCapability(options.allowedTools);
+
+  if (emailIntentLock) {
+    try {
+      const result = await agentLoop(llm, sessionId, userMessage, options);
+      callbacks.onTextDelta(result.reply);
+      callbacks.onDone(result);
+    } catch (err: any) {
+      callbacks.onError(err);
+    }
+    return;
+  }
 
   // Fall back to non-streaming if provider doesn't support it
   if (!llm.chatStream) {

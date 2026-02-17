@@ -100,4 +100,25 @@ describe("Router", () => {
     expect(permReply).toContain("scopes:");
     db.close();
   });
+
+  it("should return sent-message log entries for /sent", async () => {
+    const { createRouter } = await import("../src/channels/router");
+    const llm = createMockLlm([textResponse("unused")]);
+    const db = createTestDb();
+    db.prepare(
+      "INSERT INTO sent_messages (provider, recipient, subject, status) VALUES (?, ?, ?, ?)"
+    ).run("smtp", "nichemkg@gmail.com", "Quick joke 😄", "sent");
+    const router = createRouter(llm, db);
+
+    let sentReply = "";
+    await router.handleMessage(
+      { channel: "webchat", userId: "u1", sessionKey: "webchat:u1", text: "/sent 5" },
+      async (text) => {
+        sentReply = text;
+      }
+    );
+    expect(sentReply).toContain("nichemkg@gmail.com");
+    expect(sentReply).toContain("Quick joke");
+    db.close();
+  });
 });

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
+import { describe, it, expect } from "bun:test";
 import { createMockLlm, textResponse, toolCallResponse } from "./helpers/mock-llm";
-import { createTestDb } from "./helpers/test-db";
+import { hasEmailSendIntent, canSendEmailWithTools } from "../src/agent/loop";
 
 // We need to mock the DB and session before importing the agent loop
 // Since Bun's module system caches imports, we test the logic indirectly
@@ -50,5 +50,18 @@ describe("Agent Loop", () => {
     const response = await llm.chat({ system: "", messages: [] });
     expect(response.usage.inputTokens).toBe(100);
     expect(response.usage.outputTokens).toBe(50);
+  });
+
+  it("detects send-email intent", () => {
+    expect(hasEmailSendIntent("write a mail to nichemkg@gmail.com with a joke")).toBe(true);
+    expect(hasEmailSendIntent("send an email to test@example.com")).toBe(true);
+    expect(hasEmailSendIntent("draft an email to nichemkg@gmail.com")).toBe(false);
+    expect(hasEmailSendIntent("hello there")).toBe(false);
+  });
+
+  it("detects available email send tools", () => {
+    expect(canSendEmailWithTools([{ name: "email_send" }])).toBe(true);
+    expect(canSendEmailWithTools([{ name: "gmail" }])).toBe(true);
+    expect(canSendEmailWithTools([{ name: "web_search" }])).toBe(false);
   });
 });

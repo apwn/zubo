@@ -365,6 +365,23 @@ async function handleDashboardApi(url: URL, req: Request): Promise<Response | nu
     return Response.json({ skills: getSkillsData() });
   }
 
+  // GET /api/dashboard/sent-messages?limit=20
+  if (path === "/sent-messages" && req.method === "GET") {
+    const db = getDb();
+    const limitRaw = Number(url.searchParams.get("limit") || "20");
+    const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(100, Math.floor(limitRaw))) : 20;
+    try {
+      const rows = db.query(
+        `SELECT id, provider, recipient, subject, body_preview, attachments_json, status, error_message, external_id, created_at
+         FROM sent_messages
+         ORDER BY id DESC LIMIT ?`
+      ).all(limit);
+      return Response.json({ rows });
+    } catch (err: any) {
+      return Response.json({ rows: [], error: err.message });
+    }
+  }
+
   // ── TODOS ──
 
   // GET /api/dashboard/todos?filter=pending|done|all

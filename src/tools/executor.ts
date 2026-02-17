@@ -1,4 +1,4 @@
-import { getTool } from "./registry";
+import { getTool, isUserInstalledSkill } from "./registry";
 import { getToolPermission, getToolScopes, hasRiskyScope } from "./permissions";
 import { logger } from "../util/logger";
 import { recordError } from "../util/error-buffer";
@@ -21,6 +21,7 @@ const BUILTIN_INTEGRATION_TOOLS = new Set([
 interface ToolScopePolicy {
   allowed?: string[];
   dryRunByDefault: boolean;
+  autoApproveFirstPartyTools: boolean;
 }
 
 const toolScopePolicyCache: {
@@ -28,7 +29,7 @@ const toolScopePolicyCache: {
   value: ToolScopePolicy;
 } = {
   mtimeMs: -1,
-  value: { dryRunByDefault: false },
+  value: { dryRunByDefault: false, autoApproveFirstPartyTools: false },
 };
 
 export interface ToolResult {
@@ -77,13 +78,19 @@ function readToolScopePolicy(): ToolScopePolicy {
     const parsed = {
       allowed: Array.isArray(cfg?.toolScopes?.allowed) ? cfg.toolScopes.allowed : undefined,
       dryRunByDefault: Boolean(cfg?.toolScopes?.dryRunByDefault),
+      autoApproveFirstPartyTools: cfg?.approvals?.autoApproveFirstPartyTools === true,
     };
     toolScopePolicyCache.mtimeMs = mtimeMs;
     toolScopePolicyCache.value = parsed;
     return parsed;
   } catch {
-    return { dryRunByDefault: false };
+    return { dryRunByDefault: false, autoApproveFirstPartyTools: false };
   }
+}
+
+function isFirstPartyTool(name: string): boolean {
+  if (name.includes("__")) return false; // MCP tools
+  return !isUserInstalledSkill(name);
 }
 
 // Determine if a tool should run in the sandbox (user-installed skills only)
@@ -235,6 +242,9 @@ export async function executeTool(
   }
 
   if (permission === "confirm") {
+    if (scopePolicy.autoApproveFirstPartyTools && isFirstPartyTool(name)) {
+      logger.info(`Auto-approving first-party tool: ${name}`);
+    } else
     // For direct user requests, don't require a second explicit approval round.
     if (options.directUserRequest) {
       logger.info(`Bypassing confirmation for direct user request: ${name}`);

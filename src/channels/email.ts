@@ -1,7 +1,10 @@
 import { connect, type Socket } from "net";
 import * as tls from "tls";
+import { readFileSync, statSync } from "fs";
+import { basename } from "path";
 import type { ChannelAdapter, InboundMessage } from "./adapter";
 import type { MessageRouter } from "./router";
+import { logSentMessage } from "../email/sent-log";
 import { logger } from "../util/logger";
 
 export interface EmailConfig {
@@ -192,8 +195,19 @@ class SmtpClient {
 
   constructor(private config: EmailConfig["smtp"], private fromName?: string) {}
 
+  private repairMojibake(value: string): string {
+    if (!/[ÃÂ]/.test(value)) return value;
+    try {
+      const repaired = Buffer.from(value, "latin1").toString("utf8");
+      return repaired.includes("�") ? value : repaired;
+    } catch {
+      return value;
+    }
+  }
+
   private encodeMimeHeader(value: string): string {
-    const sanitized = value.replace(/[\r\n]+/g, " ").trim();
+    const repaired = this.repairMojibake(value);
+    const sanitized = repaired.replace(/[\r\n]+/g, " ").trim();
     if (!sanitized) return "";
     // RFC 2047 encoded-word for non-ASCII header values (emoji, accents, etc.).
     if (/^[\x00-\x7F]*$/.test(sanitized)) return sanitized;
@@ -201,11 +215,77 @@ class SmtpClient {
   }
 
   private toCrlfBody(body: string): string {
-    const normalized = body.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const repaired = this.repairMojibake(body);
+    const normalized = repaired.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     return normalized
       .split("\n")
       .map((line) => (line.startsWith(".") ? `.${line}` : line))
       .join("\r\n");
+  }
+
+  private buildMimeMessage(
+    fromAddr: string,
+    to: string,
+    subject: string,
+    body: string,
+    attachments: string[] = [],
+  ): string {
+    const displayName = this.fromName || "Zubo";
+    const encodedFromName = this.encodeMimeHeader(displayName);
+    const encodedSubject = this.encodeMimeHeader(subject);
+    const safeBody = this.toCrlfBody(body || "");
+    if (!attachments.length) {
+      return [
+        `From: ${encodedFromName} <${fromAddr}>`,
+        `To: ${to}`,
+        `Subject: ${encodedSubject}`,
+        `Date: ${new Date().toUTCString()}`,
+        `MIME-Version: 1.0`,
+        `Content-Type: text/plain; charset=utf-8`,
+        `Content-Transfer-Encoding: 8bit`,
+        ``,
+        safeBody,
+      ].join("\r\n");
+    }
+
+    const boundary = `zubo-${crypto.randomUUID()}`;
+    const lines: string[] = [
+      `From: ${encodedFromName} <${fromAddr}>`,
+      `To: ${to}`,
+      `Subject: ${encodedSubject}`,
+      `Date: ${new Date().toUTCString()}`,
+      `MIME-Version: 1.0`,
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/plain; charset=utf-8`,
+      `Content-Transfer-Encoding: 8bit`,
+      ``,
+      safeBody,
+      ``,
+    ];
+
+    for (const attachmentPath of attachments) {
+      const size = statSync(attachmentPath).size;
+      if (size > 10 * 1024 * 1024) {
+        throw new Error(`Attachment too large (>10MB): ${attachmentPath}`);
+      }
+      const filename = basename(attachmentPath);
+      const encodedFilename = this.encodeMimeHeader(filename);
+      const content = readFileSync(attachmentPath);
+      const b64 = content.toString("base64").replace(/(.{76})/g, "$1\r\n");
+      lines.push(
+        `--${boundary}`,
+        `Content-Type: application/octet-stream; name="${encodedFilename}"`,
+        `Content-Disposition: attachment; filename="${encodedFilename}"`,
+        `Content-Transfer-Encoding: base64`,
+        ``,
+        b64,
+        ``,
+      );
+    }
+    lines.push(`--${boundary}--`);
+    return lines.join("\r\n");
   }
 
   private async connectRaw(): Promise<Socket | tls.TLSSocket> {
@@ -253,7 +333,7 @@ class SmtpClient {
     });
   }
 
-  async sendEmail(to: string, subject: string, body: string, from?: string): Promise<void> {
+  async sendEmail(to: string, subject: string, body: string, from?: string, attachments: string[] = []): Promise<void> {
     const rawSocket = await this.connectRaw();
     let socket: Socket | tls.TLSSocket = rawSocket;
 
@@ -298,21 +378,7 @@ class SmtpClient {
       await this.sendCmd(socket, "DATA");
 
       // Message content — write directly to socket, not via sendCmd
-      const displayName = this.fromName || "Zubo";
-      const encodedFromName = this.encodeMimeHeader(displayName);
-      const encodedSubject = this.encodeMimeHeader(subject);
-      const safeBody = this.toCrlfBody(body || "");
-      const message = [
-        `From: ${encodedFromName} <${fromAddr}>`,
-        `To: ${to}`,
-        `Subject: ${encodedSubject}`,
-        `Date: ${new Date().toUTCString()}`,
-        `MIME-Version: 1.0`,
-        `Content-Type: text/plain; charset=utf-8`,
-        `Content-Transfer-Encoding: 8bit`,
-        ``,
-        safeBody,
-      ].join("\r\n");
+      const message = this.buildMimeMessage(fromAddr, to, subject, body, attachments);
 
       // Send body then terminator, wait for 250 OK
       await new Promise<void>((resolve, reject) => {
@@ -328,6 +394,14 @@ class SmtpClient {
       try {
         await this.sendCmd(socket, "QUIT");
       } catch {}
+      logSentMessage({
+        provider: "smtp",
+        recipient: to,
+        subject,
+        body,
+        attachments,
+        status: "sent",
+      });
     } finally {
       socket.destroy();
     }
@@ -341,9 +415,23 @@ export async function sendSmtpEmail(
   body: string,
   fromName?: string,
   from?: string,
+  attachments: string[] = [],
 ): Promise<void> {
   const smtp = new SmtpClient(config, fromName);
-  await smtp.sendEmail(to, subject, body, from);
+  try {
+    await smtp.sendEmail(to, subject, body, from, attachments);
+  } catch (err: any) {
+    logSentMessage({
+      provider: "smtp",
+      recipient: to,
+      subject,
+      body,
+      attachments,
+      status: "failed",
+      errorMessage: err?.message ?? String(err),
+    });
+    throw err;
+  }
 }
 
 // --- Email channel adapter ---
@@ -424,6 +512,14 @@ export function createEmailAdapter(
               logger.info(`Email: replied to ${senderEmail}`);
             } catch (err: any) {
               logger.error("Email: failed to send reply", { error: err.message, to: senderEmail });
+              logSentMessage({
+                provider: "email_channel",
+                recipient: senderEmail,
+                subject: replySubject,
+                body: reply,
+                status: "failed",
+                errorMessage: err?.message ?? String(err),
+              });
             }
           });
 
@@ -475,6 +571,14 @@ export function createEmailAdapter(
         logger.info(`Email: sent proactive message to ${to}`);
       } catch (err: any) {
         logger.error("Email: failed to send proactive message", { error: err.message, to });
+        logSentMessage({
+          provider: "email_channel",
+          recipient: to,
+          subject: "Message from Zubo",
+          body: text,
+          status: "failed",
+          errorMessage: err?.message ?? String(err),
+        });
       }
     },
   };

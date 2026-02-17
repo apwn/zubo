@@ -552,6 +552,15 @@ describe("Config Schema: memory retrieval + tool scopes", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  test("validates approvals config", () => {
+    const result = configSchema.safeParse({
+      approvals: {
+        autoApproveFirstPartyTools: true,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
 });
 
 // ── Full config ──────────────────────────────────────────────────────────────
